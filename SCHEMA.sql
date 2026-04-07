@@ -81,6 +81,47 @@ CREATE TABLE contacts (
 );
 
 -- ============================================
+-- PRODUITS (ex Products Pipedrive)
+-- ============================================
+CREATE TABLE produits (
+  id                    UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  nom                   TEXT NOT NULL,
+  code_produit          TEXT,
+  categorie             TEXT,
+  description           TEXT,
+  prix_eur              DECIMAL(12,2),
+  unite                 TEXT,
+  taxe                  DECIMAL(5,2),
+  frequence_facturation TEXT,
+  cycles_facturation    INTEGER,
+  ref_interne           TEXT,
+  ref_fuscaq            TEXT,
+  ref_cession_pme       TEXT,
+  actif                 BOOLEAN DEFAULT TRUE,
+  created_at            TIMESTAMP DEFAULT NOW(),
+  updated_at            TIMESTAMP DEFAULT NOW()
+);
+
+-- ============================================
+-- LEADS (prospects avec produit associé)
+-- ============================================
+CREATE TABLE leads (
+  id                    UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  titre                 TEXT NOT NULL,
+  contact_id            UUID REFERENCES contacts(id),
+  entreprise_id         UUID REFERENCES entreprises(id),
+  produit_id            UUID REFERENCES produits(id),
+  statut                TEXT DEFAULT 'nouveau',
+  valeur                DECIMAL(12,2),
+  deal_id               UUID REFERENCES deals(id),
+  date_conversion       DATE,
+  source                TEXT,
+  notes                 TEXT,
+  created_at            TIMESTAMP DEFAULT NOW(),
+  updated_at            TIMESTAMP DEFAULT NOW()
+);
+
+-- ============================================
 -- DEALS (ex Deals Pipedrive)
 -- ============================================
 CREATE TABLE deals (
@@ -140,26 +181,17 @@ CREATE TABLE notes (
 );
 
 -- ============================================
--- PRODUITS (ex Products Pipedrive)
+-- DOCUMENTS (ex Files Pipedrive)
 -- ============================================
-CREATE TABLE produits (
+CREATE TABLE documents (
   id                    UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  nom                   TEXT NOT NULL,
-  code_produit          TEXT,
-  categorie             TEXT,
+  nom                   TEXT,
+  type_fichier          TEXT,
   description           TEXT,
-  prix_eur              DECIMAL(12,2),
-  unite                 TEXT,
-  taxe                  DECIMAL(5,2),
-  frequence_facturation TEXT,
-  cycles_facturation    INTEGER,
-  ref_interne           TEXT,
-  ref_fuscaq            TEXT,
-  ref_cession_pme       TEXT,
-  actif                 BOOLEAN DEFAULT TRUE,
+  deal_id               UUID REFERENCES deals(id),
+  contact_id            UUID REFERENCES contacts(id),
+  entreprise_id         UUID REFERENCES entreprises(id),
+  drive_url             TEXT,
   created_at            TIMESTAMP DEFAULT NOW(),
   updated_at            TIMESTAMP DEFAULT NOW()
 );
-
--- ============================================
--- DOCUMENTS (ex Files Pipedriv
