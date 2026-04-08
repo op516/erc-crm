@@ -1,1 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deals — ERC Conseil</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg:       #eeece8;
+      --surface:  #ffffff;
+      --s2:       #f7f6f3;
+      --border:   #e2ddd8;
+      --border2:  #ccc8c2;
+      --text:     #1c1b19;
+      --text2:    #6e6b65;
+      --text3:    #aeaaa4;
+      --accent:   #1d6aff;
+      --r:        8px;
+      --sh:       0 1px 2px rgba(0,0,0,.05), 0 2px 6px rgba(0,0,0,.07);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      height: 50px;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+
+    .logo { width: 30px; height: 30px; background: var(--text); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+    .logo span { color: #fff; font-size: 11px; font-weight: 600; }
+    .topbar-brand { font-size: 13px; font-weight: 600; color: var(--text); }
+    .topbar-sep   { width: 1px; height: 14px; background: var(--border2); }
+    .topbar-title { font-size: 13px; font-weight: 500; color: var(--text); }
+    .topbar-chip  { font-size: 11px; color: var(--text2); background: var(--s2); border: 1px solid var(--border); border-radius: 20px; padding: 2px 9px; font-family: 'DM Mono', monospace; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .view-toggle  { display: flex; background: var(--s2); border: 1px solid var(--border); border-radius: var(--r); padding: 3px; gap: 2px; }
+    .vbtn { width: 28px; height: 24px; border: none; background: none; cursor: pointer; border-radius: 5px; color: var(--text3); display: flex; align-items: center; justify-content: center; transition: background .12s, color .12s; }
+    .vbtn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    .vbtn svg { width: 14px; height: 14px; }
+    .topbar-time { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+    .subbar { display: none; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 18px; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+    .subbar.show { display: flex; }
+    .subbar::-webkit-scrollbar { display: none; }
+    .stab { padding: 9px 12px; border: none; background: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text2); white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .12s, border-color .12s; }
+    .stab:hover { color: var(--text); }
+    .stab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .stab-n { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text3); }
+    .stab.active .stab-n { color: var(--accent); opacity: .7; }
+
+    .main { padding: 18px; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--text); color: #fff; font-size: 12px; font-weight: 500; padding: 8px 18px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.2); opacity: 0; transition: opacity .2s, transform .2s; z-index: 999; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err  { background: #dc2626; }
+
+    .kanban { display: flex; gap: 10px; overflow-x: auto; align-items: flex-start; padding-bottom: 20px; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+    .kcol { flex-shrink: 0; width: 240px; display: flex; flex-direction: column; gap: 7px; }
+    .col-hdr { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px; }
+    .col-hdr-top { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+    .cdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .col-name { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; }
+    .col-cnt { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text3); background: var(--s2); border: 1px solid var(--border); border-radius: 20px; padding: 1px 6px; }
+    .col-sub { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+    .drop-zone { min-height: 40px; border-radius: var(--r); border: 2px dashed transparent; transition: border-color .15s, background .15s, min-height .15s; display: flex; flex-direction: column; gap: 7px; }
+    .drop-zone.drag-over { border-color: var(--accent); background: rgba(29,106,255,.05); min-height: 80px; }
+
+    .kcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 13px; box-shadow: var(--sh); cursor: grab; transition: box-shadow .15s, transform .15s, opacity .15s, border-color .15s; user-select: none; position: relative; }
+    .kcard:hover { border-color: var(--border2); box-shadow: 0 2px 10px rgba(0,0,0,.1); }
+    .kcard:active { cursor: grabbing; }
+    .kcard.dragging { opacity: .4; transform: scale(.98); box-shadow: none; }
+    .kcard-titre { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.35; margin-bottom: 2px; }
+    .kcard-co    { font-size: 11px; color: var(--text2); margin-bottom: 10px; }
+    .kcard-ft    { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+    .kcard-val   { font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--text); }
+    .kcard-val.z { color: var(--text3); font-weight: 400; }
+    .kcard-st    { font-size: 10px; color: var(--text3); background: var(--s2); border-radius: 4px; padding: 1px 5px; }
+    .kcard-st.soon { color: #ea580c; background: #fff7ed; }
+    .kcard.saving { pointer-events: none; opacity: .7; }
+    .kcard.saving::after { content: ''; position: absolute; top: 8px; right: 8px; width: 12px; height: 12px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+
+    .col-empty { border: 1px dashed var(--border2); border-radius: var(--r); padding: 18px 12px; text-align: center; font-size: 11px; color: var(--text3); }
+
+    .liste { display: none; }
+    .liste.show { display: block; }
+    .tcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; box-shadow: var(--sh); }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    th { padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text3); background: var(--s2); white-space: nowrap; }
+    th.r { text-align: right; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #faf9f7; }
+    td { padding: 12px 14px; vertical-align: middle; }
+    .tt { font-size: 13px; font-weight: 500; color: var(--text); }
+    .tc { font-size: 11px; color: var(--text2); margin-top: 1px; }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 3px 9px 3px 6px; border-radius: 20px; white-space: nowrap; }
+    .badge::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .bq { background:#eff6ff; color:#1d4ed8; } .bq::before { background:#3b82f6; }
+    .bd { background:#f5f3ff; color:#6d28d9; } .bd::before { background:#8b5cf6; }
+    .bv { background:#fdf2f8; color:#be185d; } .bv::before { background:#ec4899; }
+    .br { background:#fff7ed; color:#c2410c; } .br::before { background:#f97316; }
+    .bn { background:#fefce8; color:#a16207; } .bn::before { background:#eab308; }
+    .bc { background:#f0fdf4; color:#15803d; } .bc::before { background:#22c55e; }
+    .bp { background:#fef2f2; color:#b91c1c; } .bp::before { background:#ef4444; }
+
+    .tv { text-align:right; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:var(--text); white-space:nowrap; }
+    .tv.z { color:var(--text3); font-weight:400; }
+    .td2 { font-family:'DM Mono',monospace; font-size:11px; color:var(--text2); }
+    .td2.soon { color:#ea580c; font-weight:500; }
+
+    .state { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 80px; text-align: center; color: var(--text3); font-size: 13px; }
+    .state strong { display:block; color:var(--text2); font-size:14px; font-weight:500; margin-bottom:4px; }
+    .spinner { width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--text); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
+    .config-banner { background: #fffbeb; border: 1px solid #fcd34d; border-radius: var(--r); padding: 12px 16px; font-size: 12px; color: #92400e; margin-bottom: 16px; font-family: 'DM Mono', monospace; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="topbar">
+  <div class="logo"><span>ERC</span></div>
+  <span class="topbar-brand">ERC Conseil</span>
+  <div class="topbar-sep"></div>
+  <span class="topbar-title">Affaires</span>
+  <span class="topbar-chip" id="chip">—</span>
+  <div class="topbar-right">
+    <div class="view-toggle">
+      <button class="vbtn active" id="bk" title="Vue Kanban">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="3" height="12" rx=".8"/><rect x="5.5" y="1" width="3" height="8" rx=".8"/><rect x="10" y="1" width="3" height="10" rx=".8"/></svg>
+      </button>
+      <button class="vbtn" id="bl" title="Vue liste">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="10.5" x2="13" y2="10.5"/></svg>
+      </button>
+    </div>
+    <span class="topbar-time" id="last-update"></span>
+  </div>
+</div>
+
+<div class="subbar" id="subbar">
+  <button class="stab active" data-e="">Toutes <span class="stab-n" id="f-all"></span></button>
+  <button class="stab" data-e="qualification">Qualification <span class="stab-n" id="f-qualification"></span></button>
+  <button class="stab" data-e="diagnostic">Diagnostic <span class="stab-n" id="f-diagnostic"></span></button>
+  <button class="stab" data-e="valorisation">Valorisation <span class="stab-n" id="f-valorisation"></span></button>
+  <button class="stab" data-e="recherche">Recherche <span class="stab-n" id="f-recherche"></span></button>
+  <button class="stab" data-e="negociation">Négociation <span class="stab-n" id="f-negociation"></span></button>
+  <button class="stab" data-e="closing">Closing <span class="stab-n" id="f-closing"></span></button>
+  <button class="stab" data-e="perdu">Perdu <span class="stab-n" id="f-perdu"></span></button>
+</div>
+
+<div class="main">
+  <div class="config-banner" id="config-banner" style="display:none">
+    ⚠ Remplacer SUPABASE_URL et SUPABASE_KEY dans le script.
+  </div>
+  <div id="state-loading" class="state"><div class="spinner"></div>Chargement des affaires…</div>
+  <div id="state-error" class="state" style="display:none">
+    <div style="font-size:24px;margin-bottom:10px">⚠️</div>
+    <strong>Impossible de charger les données</strong>
+    <span id="error-msg"></span>
+  </div>
+  <div class="kanban" id="kanban-view" style="display:none"></div>
+  <div class="liste" id="liste-view">
+    <div class="tcard">
+      <table>
+        <thead>
+          <tr>
+            <th>Affaire / Entreprise</th><th>Étape</th><th>Statut</th><th class="r">Valeur</th><th>Closing prévu</th>
+          </tr>
+        </thead>
+        <tbody id="deals-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://vwlwureqwskxpsihxewr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_hOaMcxwQoXVt7PBcdLzWlg_zgiJ4T8a';
+
+  const STAGES = [
+    { key: 'qualification', label: 'Qualification', dot: '#3b82f6' },
+    { key: 'diagnostic',    label: 'Diagnostic',    dot: '#8b5cf6' },
+    { key: 'valorisation',  label: 'Valorisation',  dot: '#ec4899' },
+    { key: 'recherche',     label: 'Recherche',     dot: '#f97316' },
+    { key: 'negociation',   label: 'Négociation',   dot: '#eab308' },
+    { key: 'closing',       label: 'Closing',       dot: '#22c55e' },
+    { key: 'perdu',         label: 'Perdu',         dot: '#ef4444' },
+  ];
+
+  const BADGE_CLS = { qualification:'bq', diagnostic:'bd', valorisation:'bv', recherche:'br', negociation:'bn', closing:'bc', perdu:'bp' };
+
+  const configOk = !SUPABASE_URL.includes('VOTRE_');
+  if (!configOk) { document.getElementById('config-banner').style.display='block'; showState('error'); document.getElementById('error-msg').textContent='Configurer les clés Supabase.'; }
+
+  const { createClient } = supabase;
+  const sb = configOk ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+  let allDeals=[], currentView='kanban', filtreEtape='', dragId=null;
+
+  let toastTimer;
+  function toast(msg, err=false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (err?' err':'');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ el.className='toast'; }, 2200);
+  }
+
+  async function loadDeals() {
+    if (!sb) return;
+    showState('loading');
+    const { data, error } = await sb.from('deals').select('id, titre, etape, statut, valeur, date_closing_prevu, entreprises(nom)').order('created_at', { ascending: false });
+    if (error) { document.getElementById('error-msg').textContent=error.message; showState('error'); return; }
+    allDeals = data || [];
+    updateMeta(); renderKanban(); renderListe(); showView(currentView);
+    document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  }
+
+  function updateMeta() {
+    const n = allDeals.length;
+    document.getElementById('chip').textContent = n+' affaire'+(n>1?'s':'');
+    document.getElementById('f-all').textContent = n;
+    STAGES.forEach(s=>{ const el=document.getElementById('f-'+s.key); if(el) el.textContent=allDeals.filter(d=>d.etape===s.key).length||''; });
+  }
+
+  function renderKanban() {
+    const wrap = document.getElementById('kanban-view');
+    wrap.innerHTML = '';
+    STAGES.forEach(stage => {
+      const deals = allDeals.filter(d=>d.etape===stage.key);
+      const total = deals.reduce((s,d)=>s+(parseFloat(d.valeur)||0),0);
+      const col = document.createElement('div'); col.className='kcol'; col.dataset.etape=stage.key;
+      const hdr = document.createElement('div'); hdr.className='col-hdr';
+      hdr.innerHTML=`<div class="col-hdr-top"><div class="cdot" style="background:${stage.dot}"></div><span class="col-name">${stage.label}</span><span class="col-cnt" id="cnt-${stage.key}">${deals.length}</span></div><div class="col-sub">${total>0?fmtEur(total):''}</div>`;
+      col.appendChild(hdr);
+      const zone = document.createElement('div'); zone.className='drop-zone'; zone.dataset.etape=stage.key;
+      zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over');});
+      zone.addEventListener('dragleave',e=>{if(!zone.contains(e.relatedTarget))zone.classList.remove('drag-over');});
+      zone.addEventListener('drop',async e=>{
+        e.preventDefault(); zone.classList.remove('drag-over');
+        const newEtape=zone.dataset.etape;
+        if(!dragId||!newEtape) return;
+        const deal=allDeals.find(d=>d.id===dragId);
+        if(!deal||deal.etape===newEtape) return;
+        const oldEtape=deal.etape; deal.etape=newEtape;
+        renderKanban(); updateMeta();
+        const {error}=await sb.from('deals').update({etape:newEtape,updated_at:new Date().toISOString()}).eq('id',dragId);
+        if(error){deal.etape=oldEtape;renderKanban();updateMeta();toast('Erreur sauvegarde',true);}
+        else{toast(`Déplacé vers "${STAGES.find(s=>s.key===newEtape)?.label}" ✓`);}
+      });
+      if(deals.length===0){const e=document.createElement('div');e.className='col-empty';e.textContent='Déposez ici';zone.appendChild(e);}
+      else{deals.forEach(deal=>zone.appendChild(buildCard(deal)));}
+      col.appendChild(zone); wrap.appendChild(col);
+    });
+  }
+
+  function buildCard(deal) {
+    const card=document.createElement('div'); card.className='kcard'; card.draggable=true; card.dataset.id=deal.id;
+    const nomCo=deal.entreprises?.nom||''; const v=parseFloat(deal.valeur); const isZ=isNaN(v)||v===0;
+    const today=new Date();today.setHours(0,0,0,0);const in30=new Date(today);in30.setDate(in30.getDate()+30);
+    let dtLabel='',isSoon=false;
+    if(deal.date_closing_prevu){const dt=new Date(deal.date_closing_prevu);isSoon=dt>=today&&dt<=in30;dtLabel=dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});}
+    card.innerHTML=`<div class="kcard-titre">${esc(deal.titre)}</div>${nomCo?`<div class="kcard-co">${esc(nomCo)}</div>`:'<div class="kcard-co" style="height:17px"></div>'}<div class="kcard-ft"><span class="kcard-val${isZ?' z':''}">${isZ?'0 €':fmtEur(v)}</span>${dtLabel?`<span class="kcard-st${isSoon?' soon':''}">📅 ${dtLabel}</span>`:(deal.statut?`<span class="kcard-st">${esc(deal.statut)}</span>`:'')}</div>`;
+    card.addEventListener('dragstart',e=>{dragId=deal.id;card.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    card.addEventListener('dragend',()=>{card.classList.remove('dragging');document.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('drag-over'));});
+    return card;
+  }
+
+  function renderListe() {
+    const today=new Date();today.setHours(0,0,0,0);const in30=new Date(today);in30.setDate(in30.getDate()+30);
+    const deals=filtreEtape?allDeals.filter(d=>d.etape===filtreEtape):allDeals;
+    const tbody=document.getElementById('deals-body'); tbody.innerHTML='';
+    deals.forEach(deal=>{
+      const tr=document.createElement('tr');
+      const nomCo=deal.entreprises?.nom||'';
+      const etapeKey=(deal.etape||'').toLowerCase().replace(/[^a-z]/g,'');
+      const etapeLbl=STAGES.find(s=>s.key===etapeKey)?.label||deal.etape||'—';
+      tr.innerHTML=`<td><div class="tt">${esc(deal.titre)}</div>${nomCo?`<div class="tc">${esc(nomCo)}</div>`:''}</td><td>${etapeKey?`<span class="badge ${BADGE_CLS[etapeKey]||''}">${etapeLbl}</span>`:'—'}</td><td><span style="font-size:12px;color:var(--text2)">${esc(deal.statut||'—')}</span></td><td>${valeurHTML(deal.valeur)}</td><td>${dateHTML(deal.date_closing_prevu,today,in30)}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function showView(v) {
+    currentView=v; const isK=v==='kanban';
+    document.getElementById('bk').classList.toggle('active',isK);
+    document.getElementById('bl').classList.toggle('active',!isK);
+    document.getElementById('kanban-view').style.display=isK?'flex':'none';
+    document.getElementById('liste-view').classList.toggle('show',!isK);
+    document.getElementById('subbar').classList.toggle('show',!isK);
+    if(allDeals.length>0){document.getElementById('state-loading').style.display='none';document.getElementById('state-error').style.display='none';}
+  }
+
+  document.getElementById('bk').addEventListener('click',()=>showView('kanban'));
+  document.getElementById('bl').addEventListener('click',()=>showView('liste'));
+  document.getElementById('subbar').addEventListener('click',e=>{
+    const btn=e.target.closest('.stab'); if(!btn) return;
+    document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+    filtreEtape=btn.dataset.e; renderListe();
+  });
+
+  function showState(s) {
+    document.getElementById('state-loading').style.display=s==='loading'?'block':'none';
+    document.getElementById('state-error').style.display=s==='error'?'block':'none';
+    document.getElementById('kanban-view').style.display='none';
+    document.getElementById('liste-view').classList.remove('show');
+    document.getElementById('subbar').classList.remove('show');
+  }
+
+  function fmtEur(n){return n.toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0});}
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function valeurHTML(v){if(v==null||v==='')return'<span class="tv z">—</span>';const n=parseFloat(v);return isNaN(n)?'<span class="tv z">—</span>':`<span class="tv">${fmtEur(n)}</span>`;}
+  function dateHTML(d,today,in30){if(!d)return'<span class="td2">—</span>';const dt=new Date(d);if(isNaN(dt))return'<span class="td2">—</span>';const soon=dt>=today&&dt<=in30;const lbl=dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});return`<span class="td2${soon?' soon':''}">${lbl}</span>`;}
+
+  if(configOk) loadDeals();
+</script>
+</body>
+</html>
