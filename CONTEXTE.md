@@ -1,17 +1,23 @@
 # CONTEXTE PROJET — CRM ERC Conseil
 
+*Dernière mise à jour : avril 2026*
+
 ## 0. LECTURE OBLIGATOIRE EN DÉBUT DE SESSION
 
-Avant tout travail, Claude doit lire ces fichiers dans l'ordre :
+Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs **raw** (plus fiables que les URLs /blob/) :
 
-1. https://github.com/op516/erc-crm/blob/main/CONTEXTE.md
-2. https://github.com/op516/erc-crm/blob/main/SCHEMA.sql
-3. https://github.com/op516/erc-crm/blob/main/style.css
-4. https://github.com/op516/erc-crm/blob/main/deals.html
-5. https://github.com/op516/erc-crm/blob/main/contacts.html
-6. https://github.com/op516/erc-crm/blob/main/entreprises.html
+1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
+2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
+3. https://raw.githubusercontent.com/op516/erc-crm/main/style.css
+4. https://raw.githubusercontent.com/op516/erc-crm/main/deals.html
+5. https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
+6. https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
 
-Confirmer la lecture avant de commencer.
+**Règles strictes :**
+- Utiliser exclusivement les URLs `raw.githubusercontent.com`
+- Si un fichier échoue → réessayer une fois avant de signaler
+- Ne jamais conclure qu'un fichier est absent sans avoir tenté l'URL raw
+- Confirmer la lecture de chaque fichier avant de commencer le travail
 
 ## 0bis. PROTOCOLE DE FIN DE SESSION
 
@@ -21,9 +27,6 @@ Quand Olivier signale qu'il quitte la conversation, Claude doit systématiquemen
 2. **CONTEXTE.md mis à jour** — refléter l'état réel du projet (fichiers créés, décisions prises, points en suspens)
 3. **Prompt prêt à coller** pour la prochaine conversation
 4. **Rappel** des fichiers à commiter dans GitHub si nécessaire
-
-*Coller en début de chaque nouvelle conversation avec l'URL du repo*
-*Dernière mise à jour : avril 2026*
 
 ## 1. QUI ET POURQUOI
 
@@ -64,10 +67,15 @@ Stack identique à ComptaFlow — réutilisation directe.
 * `supabase-client.js` — client Supabase partagé ✓
 * `deals.html` — Kanban + liste, drag & drop, Supabase ✓ (CSS encore intégré, pas encore migré vers style.css)
 * `contacts.html` — liste + filtres + drawer CRUD, branché sur style.css ✓
+* `entreprises.html` — en place, pas encore migré vers style.css
 
 ### Pages restantes à construire
-* `entreprises.html`
 * `activites.html`
+* `leads.html`
+
+### Passe finale à prévoir
+* Migrer `deals.html` et `entreprises.html` vers `style.css`
+* Vérifier cohérence visuelle de toutes les pages
 
 ## 6. CHARTE GRAPHIQUE — style.css
 
@@ -86,19 +94,12 @@ Aucun bloc `<style>` intégré — sauf CSS strictement spécifique à la page (
 * Texte secondaire : `#6b778c`
 * Police : DM Sans 400/500/600
 
-## 7. PASSE DE COHÉRENCE CSS — À FAIRE EN FIN DE PROJET
-
-Quand toutes les pages seront construites, prévoir une session dédiée pour :
-* Migrer `deals.html` vers `style.css` (supprimer son `<style>` intégré)
-* Vérifier la cohérence visuelle de toutes les pages
-* Livrer tous les fichiers mis à jour en une seule fois
-
-## 8. PIPELINE ERC
+## 7. PIPELINE ERC
 
 qualification → diagnostic → valorisation →
 recherche → négociation → closing → perdu
 
-## 9. CE QU'ON NE FAIT PAS
+## 8. CE QU'ON NE FAIT PAS
 
 * Pas de reporting complexe
 * Pas de téléphonie
