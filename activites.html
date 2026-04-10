@@ -279,13 +279,13 @@
   <span style="font-size:15px;font-weight:600;color:#172b4d">Agenda</span>
   <span class="count-label" id="countLabel"></span>
   <div class="view-toggle">
-    <button class="view-btn active" id="btn-cards" onclick="setView('cards')" title="Vue cartes">
+    <button class="view-btn" id="btn-cards" onclick="setView('cards')" title="Vue cartes">
       <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
         <rect x="1" y="1" width="5" height="5" rx=".6"/><rect x="8" y="1" width="5" height="5" rx=".6"/>
         <rect x="1" y="8" width="5" height="5" rx=".6"/><rect x="8" y="8" width="5" height="5" rx=".6"/>
       </svg>
     </button>
-    <button class="view-btn" id="btn-table" onclick="setView('table')" title="Vue tableau">
+    <button class="view-btn active" id="btn-table" onclick="setView('table')" title="Vue tableau">
       <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
         <line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/>
         <line x1="1" y1="10.5" x2="13" y2="10.5"/>
@@ -314,12 +314,12 @@
 </div>
 
 <!-- LISTE CARTES -->
-<div class="list-area" id="listArea">
+<div class="list-area hide" id="listArea">
   <div class="empty-state">Chargement…</div>
 </div>
 
 <!-- LISTE TABLEAU -->
-<div class="table-area" id="tableArea">
+<div class="table-area show" id="tableArea">
   <div class="act-table-wrap">
     <table>
       <thead>
@@ -432,7 +432,7 @@
   let allActivites = [];
   let currentPeriod = 'retard';
   let currentType   = 'all';
-  let currentView   = 'cards';
+  let currentView   = 'table';
   let sortCol       = 'date';
   let sortAsc       = true;
 
