@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activités — ERC CRM</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* ── CSS spécifique à activites.html ── */
+
+    /* Tabs période */
+    .period-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 0 24px 0;
+      border-bottom: 1px solid #e0e6f0;
+      background: #fff;
+    }
+    .ptab {
+      padding: 10px 16px;
+      border: none;
+      background: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b778c;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ptab:hover { color: #172b4d; }
+    .ptab.active { color: #0052cc; border-bottom-color: #0052cc; font-weight: 600; }
+    .ptab-badge {
+      background: #de350b;
+      color: #fff;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      line-height: 1.4;
+    }
+    .ptab-badge.hidden { display: none; }
+
+    /* Filtre type */
+    .type-filters {
+      padding: 10px 24px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #f4f5f7;
+      border-bottom: 1px solid #e0e6f0;
+    }
+    .tfbtn {
+      border: 1px solid #dfe1e6;
+      background: #fff;
+      border-radius: 20px;
+      padding: 4px 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6b778c;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tfbtn:hover { border-color: #0052cc; color: #0052cc; }
+    .tfbtn.active { background: #0052cc; border-color: #0052cc; color: #fff; }
+
+    /* Zone de liste */
+    .list-area { padding: 16px 24px 40px; flex: 1; overflow-y: auto; }
+
+    /* Groupe de date */
+    .group-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b778c;
+      margin: 20px 0 8px;
+    }
+    .group-label:first-child { margin-top: 0; }
+    .group-label.late { color: #de350b; }
+
+    /* Carte activité */
+    .act-card {
+      background: #fff;
+      border: 1px solid #dfe1e6;
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 6px;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+    .act-card:hover { border-color: #c1c7d0; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    .act-card.done { opacity: 0.5; }
+    .act-card.late { border-left: 3px solid #de350b; }
+
+    /* Checkbox */
+    .act-check {
+      width: 18px; height: 18px;
+      cursor: pointer;
+      accent-color: #0052cc;
+      flex-shrink: 0;
+    }
+
+    /* Pill type */
+    .type-pill {
+      flex-shrink: 0;
+      border-radius: 4px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .pill-appel { background: #deebff; color: #0052cc; }
+    .pill-rdv   { background: #e3fcef; color: #006644; }
+    .pill-email { background: #fffae6; color: #974f0c; }
+    .pill-tache { background: #eae6ff; color: #403294; }
+    .pill-autre { background: #f4f5f7; color: #6b778c; }
+
+    /* Contenu */
+    .act-body { flex: 1; min-width: 0; }
+    .act-sujet {
+      font-size: 14px;
+      font-weight: 600;
+      color: #172b4d;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .act-meta { font-size: 12px; color: #6b778c; display: flex; gap: 10px; flex-wrap: wrap; }
+    .act-meta a { color: #0052cc; text-decoration: none; }
+    .act-meta a:hover { text-decoration: underline; }
+
+    /* Date */
+    .act-date { font-size: 12px; color: #6b778c; text-align: right; white-space: nowrap; flex-shrink: 0; line-height: 1.6; }
+    .act-date.late { color: #de350b; font-weight: 600; }
+
+    /* Bouton supprimer */
+    .btn-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #c1c7d0;
+      font-size: 15px;
+      padding: 0 4px;
+      flex-shrink: 0;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .btn-del:hover { color: #de350b; }
+
+    /* ── Modal création ── */
+    .modal-wrap {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 30, 66, 0.45);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-wrap.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 8px;
+      width: 500px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #dfe1e6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h2 { font-size: 16px; font-weight: 600; color: #172b4d; }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer {
+      padding: 14px 24px;
+      border-top: 1px solid #dfe1e6;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row-1 { margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>ERC CRM</h1>
+    <nav class="topbar-nav">
+      <a href="entreprises.html">Entreprises</a>
+      <a href="contacts.html">Contacts</a>
+      <a href="deals.html">Deals</a>
+      <a href="activites.html" class="active">Activités</a>
+    </nav>
+  </div>
+  <button class="btn-primary" onclick="openModal()">+ Nouvelle activité</button>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <span style="font-size:15px;font-weight:600;color:#172b4d">Agenda</span>
+  <span class="count-label" id="countLabel"></span>
+</div>
+
+<!-- TABS PÉRIODE -->
+<div class="period-tabs">
+  <button class="ptab active" data-period="retard" onclick="setPeriod('retard')">
+    En retard <span class="ptab-badge hidden" id="badge-retard">0</span>
+  </button>
+  <button class="ptab" data-period="today" onclick="setPeriod('today')">Aujourd'hui</button>
+  <button class="ptab" data-period="week"  onclick="setPeriod('week')">Cette semaine</button>
+  <button class="ptab" data-period="all"   onclick="setPeriod('all')">Toutes</button>
+</div>
+
+<!-- FILTRES TYPE -->
+<div class="type-filters">
+  <button class="tfbtn active" data-type="all"  onclick="setType('all')">Tous types</button>
+  <button class="tfbtn" data-type="appel"  onclick="setType('appel')">📞 Appel</button>
+  <button class="tfbtn" data-type="rdv"    onclick="setType('rdv')">🤝 RDV</button>
+  <button class="tfbtn" data-type="email"  onclick="setType('email')">✉️ Email</button>
+  <button class="tfbtn" data-type="tache"  onclick="setType('tache')">✅ Tâche</button>
+</div>
+
+<!-- LISTE -->
+<div class="list-area" id="listArea">
+  <div class="empty-state">Chargement…</div>
+</div>
+
+<!-- MODAL CRÉATION -->
+<div class="modal-wrap" id="modalWrap">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nouvelle activité</h2>
+      <button class="btn-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Type <span style="color:#de350b">*</span></label>
+          <select id="f-type">
+            <option value="">— Choisir —</option>
+            <option value="appel">📞 Appel</option>
+            <option value="rdv">🤝 RDV</option>
+            <option value="email">✉️ Email</option>
+            <option value="tache">✅ Tâche</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date <span style="color:#de350b">*</span></label>
+          <input type="date" id="f-date" />
+        </div>
+      </div>
+
+      <div class="form-row-1">
+        <div class="form-group">
+          <label>Sujet <span style="color:#de350b">*</span></label>
+          <input type="text" id="f-sujet" placeholder="Ex : Appel de qualification Dupont" />
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Heure</label>
+          <input type="time" id="f-heure" />
+        </div>
+        <div class="form-group">
+          <!-- spacer -->
+        </div>
+      </div>
+
+      <div class="form-row-1">
+        <div class="form-group">
+          <label>Deal associé</label>
+          <select id="f-deal">
+            <option value="">— Aucun —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-1">
+        <div class="form-group">
+          <label>Entreprise associée</label>
+          <select id="f-entreprise">
+            <option value="">— Aucune —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-1">
+        <div class="form-group">
+          <label>Note</label>
+          <textarea id="f-note" placeholder="Contexte, points à aborder…"></textarea>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="btn-primary"   onclick="saveActivite()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let allActivites = [];
+  let currentPeriod = 'retard';
+  let currentType   = 'all';
+
+  // ── Dates ──
+  function todayStr() { return new Date().toISOString().split('T')[0]; }
+  function startOfWeek() {
+    const d = new Date(), day = d.getDay();
+    d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+    return d.toISOString().split('T')[0];
+  }
+  function endOfWeek() {
+    const d = new Date(), day = d.getDay();
+    d.setDate(d.getDate() + (day === 0 ? 0 : 7 - day));
+    return d.toISOString().split('T')[0];
+  }
+  function fmtDate(s) {
+    if (!s) return '';
+    return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' });
+  }
+
+  // ── Chargement ──
+  async function load() {
+    const { data, error } = await supabase
+      .from('activites')
+      .select('*, deals(id, titre), entreprises(id, nom)')
+      .order('date_echeance', { ascending: true });
+    if (error) { showToast('Erreur chargement : ' + error.message, true); return; }
+    allActivites = data || [];
+    refreshBadge();
+    render();
+  }
+
+  function refreshBadge() {
+    const n = allActivites.filter(a => !a.faite && a.date_echeance && a.date_echeance < todayStr()).length;
+    const el = document.getElementById('badge-retard');
+    el.textContent = n;
+    el.classList.toggle('hidden', n === 0);
+  }
+
+  // ── Filtrage ──
+  function getFiltered() {
+    const t = todayStr(), sow = startOfWeek(), eow = endOfWeek();
+    return allActivites.filter(a => {
+      if (currentType !== 'all' && a.type !== currentType) return false;
+      if (currentPeriod === 'retard') return !a.faite && a.date_echeance && a.date_echeance < t;
+      if (currentPeriod === 'today')  return a.date_echeance === t;
+      if (currentPeriod === 'week')   return a.date_echeance >= sow && a.date_echeance <= eow;
+      return true;
+    });
+  }
+
+  // ── Rendu ──
+  function render() {
+    const list = getFiltered();
+    const area = document.getElementById('listArea');
+    document.getElementById('countLabel').textContent =
+      list.length + ' activité' + (list.length > 1 ? 's' : '');
+
+    if (!list.length) {
+      area.innerHTML = `<div class="empty-state">Aucune activité pour cette période.</div>`;
+      return;
+    }
+
+    if (currentPeriod === 'all' || currentPeriod === 'week') {
+      const groups = {};
+      list.forEach(a => { const k = a.date_echeance || 'Sans date'; (groups[k] = groups[k] || []).push(a); });
+      area.innerHTML = Object.entries(groups).map(([date, items]) => {
+        const late = date !== 'Sans date' && date < todayStr();
+        return `<div class="group-label ${late ? 'late' : ''}">${date === 'Sans date' ? 'Sans date' : fmtDate(date)}${late ? ' — En retard' : ''}</div>` + items.map(cardHTML).join('');
+      }).join('');
+    } else {
+      area.innerHTML = list.map(cardHTML).join('');
+    }
+  }
+
+  function cardHTML(a) {
+    const late = !a.faite && a.date_echeance && a.date_echeance < todayStr();
+    const pillCls = { appel:'pill-appel', rdv:'pill-rdv', email:'pill-email', tache:'pill-tache' }[a.type] || 'pill-autre';
+    const typeLabel = { appel:'📞 Appel', rdv:'🤝 RDV', email:'✉️ Email', tache:'✅ Tâche', autre:'Autre' }[a.type] || (a.type || 'Autre');
+    const dealLink = a.deals ? `<a href="deals.html">${esc(a.deals.titre)}</a>` : '';
+    const entSpan  = a.entreprises ? `<span>${esc(a.entreprises.nom)}</span>` : '';
+    const meta = [dealLink, entSpan].filter(Boolean).join(' · ') || '<span style="color:#c1c7d0">Aucun lien</span>';
+    const noteSnip = a.note ? ` · <span>${esc(a.note.slice(0,55))}${a.note.length > 55 ? '…' : ''}</span>` : '';
+
+    return `
+      <div class="act-card ${a.faite ? 'done' : ''} ${late ? 'late' : ''}" id="card-${a.id}">
+        <input type="checkbox" class="act-check" ${a.faite ? 'checked' : ''}
+          onchange="toggleFait('${a.id}', this.checked)" title="Marquer comme faite" />
+        <span class="type-pill ${pillCls}">${typeLabel}</span>
+        <div class="act-body">
+          <div class="act-sujet">${esc(a.sujet || '(sans sujet)')}</div>
+          <div class="act-meta">${meta}${noteSnip}</div>
+        </div>
+        <div class="act-date ${late ? 'late' : ''}">
+          ${fmtDate(a.date_echeance)}${a.heure_echeance ? '<br>' + a.heure_echeance.slice(0,5) : ''}
+        </div>
+        <button class="btn-del" onclick="deleteActivite('${a.id}')" title="Supprimer">✕</button>
+      </div>`;
+  }
+
+  // ── Actions ──
+  async function toggleFait(id, checked) {
+    const card = document.getElementById('card-' + id);
+    card.classList.toggle('done', checked);
+    const { error } = await supabase
+      .from('activites')
+      .update({ faite: checked, date_fait: checked ? new Date().toISOString() : null })
+      .eq('id', id);
+    if (error) {
+      showToast('Erreur : ' + error.message, true);
+      card.classList.toggle('done', !checked); return;
+    }
+    const idx = allActivites.findIndex(a => a.id === id);
+    if (idx !== -1) allActivites[idx].faite = checked;
+    refreshBadge();
+    if (currentPeriod === 'retard' && checked) setTimeout(() => render(), 600);
+    showToast(checked ? 'Activité faite ✓' : 'Activité réouverte');
+  }
+
+  async function deleteActivite(id) {
+    if (!confirm('Supprimer cette activité ?')) return;
+    const { error } = await supabase.from('activites').delete().eq('id', id);
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+    allActivites = allActivites.filter(a => a.id !== id);
+    refreshBadge(); render();
+    showToast('Activité supprimée');
+  }
+
+  // ── Tabs & filtres ──
+  function setPeriod(p) {
+    currentPeriod = p;
+    document.querySelectorAll('.ptab').forEach(b => b.classList.toggle('active', b.dataset.period === p));
+    render();
+  }
+  function setType(t) {
+    currentType = t;
+    document.querySelectorAll('.tfbtn').forEach(b => b.classList.toggle('active', b.dataset.type === t));
+    render();
+  }
+
+  // ── Modal ──
+  async function openModal() {
+    const [{ data: deals }, { data: ents }] = await Promise.all([
+      supabase.from('deals').select('id, titre').eq('statut', 'ouvert').order('titre'),
+      supabase.from('entreprises').select('id, nom').order('nom')
+    ]);
+    document.getElementById('f-deal').innerHTML = '<option value="">— Aucun —</option>' +
+      (deals || []).map(d => `<option value="${d.id}">${esc(d.titre)}</option>`).join('');
+    document.getElementById('f-entreprise').innerHTML = '<option value="">— Aucune —</option>' +
+      (ents || []).map(e => `<option value="${e.id}">${esc(e.nom)}</option>`).join('');
+    document.getElementById('f-date').value = todayStr();
+    document.getElementById('modalWrap').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modalWrap').classList.remove('open');
+    ['f-type','f-sujet','f-heure','f-deal','f-entreprise','f-note'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  }
+
+  async function saveActivite() {
+    const type   = document.getElementById('f-type').value;
+    const sujet  = document.getElementById('f-sujet').value.trim();
+    const date   = document.getElementById('f-date').value;
+    const heure  = document.getElementById('f-heure').value;
+    const dealId = document.getElementById('f-deal').value;
+    const entId  = document.getElementById('f-entreprise').value;
+    const note   = document.getElementById('f-note').value.trim();
+
+    if (!type || !sujet || !date) { showToast('Type, sujet et date sont requis', true); return; }
+
+    const { data, error } = await supabase
+      .from('activites')
+      .insert([{ type, sujet, date_echeance: date, heure_echeance: heure||null,
+                 deal_id: dealId||null, entreprise_id: entId||null, note: note||null, faite: false }])
+      .select('*, deals(id, titre), entreprises(id, nom)');
+
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+    allActivites.push(data[0]);
+    allActivites.sort((a, b) => (a.date_echeance||'').localeCompare(b.date_echeance||''));
+    closeModal(); refreshBadge(); render();
+    showToast('Activité créée ✓');
+  }
+
+  document.getElementById('modalWrap').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalWrap')) closeModal();
+  });
+
+  // ── Toast ──
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── Helpers ──
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  load();
+</script>
+</body>
+</html>
