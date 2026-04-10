@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contacts — ERC CRM</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f4f5f7;
+      color: #172b4d;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar h1 { font-size: 18px; font-weight: 600; color: #172b4d; }
+    .topbar-nav a {
+      font-size: 14px;
+      color: #6b778c;
+      text-decoration: none;
+      margin-right: 16px;
+    }
+    .topbar-nav a:hover { color: #172b4d; }
+
+    .btn-primary {
+      background: #0052cc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #0047b3; }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .search-input {
+      border: 1px solid #dfe1e6;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      width: 280px;
+      background: #fff;
+      color: #172b4d;
+    }
+    .search-input:focus { outline: none; border-color: #0052cc; }
+    .count-label { font-size: 14px; color: #6b778c; margin-left: auto; }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 24px 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    thead tr { background: #f8f9fa; border-bottom: 2px solid #e0e0e0; }
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b778c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f4f5f7; }
+    td {
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #172b4d;
+    }
+    td.nom-cell { font-weight: 500; }
+    td.muted { color: #6b778c; }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #0052cc;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    .nom-wrap { display: flex; align-items: center; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: #6b778c;
+      font-size: 15px;
+    }
+
+    /* ── OVERLAY + DRAWER ── */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(9,30,66,0.4);
+      z-index: 100;
+    }
+    .overlay.open { display: block; }
+
+    .drawer {
+      position: fixed;
+      top: 0; right: -520px;
+      width: 520px;
+      height: 100vh;
+      background: #fff;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.25s ease;
+    }
+    .drawer.open { right: 0; }
+
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .drawer-header h2 { font-size: 17px; font-weight: 600; }
+    .drawer-actions { display: flex; gap: 8px; }
+
+    .btn-close {
+      background: none; border: none;
+      font-size: 22px; cursor: pointer;
+      color: #6b778c; line-height: 1;
+      padding: 2px 6px;
+    }
+    .btn-close:hover { color: #172b4d; }
+
+    .btn-danger {
+      background: none;
+      border: 1px solid #de350b;
+      color: #de350b;
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+    }
+    .btn-danger:hover { background: #de350b; color: #fff; }
+
+    .btn-save {
+      background: #0052cc;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-save:hover { background: #0047b3; }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .form-section {
+      margin-bottom: 24px;
+    }
+    .form-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b778c;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+    .form-group { display: flex; flex-direction: column; flex: 1; }
+    .form-group label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #6b778c;
+      margin-bottom: 4px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      border: 1px solid #dfe1e6;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: #172b4d;
+      background: #fff;
+      width: 100%;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #0052cc;
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #172b4d;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 200;
+      transition: transform 0.3s ease;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #de350b; }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>ERC CRM</h1>
+    <nav class="topbar-nav">
+      <a href="deals.html">Deals</a>
+      <a href="contacts.html" style="color:#0052cc;font-weight:600;">Contacts</a>
+      <a href="activites.html">Activités</a>
+    </nav>
+  </div>
+  <button class="btn-primary" onclick="openDrawer(null)">+ Nouveau contact</button>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <input
+    class="search-input"
+    type="text"
+    id="searchInput"
+    placeholder="Rechercher un contact…"
+    oninput="filterContacts()"
+  />
+  <span class="count-label" id="countLabel"></span>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Entreprise</th>
+        <th>Fonction</th>
+        <th>Email</th>
+        <th>Téléphone</th>
+        <th>Catégorie</th>
+      </tr>
+    </thead>
+    <tbody id="contactsBody">
+      <tr><td colspan="6" class="empty-state">Chargement…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- DRAWER -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawerTitle">Nouveau contact</h2>
+    <div class="drawer-actions">
+      <button class="btn-danger" id="btnDelete" onclick="deleteContact()" style="display:none;">Supprimer</button>
+      <button class="btn-save" onclick="saveContact()">Enregistrer</button>
+      <button class="btn-close" onclick="closeDrawer()">×</button>
+    </div>
+  </div>
+  <div class="drawer-body">
+
+    <!-- Identité -->
+    <div class="form-section">
+      <div class="form-section-title">Identité</div>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 100px;">
+          <label>Civilité</label>
+          <select id="f_civilite">
+            <option value="">—</option>
+            <option>M.</option>
+            <option>Mme</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Prénom</label>
+          <input type="text" id="f_prenom" />
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" id="f_nom" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fonction</label>
+          <input type="text" id="f_fonction" />
+        </div>
+        <div class="form-group">
+          <label>Catégorie</label>
+          <select id="f_classification">
+            <option value="">—</option>
+            <option>Cédant</option>
+            <option>Acquéreur</option>
+            <option>Prescripteur</option>
+            <option>Partenaire</option>
+            <option>Autre</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entreprise -->
+    <div class="form-section">
+      <div class="form-section-title">Entreprise</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Entreprise</label>
+          <select id="f_entreprise_id">
+            <option value="">— Aucune —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Origine contact</label>
+          <select id="f_origine_contact">
+            <option value="">—</option>
+            <option>Réseau</option>
+            <option>Recommandation</option>
+            <option>Site web</option>
+            <option>Salon</option>
+            <option>Appel entrant</option>
+            <option>Prospection</option>
+            <option>Autre</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coordonnées -->
+    <div class="form-section">
+      <div class="form-section-title">Coordonnées</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email professionnel</label>
+          <input type="email" id="f_email_travail" />
+        </div>
+        <div class="form-group">
+          <label>Email personnel</label>
+          <input type="email" id="f_email_perso" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mobile</label>
+          <input type="tel" id="f_tel_mobile" />
+        </div>
+        <div class="form-group">
+          <label>Téléphone bureau</label>
+          <input type="tel" id="f_tel_travail" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Adresse -->
+    <div class="form-section">
+      <div class="form-section-title">Adresse</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Adresse</label>
+          <input type="text" id="f_adresse_perso" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 120px;">
+          <label>Code postal</label>
+          <input type="text" id="f_cp_perso" />
+        </div>
+        <div class="form-group">
+          <label>Ville</label>
+          <input type="text" id="f_ville_perso" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="form-section">
+      <div class="form-section-title">Notes</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="f_notes" rows="4"></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let allContacts = [];
+  let entreprises = [];
+  let currentId = null;
+
+  // ── INIT ──
+  async function init() {
+    const [{ data: contacts, error }, { data: ents }] = await Promise.all([
+      supabase
+        .from('contacts')
+        .select('*, entreprises(nom)')
+        .order('nom', { ascending: true }),
+      supabase
+        .from('entreprises')
+        .select('id, nom')
+        .order('nom', { ascending: true })
+    ]);
+
+    if (error) { showToast('Erreur chargement contacts', true); return; }
+
+    allContacts = contacts || [];
+    entreprises = ents || [];
+    renderTable(allContacts);
+    populateEntreprises();
+  }
+
+  // ── TABLE ──
+  function renderTable(contacts) {
+    const tbody = document.getElementById('contactsBody');
+    document.getElementById('countLabel').textContent =
+      contacts.length + ' contact' + (contacts.length > 1 ? 's' : '');
+
+    if (!contacts.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun contact trouvé.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = contacts.map(c => {
+      const initiales = ((c.prenom?.[0] || '') + (c.nom?.[0] || '')).toUpperCase() || '?';
+      const nomComplet = [c.prenom, c.nom].filter(Boolean).join(' ');
+      const entreprise = c.entreprises?.nom || '';
+      return `
+        <tr onclick="openDrawer('${c.id}')">
+          <td class="nom-cell">
+            <div class="nom-wrap">
+              <div class="avatar">${initiales}</div>
+              ${nomComplet}
+            </div>
+          </td>
+          <td class="muted">${entreprise}</td>
+          <td class="muted">${c.fonction || ''}</td>
+          <td class="muted">${c.email_travail || ''}</td>
+          <td class="muted">${c.tel_mobile || ''}</td>
+          <td class="muted">${c.classification || ''}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── SEARCH ──
+  function filterContacts() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allContacts.filter(c => {
+      const nomComplet = ((c.prenom || '') + ' ' + (c.nom || '')).toLowerCase();
+      return nomComplet.includes(q);
+    });
+    renderTable(filtered);
+  }
+
+  // ── ENTREPRISES SELECT ──
+  function populateEntreprises() {
+    const sel = document.getElementById('f_entreprise_id');
+    entreprises.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = e.nom;
+      sel.appendChild(opt);
+    });
+  }
+
+  // ── DRAWER ──
+  function openDrawer(id) {
+    currentId = id;
+    clearForm();
+
+    if (id) {
+      const c = allContacts.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('drawerTitle').textContent =
+        [c.prenom, c.nom].filter(Boolean).join(' ') || 'Contact';
+      document.getElementById('btnDelete').style.display = 'inline-block';
+      fillForm(c);
+    } else {
+      document.getElementById('drawerTitle').textContent = 'Nouveau contact';
+      document.getElementById('btnDelete').style.display = 'none';
+    }
+
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('drawer').classList.add('open');
+  }
+
+  function closeDrawer() {
+    document.getElementById('overlay').classList.remove('open');
+    document.getElementById('drawer').classList.remove('open');
+    currentId = null;
+  }
+
+  function clearForm() {
+    ['f_civilite','f_prenom','f_nom','f_fonction','f_classification',
+     'f_entreprise_id','f_origine_contact',
+     'f_email_travail','f_email_perso','f_tel_mobile','f_tel_travail',
+     'f_adresse_perso','f_cp_perso','f_ville_perso','f_notes']
+      .forEach(id => { document.getElementById(id).value = ''; });
+  }
+
+  function fillForm(c) {
+    const set = (id, val) => { document.getElementById(id).value = val || ''; };
+    set('f_civilite', c.civilite);
+    set('f_prenom', c.prenom);
+    set('f_nom', c.nom);
+    set('f_fonction', c.fonction);
+    set('f_classification', c.classification);
+    set('f_entreprise_id', c.entreprise_id);
+    set('f_origine_contact', c.origine_contact);
+    set('f_email_travail', c.email_travail);
+    set('f_email_perso', c.email_perso);
+    set('f_tel_mobile', c.tel_mobile);
+    set('f_tel_travail', c.tel_travail);
+    set('f_adresse_perso', c.adresse_perso);
+    set('f_cp_perso', c.cp_perso);
+    set('f_ville_perso', c.ville_perso);
+    set('f_notes', c.notes);
+  }
+
+  function getFormData() {
+    const g = id => document.getElementById(id).value.trim();
+    return {
+      civilite:        g('f_civilite') || null,
+      prenom:          g('f_prenom') || null,
+      nom:             g('f_nom'),
+      fonction:        g('f_fonction') || null,
+      classification:  g('f_classification') || null,
+      entreprise_id:   g('f_entreprise_id') || null,
+      origine_contact: g('f_origine_contact') || null,
+      email_travail:   g('f_email_travail') || null,
+      email_perso:     g('f_email_perso') || null,
+      tel_mobile:      g('f_tel_mobile') || null,
+      tel_travail:     g('f_tel_travail') || null,
+      adresse_perso:   g('f_adresse_perso') || null,
+      cp_perso:        g('f_cp_perso') || null,
+      ville_perso:     g('f_ville_perso') || null,
+      notes:           g('f_notes') || null,
+      updated_at:      new Date().toISOString()
+    };
+  }
+
+  // ── SAVE ──
+  async function saveContact() {
+    const data = getFormData();
+    if (!data.nom) { showToast('Le nom est obligatoire', true); return; }
+
+    let error;
+    if (currentId) {
+      ({ error } = await supabase.from('contacts').update(data).eq('id', currentId));
+    } else {
+      ({ error } = await supabase.from('contacts').insert(data));
+    }
+
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+
+    showToast(currentId ? 'Contact mis à jour' : 'Contact créé');
+    closeDrawer();
+    init();
+  }
+
+  // ── DELETE ──
+  async function deleteContact() {
+    if (!confirm('Supprimer ce contact ? Cette action est irréversible.')) return;
+    const { error } = await supabase.from('contacts').delete().eq('id', currentId);
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+    showToast('Contact supprimé');
+    closeDrawer();
+    init();
+  }
+
+  // ── TOAST ──
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  init();
+</script>
+</body>
+</html>
