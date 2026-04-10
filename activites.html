@@ -425,6 +425,50 @@
   </div>
 </div>
 
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- DRAWER EXÉCUTION -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;" id="drawer-pill-wrap"></div>
+      <h2 id="drawer-titre" style="font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</h2>
+    </div>
+    <div class="drawer-actions">
+      <button class="btn-close" onclick="closeDrawer()">×</button>
+    </div>
+  </div>
+
+  <!-- Lien fiche -->
+  <div id="drawer-lien" style="padding:8px 24px;border-bottom:1px solid #e0e0e0;background:#f4f5f7;font-size:12px;display:none;"></div>
+
+  <div class="drawer-body" style="display:flex;flex-direction:column;gap:0;padding:0;">
+    <!-- Historique -->
+    <div style="padding:16px 24px;border-bottom:1px solid #f0f0f0;flex:1;overflow-y:auto;max-height:240px;">
+      <div style="font-size:11px;font-weight:600;color:#6b778c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Historique</div>
+      <div id="drawer-notes">
+        <span style="font-size:13px;color:#6b778c;">Chargement…</span>
+      </div>
+    </div>
+
+    <!-- Saisie note -->
+    <div style="padding:16px 24px;border-bottom:1px solid #f0f0f0;">
+      <div style="font-size:11px;font-weight:600;color:#6b778c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Nouvelle note</div>
+      <div class="form-group">
+        <textarea id="drawer-note-input" placeholder="Points abordés, décisions, prochaines étapes…" style="min-height:80px;"></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="padding:16px 24px;display:flex;flex-direction:column;gap:8px;">
+      <button class="btn-primary" style="width:100%;text-align:center;" onclick="markDoneAndNext()">✓ Marquer faite + créer la suivante</button>
+      <button class="btn-secondary" style="width:100%;text-align:center;" onclick="saveNoteOnly()">Enregistrer la note uniquement</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -435,6 +479,7 @@
   let currentView   = 'table';
   let sortCol       = 'date';
   let sortAsc       = true;
+  let drawerActivite = null;
 
   // ── Dates ──
   function todayStr() { return new Date().toISOString().split('T')[0]; }
@@ -631,7 +676,7 @@
         a.entreprises ? esc(a.entreprises.nom) : '',
         a.contacts    ? esc([a.contacts.prenom, a.contacts.nom].filter(Boolean).join(' ')) : ''
       ].filter(Boolean).join(' · ') || '<span style="color:#c1c7d0">—</span>';
-      return `<tr>
+      return `<tr style='cursor:pointer' onclick="openDrawer('${a.id}')">
         <td class="td-check">
           <input type="checkbox" ${a.faite ? 'checked' : ''} onchange="toggleFait('${a.id}', this.checked)" />
         </td>
@@ -646,8 +691,128 @@
     }).join('');
   }
 
+  // ── Drawer exécution ──
+  const PILL_CSS = { appel:'pill-appel', rdv:'pill-rdv', email:'pill-email', tache:'pill-tache' };
+  const PILL_LBL = { appel:'📞 Appel', rdv:'🤝 RDV', email:'✉️ Email', tache:'✅ Tâche', autre:'Autre' };
+
+  async function openDrawer(id) {
+    drawerActivite = allActivites.find(a => a.id === id);
+    if (!drawerActivite) return;
+    const a = drawerActivite;
+
+    // Pill + titre
+    const pillCls = PILL_CSS[a.type] || 'pill-autre';
+    const pillLbl = PILL_LBL[a.type] || a.type || 'Autre';
+    document.getElementById('drawer-pill-wrap').innerHTML =
+      `<span class="type-pill ${pillCls}">${pillLbl}</span>` +
+      (a.date_echeance ? `<span style="font-size:12px;color:#6b778c;">${fmtDate(a.date_echeance)}${a.heure_echeance ? ' ' + a.heure_echeance.slice(0,5) : ''}</span>` : '');
+    document.getElementById('drawer-titre').textContent = a.sujet || '(sans sujet)';
+
+    // Lien fiche
+    const lienEl = document.getElementById('drawer-lien');
+    const liens = [];
+    if (a.deals)       liens.push(`<a href="deals.html" style="color:#0052cc;text-decoration:none;font-weight:500;">→ Deal : ${esc(a.deals.titre)}</a>`);
+    if (a.entreprises) liens.push(`<span style="color:#172b4d;font-weight:500;">${esc(a.entreprises.nom)}</span>`);
+    if (a.contacts)    liens.push(`<span style="color:#172b4d;">${esc([a.contacts.prenom, a.contacts.nom].filter(Boolean).join(' '))}</span>`);
+    if (liens.length) { lienEl.innerHTML = liens.join(' &nbsp;·&nbsp; '); lienEl.style.display = 'block'; }
+    else { lienEl.style.display = 'none'; }
+
+    // Reset note input
+    document.getElementById('drawer-note-input').value = '';
+
+    // Charger historique notes
+    document.getElementById('drawer-notes').innerHTML = '<span style="font-size:13px;color:#6b778c;">Chargement…</span>';
+    const filters = [];
+    if (a.deal_id)      filters.push(`deal_id.eq.${a.deal_id}`);
+    if (a.contact_id)   filters.push(`contact_id.eq.${a.contact_id}`);
+    if (a.entreprise_id) filters.push(`entreprise_id.eq.${a.entreprise_id}`);
+
+    let notes = [];
+    if (filters.length) {
+      const { data } = await supabase.from('notes').select('*')
+        .or(filters.join(','))
+        .order('created_at', { ascending: false })
+        .limit(10);
+      notes = data || [];
+    }
+
+    const notesEl = document.getElementById('drawer-notes');
+    if (!notes.length) {
+      notesEl.innerHTML = '<span style="font-size:13px;color:#6b778c;">Aucune note pour ce dossier.</span>';
+    } else {
+      notesEl.innerHTML = notes.map(n => {
+        const d = new Date(n.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+        return `<div style="margin-bottom:10px;">
+          <div style="font-size:11px;color:#6b778c;margin-bottom:3px;">${d}</div>
+          <div style="font-size:13px;color:#172b4d;background:#f4f5f7;border-radius:4px;padding:8px 10px;border-left:2px solid #dfe1e6;line-height:1.5;">${esc(n.contenu||'')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('drawer').classList.add('open');
+  }
+
+  function closeDrawer() {
+    document.getElementById('overlay').classList.remove('open');
+    document.getElementById('drawer').classList.remove('open');
+    drawerActivite = null;
+  }
+
+  async function saveNoteOnly() {
+    const contenu = document.getElementById('drawer-note-input').value.trim();
+    if (!contenu) { showToast('La note est vide', true); return; }
+    const a = drawerActivite;
+    const { error } = await supabase.from('notes').insert([{
+      contenu,
+      deal_id:       a.deal_id       || null,
+      contact_id:    a.contact_id    || null,
+      entreprise_id: a.entreprise_id || null,
+    }]);
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+    showToast('Note enregistrée ✓');
+    // Recharger l'historique
+    openDrawer(a.id);
+  }
+
+  async function markDoneAndNext() {
+    const contenu = document.getElementById('drawer-note-input').value.trim();
+    const a = drawerActivite;
+
+    // Sauvegarder la note si saisie
+    if (contenu) {
+      const { error: ne } = await supabase.from('notes').insert([{
+        contenu,
+        deal_id:       a.deal_id       || null,
+        contact_id:    a.contact_id    || null,
+        entreprise_id: a.entreprise_id || null,
+      }]);
+      if (ne) { showToast('Erreur note : ' + ne.message, true); return; }
+    }
+
+    // Marquer faite
+    const { error } = await supabase.from('activites')
+      .update({ faite: true, date_fait: new Date().toISOString() })
+      .eq('id', a.id);
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+
+    const idx = allActivites.findIndex(x => x.id === a.id);
+    if (idx !== -1) allActivites[idx].faite = true;
+    refreshBadge(); render();
+    showToast('Activité faite ✓');
+
+    // Fermer drawer et ouvrir modal pré-rempli
+    closeDrawer();
+    await openModal({
+      type:         a.type,
+      deal_id:      a.deal_id,
+      entreprise_id: a.entreprise_id,
+      contact_id:   a.contact_id,
+    });
+  }
+
   // ── Modal ──
-  async function openModal() {
+  async function openModal(prefill = {}) {
     const [{ data: deals }, { data: ents }, { data: cts }] = await Promise.all([
       supabase.from('deals').select('id, titre').eq('statut', 'ouvert').order('titre'),
       supabase.from('entreprises').select('id, nom').order('nom'),
@@ -660,6 +825,10 @@
     document.getElementById('f-contact').innerHTML = '<option value="">— Aucun —</option>' +
       (cts || []).map(c => `<option value="${c.id}">${esc([c.prenom, c.nom].filter(Boolean).join(' '))}</option>`).join('');
     document.getElementById('f-date').value = todayStr();
+    if (prefill.type)         document.getElementById('f-type').value = prefill.type;
+    if (prefill.deal_id)      document.getElementById('f-deal').value = prefill.deal_id;
+    if (prefill.entreprise_id) document.getElementById('f-entreprise').value = prefill.entreprise_id;
+    if (prefill.contact_id)   document.getElementById('f-contact').value = prefill.contact_id;
     document.getElementById('modalWrap').classList.add('open');
   }
 
