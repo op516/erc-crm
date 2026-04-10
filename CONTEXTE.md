@@ -1,5 +1,27 @@
 # CONTEXTE PROJET — CRM ERC Conseil
 
+## 0. LECTURE OBLIGATOIRE EN DÉBUT DE SESSION
+
+Avant tout travail, Claude doit lire ces fichiers dans l'ordre :
+
+1. https://github.com/op516/erc-crm/blob/main/CONTEXTE.md
+2. https://github.com/op516/erc-crm/blob/main/SCHEMA.sql
+3. https://github.com/op516/erc-crm/blob/main/style.css
+4. https://github.com/op516/erc-crm/blob/main/deals.html
+5. https://github.com/op516/erc-crm/blob/main/contacts.html
+6. https://github.com/op516/erc-crm/blob/main/entreprises.html
+
+Confirmer la lecture avant de commencer.
+
+## 0bis. PROTOCOLE DE FIN DE SESSION
+
+Quand Olivier signale qu'il quitte la conversation, Claude doit systématiquement produire :
+
+1. **Synthèse** de ce qui a été fait dans la session
+2. **CONTEXTE.md mis à jour** — refléter l'état réel du projet (fichiers créés, décisions prises, points en suspens)
+3. **Prompt prêt à coller** pour la prochaine conversation
+4. **Rappel** des fichiers à commiter dans GitHub si nécessaire
+
 *Coller en début de chaque nouvelle conversation avec l'URL du repo*
 *Dernière mise à jour : avril 2026*
 
