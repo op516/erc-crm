@@ -4,7 +4,7 @@
 
 ## 0. LECTURE OBLIGATOIRE EN DÉBUT DE SESSION
 
-Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs **raw** (plus fiables que les URLs /blob/) :
+Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs **raw** :
 
 1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
 2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
@@ -68,9 +68,14 @@ Stack identique à ComptaFlow — réutilisation directe.
 * `deals.html` — Kanban + liste, drag & drop, Supabase ✓ (CSS encore intégré, pas encore migré vers style.css)
 * `contacts.html` — liste + filtres + drawer CRUD, branché sur style.css ✓
 * `entreprises.html` — en place, pas encore migré vers style.css
+* `activites.html` — agenda commercial ✓ (branché sur style.css)
+  - Onglets : En retard / Aujourd'hui / Cette semaine / Toutes
+  - Filtres type : Appel / RDV / Email / Tâche
+  - Carte : checkbox fait, pill type, deal + entreprise + contact liés, date/heure
+  - Modal création : type (requis), date (requis), sujet (optionnel), heure, deal, entreprise, contact, note
+  - Supabase : SELECT avec joins deals + entreprises + contacts, UPDATE faite, DELETE
 
 ### Pages restantes à construire
-* `activites.html`
 * `leads.html`
 
 ### Passe finale à prévoir
@@ -84,7 +89,7 @@ Toutes les nouvelles pages doivent inclure dans leur `<head>` :
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 ```
-Aucun bloc `<style>` intégré — sauf CSS strictement spécifique à la page (ex: colonnes Kanban).
+Aucun bloc `<style>` intégré — sauf CSS strictement spécifique à la page.
 
 ### Tokens principaux
 * Fond topbar : `#172b4d`
@@ -106,3 +111,9 @@ recherche → négociation → closing → perdu
 * Pas de marketplace
 * Pas de clone Pipedrive complet
 * Pas d'architecture multi-fichiers .js complexe
+
+## 9. POINTS EN SUSPENS
+
+* **Leads dans activites.html** : la table `activites` n'a pas de colonne `lead_id`.
+  Quand on attaquera `leads.html`, prévoir un `ALTER TABLE activites ADD COLUMN lead_id UUID REFERENCES leads(id);`
+  et ajouter le dropdown lead dans le modal de création d'activité.
