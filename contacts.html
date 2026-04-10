@@ -22,8 +22,7 @@
 
     /* ── TOPBAR ── */
     .topbar {
-      background: #fff;
-      border-bottom: 1px solid #e0e0e0;
+      background: #172b4d;
       padding: 0 24px;
       height: 56px;
       display: flex;
@@ -31,15 +30,24 @@
       justify-content: space-between;
       flex-shrink: 0;
     }
-    .topbar-left { display: flex; align-items: center; gap: 16px; }
-    .topbar h1 { font-size: 18px; font-weight: 600; color: #172b4d; }
+    .topbar-left { display: flex; align-items: center; gap: 24px; }
+    .topbar h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.3px;
+    }
+    .topbar-nav { display: flex; gap: 4px; }
     .topbar-nav a {
       font-size: 14px;
-      color: #6b778c;
+      color: rgba(255,255,255,0.7);
       text-decoration: none;
-      margin-right: 16px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      transition: background 0.15s, color 0.15s;
     }
-    .topbar-nav a:hover { color: #172b4d; }
+    .topbar-nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .topbar-nav a.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
 
     .btn-primary {
       background: #0052cc;
@@ -51,16 +59,18 @@
       font-family: 'DM Sans', sans-serif;
       font-weight: 500;
       cursor: pointer;
+      white-space: nowrap;
     }
-    .btn-primary:hover { background: #0047b3; }
+    .btn-primary:hover { background: #0065ff; }
 
     /* ── TOOLBAR ── */
     .toolbar {
       padding: 16px 24px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
     .search-input {
       border: 1px solid #dfe1e6;
@@ -68,11 +78,36 @@
       padding: 8px 12px;
       font-size: 14px;
       font-family: 'DM Sans', sans-serif;
-      width: 280px;
+      width: 240px;
       background: #fff;
       color: #172b4d;
     }
     .search-input:focus { outline: none; border-color: #0052cc; }
+
+    .filter-select {
+      border: 1px solid #dfe1e6;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      background: #fff;
+      color: #172b4d;
+      cursor: pointer;
+    }
+    .filter-select:focus { outline: none; border-color: #0052cc; }
+
+    .btn-reset {
+      background: none;
+      border: 1px solid #dfe1e6;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      color: #6b778c;
+      cursor: pointer;
+    }
+    .btn-reset:hover { border-color: #172b4d; color: #172b4d; }
+
     .count-label { font-size: 14px; color: #6b778c; margin-left: auto; }
 
     /* ── TABLE ── */
@@ -93,11 +128,12 @@
     th {
       text-align: left;
       padding: 12px 16px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: #6b778c;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      white-space: nowrap;
     }
     tbody tr {
       border-bottom: 1px solid #f0f0f0;
@@ -106,12 +142,7 @@
     }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: #f4f5f7; }
-    td {
-      padding: 12px 16px;
-      font-size: 14px;
-      color: #172b4d;
-    }
-    td.nom-cell { font-weight: 500; }
+    td { padding: 12px 16px; font-size: 14px; color: #172b4d; }
     td.muted { color: #6b778c; }
 
     .avatar {
@@ -119,7 +150,7 @@
       border-radius: 50%;
       background: #0052cc;
       color: #fff;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
@@ -127,7 +158,21 @@
       margin-right: 10px;
       flex-shrink: 0;
     }
-    .nom-wrap { display: flex; align-items: center; }
+    .nom-wrap { display: flex; align-items: center; font-weight: 500; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background: #e3ecfa;
+      color: #0052cc;
+    }
+    .badge.cedant      { background: #fff3e0; color: #b45309; }
+    .badge.acquereur   { background: #e8f5e9; color: #2e7d32; }
+    .badge.prescripteur{ background: #f3e5f5; color: #7b1fa2; }
+    .badge.partenaire  { background: #e3ecfa; color: #0052cc; }
 
     .empty-state {
       text-align: center;
@@ -147,8 +192,8 @@
 
     .drawer {
       position: fixed;
-      top: 0; right: -520px;
-      width: 520px;
+      top: 0; right: -540px;
+      width: 540px;
       height: 100vh;
       background: #fff;
       box-shadow: -4px 0 20px rgba(0,0,0,0.15);
@@ -168,7 +213,7 @@
       flex-shrink: 0;
     }
     .drawer-header h2 { font-size: 17px; font-weight: 600; }
-    .drawer-actions { display: flex; gap: 8px; }
+    .drawer-actions { display: flex; gap: 8px; align-items: center; }
 
     .btn-close {
       background: none; border: none;
@@ -203,15 +248,9 @@
     }
     .btn-save:hover { background: #0047b3; }
 
-    .drawer-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-    }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 24px; }
 
-    .form-section {
-      margin-bottom: 24px;
-    }
+    .form-section { margin-bottom: 24px; }
     .form-section-title {
       font-size: 11px;
       font-weight: 600;
@@ -241,14 +280,15 @@
       color: #172b4d;
       background: #fff;
       width: 100%;
+      transition: border-color 0.15s;
     }
     .form-group input:focus,
     .form-group select:focus,
-    .form-group textarea:focus {
-      outline: none;
-      border-color: #0052cc;
-    }
+    .form-group textarea:focus { outline: none; border-color: #0052cc; }
+    .form-group input.invalid { border-color: #ff8f73; }
     .form-group textarea { resize: vertical; min-height: 80px; }
+    .field-hint { font-size: 11px; color: #de350b; margin-top: 3px; display: none; }
+    .field-hint.show { display: block; }
 
     /* ── TOAST ── */
     .toast {
@@ -277,7 +317,8 @@
     <h1>ERC CRM</h1>
     <nav class="topbar-nav">
       <a href="deals.html">Deals</a>
-      <a href="contacts.html" style="color:#0052cc;font-weight:600;">Contacts</a>
+      <a href="contacts.html" class="active">Contacts</a>
+      <a href="entreprises.html">Entreprises</a>
       <a href="activites.html">Activités</a>
     </nav>
   </div>
@@ -290,9 +331,28 @@
     class="search-input"
     type="text"
     id="searchInput"
-    placeholder="Rechercher un contact…"
-    oninput="filterContacts()"
+    placeholder="Rechercher par nom…"
+    oninput="applyFilters()"
   />
+  <select class="filter-select" id="filterCategorie" onchange="applyFilters()">
+    <option value="">Toutes catégories</option>
+    <option>Cédant</option>
+    <option>Acquéreur</option>
+    <option>Prescripteur</option>
+    <option>Partenaire</option>
+    <option>Autre</option>
+  </select>
+  <select class="filter-select" id="filterOrigine" onchange="applyFilters()">
+    <option value="">Toutes origines</option>
+    <option>Réseau</option>
+    <option>Recommandation</option>
+    <option>Site web</option>
+    <option>Salon</option>
+    <option>Appel entrant</option>
+    <option>Prospection</option>
+    <option>Autre</option>
+  </select>
+  <button class="btn-reset" onclick="resetFilters()">Réinitialiser</button>
   <span class="count-label" id="countLabel"></span>
 </div>
 
@@ -307,10 +367,11 @@
         <th>Email</th>
         <th>Téléphone</th>
         <th>Catégorie</th>
+        <th>Origine</th>
       </tr>
     </thead>
     <tbody id="contactsBody">
-      <tr><td colspan="6" class="empty-state">Chargement…</td></tr>
+      <tr><td colspan="7" class="empty-state">Chargement…</td></tr>
     </tbody>
   </table>
 </div>
@@ -334,7 +395,7 @@
     <div class="form-section">
       <div class="form-section-title">Identité</div>
       <div class="form-row">
-        <div class="form-group" style="flex:0 0 100px;">
+        <div class="form-group" style="flex:0 0 90px;">
           <label>Civilité</label>
           <select id="f_civilite">
             <option value="">—</option>
@@ -356,6 +417,8 @@
           <label>Fonction</label>
           <input type="text" id="f_fonction" />
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label>Catégorie</label>
           <select id="f_classification">
@@ -365,19 +428,6 @@
             <option>Prescripteur</option>
             <option>Partenaire</option>
             <option>Autre</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Entreprise -->
-    <div class="form-section">
-      <div class="form-section-title">Entreprise</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Entreprise</label>
-          <select id="f_entreprise_id">
-            <option value="">— Aucune —</option>
           </select>
         </div>
         <div class="form-group">
@@ -396,27 +446,42 @@
       </div>
     </div>
 
+    <!-- Entreprise -->
+    <div class="form-section">
+      <div class="form-section-title">Entreprise</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Entreprise liée</label>
+          <select id="f_entreprise_id">
+            <option value="">— Aucune —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <!-- Coordonnées -->
     <div class="form-section">
       <div class="form-section-title">Coordonnées</div>
       <div class="form-row">
         <div class="form-group">
           <label>Email professionnel</label>
-          <input type="email" id="f_email_travail" />
+          <input type="text" id="f_email_travail" oninput="validateEmail(this,'hint_email_travail')" />
+          <span class="field-hint" id="hint_email_travail">Format attendu : nom@domaine.fr</span>
         </div>
         <div class="form-group">
           <label>Email personnel</label>
-          <input type="email" id="f_email_perso" />
+          <input type="text" id="f_email_perso" oninput="validateEmail(this,'hint_email_perso')" />
+          <span class="field-hint" id="hint_email_perso">Format attendu : nom@domaine.fr</span>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Mobile</label>
-          <input type="tel" id="f_tel_mobile" />
+          <input type="text" id="f_tel_mobile" oninput="formatTel(this)" placeholder="06 xx xx xx xx" />
         </div>
         <div class="form-group">
           <label>Téléphone bureau</label>
-          <input type="tel" id="f_tel_travail" />
+          <input type="text" id="f_tel_travail" oninput="formatTel(this)" placeholder="01 xx xx xx xx" />
         </div>
       </div>
     </div>
@@ -431,9 +496,9 @@
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group" style="flex:0 0 120px;">
+        <div class="form-group" style="flex:0 0 130px;">
           <label>Code postal</label>
-          <input type="text" id="f_cp_perso" />
+          <input type="text" id="f_cp_perso" maxlength="5" />
         </div>
         <div class="form-group">
           <label>Ville</label>
@@ -447,7 +512,6 @@
       <div class="form-section-title">Notes</div>
       <div class="form-row">
         <div class="form-group">
-          <label>Notes</label>
           <textarea id="f_notes" rows="4"></textarea>
         </div>
       </div>
@@ -461,8 +525,8 @@
 
 <script>
   let allContacts = [];
-  let entreprises = [];
-  let currentId = null;
+  let entreprises  = [];
+  let currentId    = null;
 
   // ── INIT ──
   async function init() {
@@ -480,8 +544,8 @@
     if (error) { showToast('Erreur chargement contacts', true); return; }
 
     allContacts = contacts || [];
-    entreprises = ents || [];
-    renderTable(allContacts);
+    entreprises  = ents    || [];
+    applyFilters();
     populateEntreprises();
   }
 
@@ -492,50 +556,82 @@
       contacts.length + ' contact' + (contacts.length > 1 ? 's' : '');
 
     if (!contacts.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun contact trouvé.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun contact trouvé.</td></tr>';
       return;
     }
 
     tbody.innerHTML = contacts.map(c => {
-      const initiales = ((c.prenom?.[0] || '') + (c.nom?.[0] || '')).toUpperCase() || '?';
+      const initiales  = ((c.prenom?.[0] || '') + (c.nom?.[0] || '')).toUpperCase() || '?';
       const nomComplet = [c.prenom, c.nom].filter(Boolean).join(' ');
-      const entreprise = c.entreprises?.nom || '';
+      const ent        = c.entreprises?.nom || '';
+      const badgeClass = { 'Cédant':'cedant','Acquéreur':'acquereur','Prescripteur':'prescripteur','Partenaire':'partenaire' }[c.classification] || '';
+
       return `
         <tr onclick="openDrawer('${c.id}')">
-          <td class="nom-cell">
-            <div class="nom-wrap">
-              <div class="avatar">${initiales}</div>
-              ${nomComplet}
-            </div>
-          </td>
-          <td class="muted">${entreprise}</td>
+          <td><div class="nom-wrap"><div class="avatar">${initiales}</div>${nomComplet}</div></td>
+          <td class="muted">${ent}</td>
           <td class="muted">${c.fonction || ''}</td>
           <td class="muted">${c.email_travail || ''}</td>
           <td class="muted">${c.tel_mobile || ''}</td>
-          <td class="muted">${c.classification || ''}</td>
+          <td>${c.classification ? `<span class="badge ${badgeClass}">${c.classification}</span>` : ''}</td>
+          <td class="muted">${c.origine_contact || ''}</td>
         </tr>`;
     }).join('');
   }
 
-  // ── SEARCH ──
-  function filterContacts() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
+  // ── FILTRES ──
+  function applyFilters() {
+    const q    = document.getElementById('searchInput').value.toLowerCase();
+    const cat  = document.getElementById('filterCategorie').value;
+    const orig = document.getElementById('filterOrigine').value;
+
     const filtered = allContacts.filter(c => {
-      const nomComplet = ((c.prenom || '') + ' ' + (c.nom || '')).toLowerCase();
-      return nomComplet.includes(q);
+      const nom = ((c.prenom || '') + ' ' + (c.nom || '')).toLowerCase();
+      return (!q    || nom.includes(q))
+          && (!cat  || c.classification   === cat)
+          && (!orig || c.origine_contact  === orig);
     });
+
     renderTable(filtered);
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value      = '';
+    document.getElementById('filterCategorie').value  = '';
+    document.getElementById('filterOrigine').value    = '';
+    applyFilters();
   }
 
   // ── ENTREPRISES SELECT ──
   function populateEntreprises() {
     const sel = document.getElementById('f_entreprise_id');
+    sel.innerHTML = '<option value="">— Aucune —</option>';
     entreprises.forEach(e => {
       const opt = document.createElement('option');
       opt.value = e.id;
       opt.textContent = e.nom;
       sel.appendChild(opt);
     });
+  }
+
+  // ── VALIDATION SOUPLE ──
+  function validateEmail(input, hintId) {
+    const val  = input.value.trim();
+    const hint = document.getElementById(hintId);
+    if (val && !val.includes('@')) {
+      input.classList.add('invalid');
+      hint.classList.add('show');
+    } else {
+      input.classList.remove('invalid');
+      hint.classList.remove('show');
+    }
+  }
+
+  function formatTel(input) {
+    let digits = input.value.replace(/\D/g, '').slice(0, 10);
+    if (digits.length > 0) {
+      input.value = digits.match(/.{1,2}/g).join(' ');
+    }
   }
 
   // ── DRAWER ──
@@ -566,50 +662,53 @@
   }
 
   function clearForm() {
-    ['f_civilite','f_prenom','f_nom','f_fonction','f_classification',
-     'f_entreprise_id','f_origine_contact',
-     'f_email_travail','f_email_perso','f_tel_mobile','f_tel_travail',
+    ['f_civilite','f_prenom','f_nom','f_fonction','f_classification','f_origine_contact',
+     'f_entreprise_id','f_email_travail','f_email_perso','f_tel_mobile','f_tel_travail',
      'f_adresse_perso','f_cp_perso','f_ville_perso','f_notes']
       .forEach(id => { document.getElementById(id).value = ''; });
+    ['hint_email_travail','hint_email_perso'].forEach(id =>
+      document.getElementById(id).classList.remove('show'));
+    ['f_email_travail','f_email_perso'].forEach(id =>
+      document.getElementById(id).classList.remove('invalid'));
   }
 
   function fillForm(c) {
     const set = (id, val) => { document.getElementById(id).value = val || ''; };
-    set('f_civilite', c.civilite);
-    set('f_prenom', c.prenom);
-    set('f_nom', c.nom);
-    set('f_fonction', c.fonction);
-    set('f_classification', c.classification);
-    set('f_entreprise_id', c.entreprise_id);
+    set('f_civilite',        c.civilite);
+    set('f_prenom',          c.prenom);
+    set('f_nom',             c.nom);
+    set('f_fonction',        c.fonction);
+    set('f_classification',  c.classification);
     set('f_origine_contact', c.origine_contact);
-    set('f_email_travail', c.email_travail);
-    set('f_email_perso', c.email_perso);
-    set('f_tel_mobile', c.tel_mobile);
-    set('f_tel_travail', c.tel_travail);
-    set('f_adresse_perso', c.adresse_perso);
-    set('f_cp_perso', c.cp_perso);
-    set('f_ville_perso', c.ville_perso);
-    set('f_notes', c.notes);
+    set('f_entreprise_id',   c.entreprise_id);
+    set('f_email_travail',   c.email_travail);
+    set('f_email_perso',     c.email_perso);
+    set('f_tel_mobile',      c.tel_mobile);
+    set('f_tel_travail',     c.tel_travail);
+    set('f_adresse_perso',   c.adresse_perso);
+    set('f_cp_perso',        c.cp_perso);
+    set('f_ville_perso',     c.ville_perso);
+    set('f_notes',           c.notes);
   }
 
   function getFormData() {
     const g = id => document.getElementById(id).value.trim();
     return {
-      civilite:        g('f_civilite') || null,
-      prenom:          g('f_prenom') || null,
+      civilite:        g('f_civilite')        || null,
+      prenom:          g('f_prenom')          || null,
       nom:             g('f_nom'),
-      fonction:        g('f_fonction') || null,
+      fonction:        g('f_fonction')        || null,
       classification:  g('f_classification') || null,
-      entreprise_id:   g('f_entreprise_id') || null,
-      origine_contact: g('f_origine_contact') || null,
-      email_travail:   g('f_email_travail') || null,
-      email_perso:     g('f_email_perso') || null,
-      tel_mobile:      g('f_tel_mobile') || null,
-      tel_travail:     g('f_tel_travail') || null,
-      adresse_perso:   g('f_adresse_perso') || null,
-      cp_perso:        g('f_cp_perso') || null,
-      ville_perso:     g('f_ville_perso') || null,
-      notes:           g('f_notes') || null,
+      origine_contact: g('f_origine_contact')|| null,
+      entreprise_id:   g('f_entreprise_id')  || null,
+      email_travail:   g('f_email_travail')  || null,
+      email_perso:     g('f_email_perso')    || null,
+      tel_mobile:      g('f_tel_mobile')     || null,
+      tel_travail:     g('f_tel_travail')    || null,
+      adresse_perso:   g('f_adresse_perso')  || null,
+      cp_perso:        g('f_cp_perso')       || null,
+      ville_perso:     g('f_ville_perso')    || null,
+      notes:           g('f_notes')          || null,
       updated_at:      new Date().toISOString()
     };
   }
@@ -627,7 +726,6 @@
     }
 
     if (error) { showToast('Erreur : ' + error.message, true); return; }
-
     showToast(currentId ? 'Contact mis à jour' : 'Contact créé');
     closeDrawer();
     init();
