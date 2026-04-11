@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
 </head>
-<body>
+<body style="background:#f5f6fa;">
 
 <nav class="nav">
   <a href="index.html" class="nav-logo">ERC CRM</a>
@@ -37,26 +37,23 @@
   </div>
 </div>
 
-<div class="subbar" id="subbar">
+<div class="subbar show" id="subbar">
   <button class="stab active" data-e="">Toutes <span class="stab-n" id="f-all"></span></button>
-  <button class="stab" data-e="qualification">Qualification <span class="stab-n" id="f-qualification"></span></button>
-  <button class="stab" data-e="diagnostic">Diagnostic <span class="stab-n" id="f-diagnostic"></span></button>
-  <button class="stab" data-e="valorisation">Valorisation <span class="stab-n" id="f-valorisation"></span></button>
-  <button class="stab" data-e="recherche">Recherche <span class="stab-n" id="f-recherche"></span></button>
-  <button class="stab" data-e="negociation">Négociation <span class="stab-n" id="f-negociation"></span></button>
+  <button class="stab" data-e="qualification">Qualif. <span class="stab-n" id="f-qualification"></span></button>
+  <button class="stab" data-e="diagnostic">Diag. <span class="stab-n" id="f-diagnostic"></span></button>
+  <button class="stab" data-e="valorisation">Valo. <span class="stab-n" id="f-valorisation"></span></button>
+  <button class="stab" data-e="recherche">Rech. <span class="stab-n" id="f-recherche"></span></button>
+  <button class="stab" data-e="negociation">Négo. <span class="stab-n" id="f-negociation"></span></button>
   <button class="stab" data-e="closing">Closing <span class="stab-n" id="f-closing"></span></button>
   <button class="stab" data-e="perdu">Perdu <span class="stab-n" id="f-perdu"></span></button>
 </div>
 
 <div class="content">
-  <div id="state-loading" class="state"><div class="spinner"></div>Chargement des deals…</div>
-  <div id="state-error" class="state" style="display:none">
-    <div style="font-size:24px;margin-bottom:10px">⚠️</div>
-    <strong>Impossible de charger les données</strong>
-    <span id="error-msg"></span>
-  </div>
-  <div class="kanban" id="kanban-view" style="display:none"></div>
-  <div class="liste" id="liste-view">
+  <div id="state-loading" class="state"><div class="spinner"></div>Chargement...</div>
+  
+  <div class="kanban" id="kanban-view" style="display:flex; gap:12px; overflow-x:auto; padding-bottom:20px;"></div>
+  
+  <div class="liste" id="liste-view" style="display:none;">
     <div class="table-wrap">
       <table>
         <thead><tr>
@@ -72,9 +69,9 @@
 <div class="so-overlay" id="so-overlay" onclick="closeSlideOver()"></div>
 <div class="slideover" id="slideover">
   <div class="so-hdr">
-    <div class="so-hdr-row">
-      <input type="text" id="so-titre-input" class="so-title" style="border:none; background:transparent; width:100%; padding:4px 0; outline:none; border-bottom:1px solid transparent; font-family: inherit; font-size: 15px; font-weight: 600;" onfocus="this.style.borderBottomColor='#0e3d5c'" onblur="this.style.borderBottomColor='transparent'">
-      <button class="so-close" onclick="closeSlideOver()">✕</button>
+    <div class="so-hdr-row" style="display:flex; align-items:center; gap:10px;">
+      <input type="text" id="so-titre-input" class="so-title" placeholder="Nom du deal" style="flex:1; border:none; background:transparent; font-size:16px; font-weight:600; outline:none; color:#1a1a2e;">
+      <button class="so-close" onclick="closeSlideOver()" style="background:none; border:none; cursor:pointer; font-size:18px;">✕</button>
     </div>
     <div class="so-meta" id="so-meta"></div>
   </div>
@@ -108,22 +105,21 @@ function toast(msg, type='success'){
 }
 
 async function loadDeals(){
-  showState('loading');
+  document.getElementById('state-loading').style.display='block';
   const {data,error}=await sb.from('deals')
-    .select('id,titre,etape,statut,valeur,probabilite,date_closing_prevu,date_gain,notes,entreprises(nom),contacts(prenom,nom,fonction)')
+    .select('*,entreprises(nom),contacts(prenom,nom,fonction)')
     .order('created_at',{ascending:false});
-  if(error){document.getElementById('error-msg').textContent=error.message;showState('error');return;}
+  if(error) return;
   allDeals=data||[];
   refreshMeta(); renderKanban(); renderListe(); showView(currentView);
 }
 
 function refreshMeta(){
-  const n=allDeals.length;
-  document.getElementById('chip').textContent=n+' deal'+(n>1?'s':'');
-  document.getElementById('f-all').textContent=n;
+  document.getElementById('chip').textContent=allDeals.length+' deal'+(allDeals.length>1?'s':'');
+  document.getElementById('f-all').textContent=allDeals.length;
   STAGES.forEach(s=>{
     const el=document.getElementById('f-'+s.key);
-    if(el) el.textContent=allDeals.filter(d=>d.etape===s.key).length||'';
+    if(el) el.textContent=allDeals.filter(d=>d.etape===s.key).length||'0';
   });
 }
 
@@ -131,272 +127,94 @@ function renderKanban(){
   const wrap=document.getElementById('kanban-view'); wrap.innerHTML='';
   STAGES.forEach(stage=>{
     const deals=allDeals.filter(d=>d.etape===stage.key);
-    const total=deals.reduce((s,d)=>s+(parseFloat(d.valeur)||0),0);
-    const col=document.createElement('div'); col.className='kcol'; col.dataset.etape=stage.key;
-    col.innerHTML='<div class="col-hdr"><div class="col-hdr-top">'
-      +'<div class="cdot" style="background:'+stage.dot+'"></div>'
-      +'<span class="col-name">'+stage.label+'</span>'
-      +'<span class="col-cnt">'+deals.length+'</span></div>'
-      +'<div class="col-sub">'+(total>0?eur(total):'')+'</div></div>';
-    const zone=document.createElement('div'); zone.className='drop-zone'; zone.dataset.etape=stage.key;
-    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over');});
-    zone.addEventListener('dragleave',e=>{if(!zone.contains(e.relatedTarget))zone.classList.remove('drag-over');});
-    zone.addEventListener('drop',async e=>{
-      e.preventDefault(); zone.classList.remove('drag-over');
-      const newE=zone.dataset.etape;
-      if(!dragId||!newE) return;
-      const deal=allDeals.find(d=>d.id===dragId);
-      if(!deal||deal.etape===newE) return;
-      const old=deal.etape; deal.etape=newE;
-      renderKanban(); refreshMeta();
-      const {error}=await sb.from('deals').update({etape:newE,updated_at:new Date().toISOString()}).eq('id',dragId);
-      if(error){deal.etape=old;renderKanban();refreshMeta();toast('Erreur sauvegarde','error');}
-      else{ toast('Déplacé vers "'+STAGES.find(s=>s.key===newE)?.label+'" ✓'); }
-    });
-    if(!deals.length){
-      const em=document.createElement('div');em.className='col-empty';em.textContent='Déposez ici';zone.appendChild(em);
-    } else {
-      deals.forEach(d=>zone.appendChild(buildCard(d)));
-    }
+    const col=document.createElement('div'); col.className='kcol'; col.style.width='240px'; col.style.flexShrink='0';
+    col.innerHTML=`<div class="col-hdr"><div class="col-hdr-top"><div class="cdot" style="background:${stage.dot}"></div><span class="col-name">${stage.label}</span><span class="col-cnt">${deals.length}</span></div></div>`;
+    const zone=document.createElement('div'); zone.className='drop-zone'; zone.style.minHeight='100px';
+    deals.forEach(d=>zone.appendChild(buildCard(d)));
     col.appendChild(zone); wrap.appendChild(col);
   });
 }
 
 function buildCard(deal){
-  const card=document.createElement('div');
-  card.className='kcard'+(deal.id===currentSoId?' active-so':'');
-  card.draggable=true; card.dataset.id=deal.id;
-  const nomCo=deal.entreprises?.nom||'';
-  const v=parseFloat(deal.valeur); const isZ=isNaN(v)||v===0;
-  const today=new Date(); today.setHours(0,0,0,0);
-  const in30=new Date(today); in30.setDate(in30.getDate()+30);
-  let dtLabel='',soon=false;
-  if(deal.date_closing_prevu){
-    const dt=new Date(deal.date_closing_prevu);
-    soon=dt>=today&&dt<=in30;
-    dtLabel=dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
-  }
-  card.innerHTML='<div class="kcard-titre">'+esc(deal.titre)+'</div>'
-    +(nomCo?'<div class="kcard-co">'+esc(nomCo)+'</div>':'<div class="kcard-co" style="height:17px"></div>')
-    +'<div class="kcard-ft">'
-    +'<span class="kcard-val'+(isZ?' z':'')+'">'+( isZ?'—':eur(v))+'</span>'
-    +(dtLabel?'<span class="kcard-st'+(soon?' soon':'')+'">📅 '+dtLabel+'</span>'
-      :(deal.statut?'<span class="kcard-st">'+esc(deal.statut)+'</span>':''))
-    +'</div>';
-  card.addEventListener('dragstart',e=>{isDragging=true;dragId=deal.id;card.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-  card.addEventListener('dragend',()=>{card.classList.remove('dragging');document.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('drag-over'));setTimeout(()=>{isDragging=false;},50);});
-  card.addEventListener('click',()=>{if(!isDragging) openSo(deal.id);});
+  const card=document.createElement('div'); card.className='kcard';
+  card.innerHTML=`<div class="kcard-titre">${deal.titre}</div><div class="kcard-co">${deal.entreprises?.nom||''}</div><div class="kcard-ft"><span class="kcard-val">${eur(deal.valeur)}</span></div>`;
+  card.onclick=()=>openSo(deal.id);
   return card;
 }
 
 function renderListe(){
-  const today=new Date();today.setHours(0,0,0,0);
-  const in30=new Date(today);in30.setDate(in30.getDate()+30);
-  const deals=filtreEtape?allDeals.filter(d=>d.etape===filtreEtape):allDeals;
   const tbody=document.getElementById('deals-body'); tbody.innerHTML='';
-  deals.forEach(deal=>{
-    const tr=document.createElement('tr');
-    if(deal.id===currentSoId) tr.classList.add('active-so');
-    const nomCo=deal.entreprises?.nom||'';
-    const ek=(deal.etape||'').toLowerCase();
-    const elbl=STAGES.find(s=>s.key===ek)?.label||deal.etape||'—';
-    tr.innerHTML='<td><div class="tt">'+esc(deal.titre)+'</div>'+(nomCo?'<div class="tc">'+esc(nomCo)+'</div>':'')+'</td>'
-      +'<td>'+(ek?'<span class="badge '+(BCLS[ek]||'')+'">'+elbl+'</span>':'—')+'</td>'
-      +'<td><span style="font-size:12px;color:#6b7494">'+esc(deal.statut||'—')+'</span></td>'
-      +'<td>'+vHtml(deal.valeur)+'</td>'
-      +'<td>'+dHtml(deal.date_closing_prevu,today,in30)+'</td>';
-    tr.addEventListener('click',()=>openSo(deal.id));
+  allDeals.forEach(deal=>{
+    const tr=document.createElement('tr'); tr.onclick=()=>openSo(deal.id);
+    tr.innerHTML=`<td><div class="tt">${deal.titre}</div><div class="tc">${deal.entreprises?.nom||''}</div></td><td><span class="badge ${BCLS[deal.etape]||'bq'}">${deal.etape}</span></td><td>${deal.statut||''}</td><td class="r">${eur(deal.valeur)}</td><td>${fd(deal.date_closing_prevu)}</td>`;
     tbody.appendChild(tr);
   });
 }
 
 function showView(v){
-  currentView=v; const isK=v==='kanban';
-  document.getElementById('bk').classList.toggle('active',isK);
-  document.getElementById('bl').classList.toggle('active',!isK);
-  document.getElementById('kanban-view').style.display=isK?'flex':'none';
-  document.getElementById('liste-view').classList.toggle('show',!isK);
-  document.getElementById('subbar').classList.toggle('show',!isK);
+  currentView=v;
+  document.getElementById('kanban-view').style.display=v==='kanban'?'flex':'none';
+  document.getElementById('liste-view').style.display=v==='liste'?'block':'none';
   document.getElementById('state-loading').style.display='none';
 }
-function showState(s){
-  document.getElementById('state-loading').style.display=s==='loading'?'block':'none';
-  document.getElementById('kanban-view').style.display='none';
-  document.getElementById('liste-view').classList.remove('show');
-}
-document.getElementById('bk').addEventListener('click',()=>showView('kanban'));
-document.getElementById('bl').addEventListener('click',()=>showView('liste'));
-document.getElementById('subbar').addEventListener('click',e=>{
-  const btn=e.target.closest('.stab'); if(!btn) return;
-  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
-  filtreEtape=btn.dataset.e; renderListe();
-});
 
-// SLIDE-OVER
-async function openSo(dealId){
-  if(dealId===currentSoId){closeSlideOver();return;}
-  currentSoId=dealId;
-  markActive(dealId);
+async function openSo(id){
+  currentSoId=id;
   document.getElementById('so-overlay').classList.add('open');
   document.getElementById('slideover').classList.add('open');
-  document.getElementById('so-titre-input').value = '…';
-  document.getElementById('so-body').innerHTML='<div class="so-loading"><div class="so-spin"></div>Chargement…</div>';
-
-  const [{data:deal,error:err},{data:acts},{data:notes},{data:leads}] = await Promise.all([
-    sb.from('deals').select('*,entreprises(id,nom),contacts(id,prenom,nom,fonction)').eq('id',dealId).single(),
-    sb.from('activites').select('*').eq('deal_id',dealId).order('date_echeance',{ascending:false}),
-    sb.from('notes').select('*').eq('deal_id',dealId).order('created_at',{ascending:false}),
-    sb.from('leads').select('produits(id,nom,taxe)').eq('deal_id',dealId).limit(1)
-  ]);
-
-  if(err||!deal){
-    document.getElementById('so-body').innerHTML='<div class="so-loading" style="color:#c5221f">Erreur.</div>';
-    return;
-  }
-
-  const produit=leads?.[0]?.produits||null;
-  document.getElementById('so-titre-input').value = deal.titre;
-  document.getElementById('so-meta').innerHTML=buildMeta(deal);
-  document.getElementById('so-body').innerHTML=buildBody(deal,produit,acts||[],notes||[]);
-
-  document.getElementById('f-valeur')?.addEventListener('input',recalcFinance);
-  document.getElementById('btn-note')?.addEventListener('click',()=>addNote(dealId));
-}
-
-function buildMeta(deal){
-  const ek=deal.etape||'';
-  const lbl=STAGES.find(s=>s.key===ek)?.label||ek;
-  let h='<span class="badge '+(BCLS[ek]||'')+'">'+lbl+'</span>';
-  if(deal.statut) h+='<span style="font-size:11px;font-weight:500;color:#6b7494;background:#f5f6fa;border:1px solid #e8eaf0;border-radius:20px;padding:2px 9px">'+esc(deal.statut)+'</span>';
-  return h;
-}
-
-function buildBody(deal,produit,acts,notes){
-  const ht=parseFloat(deal.valeur)||0;
-  const tvaRate=produit?.taxe!=null?parseFloat(produit.taxe):20;
-  const tva=ht*tvaRate/100, ttc=ht+tva;
-
-  let ctx='';
-  if(deal.entreprises?.nom) ctx+='🏢 '+esc(deal.entreprises.nom)+'<br>';
-  if(deal.contacts){
-    const n=[deal.contacts.prenom,deal.contacts.nom].filter(Boolean).join(' ');
-    ctx+='👤 '+esc(n);
-  }
-
-  const stageOpts=STAGES.map(s=>'<option value="'+s.key+'"'+(deal.etape===s.key?' selected':'')+'>'+s.label+'</option>').join('');
-  const statOpts=STATUTS.map(s=>'<option value="'+s+'"'+(deal.statut===s?' selected':'')+'>'+(s.charAt(0).toUpperCase()+s.slice(1))+'</option>').join('');
-
-  return (ctx?'<div class="so-form" style="padding-bottom:0"><div class="so-ctx">'+ctx+'</div></div>':'')
-    +'<div class="so-form">'
-    +'<div class="so-stitle">Pipeline</div>'
-    +'<div class="so-row2">'
-    +'<div class="so-field"><label>Étape</label><select id="f-etape">'+stageOpts+'</select></div>'
-    +'<div class="so-field"><label>Statut</label><select id="f-statut">'+statOpts+'</select></div>'
-    +'</div>'
-    
-    +'<div class="so-stitle">Financier</div>'
-    +'<div class="so-field"><label>Valeur HT (€)</label><input type="number" id="f-valeur" value="'+(ht||'')+'"></div>'
-    +'<div class="so-finance">'
-    +'<div class="so-fr"><span class="l">Base HT</span><span class="v" id="fi-ht">'+eur(ht)+'</span></div>'
-    +'<div class="so-fr"><span class="l">TVA '+tvaRate+'%</span><span class="v" id="fi-tva">'+eur(tva)+'</span></div>'
-    +'<div class="so-fr ttc"><span class="l">Total TTC</span><span class="v" id="fi-ttc">'+eur(ttc)+'</span></div>'
-    +'</div>'
-
-    +'<div class="so-stitle">Dates</div>'
-    +'<div class="so-row2">'
-    +'<div class="so-field"><label>Échéance prévue</label><input type="date" id="f-closing" value="'+(deal.date_closing_prevu||'')+'"></div>'
-    +'<div class="so-field"><label>Date réalisation</label><input type="date" id="f-gain" value="'+(deal.date_gain||'')+'"></div>'
-    +'</div>'
-
-    +'<div class="so-stitle">Note interne</div>'
-    +'<div class="so-field"><textarea id="f-notes">'+esc(deal.notes||'')+'</textarea></div>'
-    +'</div>'
-
-    +'<div class="so-save-bar">'
-    +'<button class="btn-save-deal" id="btn-save-deal" onclick="saveDeal(\''+deal.id+'\')">Enregistrer les modifications</button>'
-    +'</div>'
-
-    +'<div class="so-tabs">'
-    +'<button class="so-tab active" id="tab-act" onclick="switchTab(\'act\')">Activités <span class="so-cnt" id="cnt-act">'+(acts.length||'')+'</span></button>'
-    +'<button class="so-tab" id="tab-notes" onclick="switchTab(\'notes\')">Notes <span class="so-cnt" id="cnt-notes">'+(notes.length||'')+'</span></button>'
-    +'</div>'
-    +'<div class="so-panel active" id="panel-act">'+buildActs(acts)+'</div>'
-    +'<div class="so-panel" id="panel-notes">'+buildNotes(notes,deal.id)+'</div>';
-}
-
-function recalcFinance(){
-  const ht=parseFloat(document.getElementById('f-valeur')?.value)||0;
-  const tva=ht*20/100, ttc=ht+tva;
-  document.getElementById('fi-ht').textContent=eur(ht);
-  document.getElementById('fi-tva').textContent=eur(tva);
-  document.getElementById('fi-ttc').textContent=eur(ttc);
+  const {data:deal}=await sb.from('deals').select('*,entreprises(nom),contacts(prenom,nom)').eq('id',id).single();
+  const {data:notes}=await sb.from('notes').select('*').eq('deal_id',id).order('created_at',{ascending:false});
+  
+  document.getElementById('so-titre-input').value=deal.titre;
+  document.getElementById('so-meta').innerHTML=`<span class="badge ${BCLS[deal.etape]||'bq'}">${deal.etape}</span>`;
+  
+  let html=`<div class="so-form">
+    <div class="so-stitle">Détails de l'affaire</div>
+    <div class="so-row2">
+      <div class="so-field"><label>Étape</label><select id="f-etape">${STAGES.map(s=>`<option value="${s.key}" ${deal.etape===s.key?'selected':''}>${s.label}</option>`).join('')}</select></div>
+      <div class="so-field"><label>Statut</label><select id="f-statut">${STATUTS.map(s=>`<option value="${s}" ${deal.statut===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+    <div class="so-field"><label>Valeur HT (€)</label><input type="number" id="f-valeur" value="${deal.valeur||''}"></div>
+    <div class="so-field"><label>Échéance prévue</label><input type="date" id="f-closing" value="${deal.date_closing_prevu||''}"></div>
+    <div class="so-stitle">Notes</div>
+    <div class="note-form"><textarea class="note-ta" id="new-note" placeholder="Ajouter une note..."></textarea><button class="btn-note" onclick="addNote('${id}')">Ajouter</button></div>
+    <div id="notes-list">${notes.map(n=>`<div class="note-item"><div class="note-d">${fd(n.created_at)}</div><div class="note-c">${n.contenu}</div></div>`).join('')}</div>
+  </div>
+  <div class="so-save-bar"><button class="btn-save-deal" onclick="saveDeal('${id}')">Enregistrer les modifications</button></div>`;
+  
+  document.getElementById('so-body').innerHTML=html;
 }
 
 async function saveDeal(id){
-  const btn=document.getElementById('btn-save-deal');
-  btn.disabled=true; btn.textContent='Enregistrement…';
-  
   const payload={
-    titre:     document.getElementById('so-titre-input').value,
-    etape:     document.getElementById('f-etape').value,
-    statut:    document.getElementById('f-statut').value,
-    valeur:    document.getElementById('f-valeur').value!==''?parseFloat(document.getElementById('f-valeur').value):null,
+    titre: document.getElementById('so-titre-input').value,
+    etape: document.getElementById('f-etape').value,
+    statut: document.getElementById('f-statut').value,
+    valeur: parseFloat(document.getElementById('f-valeur').value)||0,
     date_closing_prevu: document.getElementById('f-closing').value||null,
-    date_gain: document.getElementById('f-gain').value||null,
-    notes:     document.getElementById('f-notes')?.value.trim()||null,
-    updated_at:new Date().toISOString(),
+    updated_at: new Date().toISOString()
   };
-
-  const {error}=await sb.from('deals').update(payload).eq('id',id);
-  if(error){toast('Erreur','error'); btn.disabled=false; return;}
-  
-  toast('Deal mis à jour ✓');
-  closeSlideOver(); 
-  loadDeals(); 
+  await sb.from('deals').update(payload).eq('id',id);
+  toast('Deal mis à jour ✓'); closeSlideOver(); loadDeals();
 }
 
-function buildActs(acts){
-  if(!acts.length) return '<div class="so-empty">Aucune activité.</div>';
-  const PILL={appel:'p-appel',rdv:'p-rdv',email:'p-email',tache:'p-tache'};
-  return acts.map(a=>'<div class="act-item '+(a.faite?'act-done':'')+'"><span class="act-pill '+(PILL[a.type]||'p-autre')+'">'+(a.type||'?')+'</span><div class="act-info"><div class="act-sujet">'+esc(a.sujet)+'</div><div class="act-date">'+(a.date_echeance?fd(a.date_echeance):'—')+'</div></div></div>').join('');
-}
-
-function buildNotes(notes,dealId){
-  const list=notes.map(n=>'<div class="note-item"><div class="note-d">'+fdt(n.created_at)+'</div><div class="note-c">'+esc(n.contenu)+'</div></div>').join('');
-  return '<div class="note-form"><textarea class="note-ta" id="note-ta-'+dealId+'" placeholder="Nouvelle note…"></textarea><button class="btn-note" onclick="addNote(\''+dealId+'\')">+ Ajouter</button></div><div id="notes-list">'+list+'</div>';
-}
-
-async function addNote(dealId){
-  const ta=document.getElementById('note-ta-'+dealId);
-  const contenu=ta.value.trim(); if(!contenu) return;
-  await sb.from('notes').insert([{contenu,deal_id:dealId}]);
-  ta.value=''; openSo(dealId);
-}
-
-function switchTab(t){
-  ['act','notes'].forEach(x=>{
-    document.getElementById('tab-'+x)?.classList.toggle('active',x===t);
-    document.getElementById('panel-'+x)?.classList.toggle('active',x===t);
-  });
-}
-
-function markActive(dealId){
-  document.querySelectorAll('.kcard').forEach(c=>c.classList.toggle('active-so',c.dataset.id===dealId));
-  document.querySelectorAll('#deals-body tr').forEach((tr,i)=>tr.classList.toggle('active-so',allDeals[i]?.id===dealId));
+async function addNote(id){
+  const content=document.getElementById('new-note').value;
+  if(!content) return;
+  await sb.from('notes').insert([{contenu:content, deal_id:id}]);
+  openSo(id);
 }
 
 function closeSlideOver(){
   document.getElementById('so-overlay').classList.remove('open');
   document.getElementById('slideover').classList.remove('open');
-  currentSoId=null;
 }
 
-function eur(n){return(isNaN(n)?0:n).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0});}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fd(d){if(!d) return '—'; const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('fr-FR');}
-function fdt(iso){if(!iso) return ''; const dt=new Date(iso); return dt.toLocaleDateString('fr-FR')+' '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}
-function vHtml(v){const n=parseFloat(v);return isNaN(n)?'<span class="tv z">—</span>':'<span class="tv">'+eur(n)+'</span>';}
-function dHtml(d,today,in30){if(!d)return'<span class="td2">—</span>';const dt=new Date(d);const soon=dt>=today&&dt<=in30;return'<span class="td2'+(soon?' soon':'')+'">'+dt.toLocaleDateString('fr-FR')+'</span>';}
+function eur(n){return (n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0});}
+function fd(d){if(!d) return '—'; return new Date(d).toLocaleDateString('fr-FR');}
+
+document.getElementById('bk').onclick=()=>showView('kanban');
+document.getElementById('bl').onclick=()=>showView('liste');
 
 loadDeals();
 </script>
