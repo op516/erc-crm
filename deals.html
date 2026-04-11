@@ -10,67 +10,143 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <style>
-    /* RÉINTÉGRATION DU CSS SPÉCIFIQUE POUR LE KANBAN ET LE DRAWER */
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'DM Sans',sans-serif;font-size:14px;color:#1a1a2e;background:#f5f6fa;min-height:100vh}
 
+    /* NAV */
     .nav{background:#0e3d5c;padding:0 24px;height:52px;display:flex;align-items:center;gap:32px}
     .nav-logo{font-weight:700;font-size:16px;color:white;text-decoration:none}
-    .nav a{color:rgba(255,255,255,.7);text-decoration:none;font-size:14px;font-weight:500;padding:4px 8px;border-radius:4px}
-    .nav a.active{color:white;background:rgba(255,255,255,.1)}
+    .nav a{color:rgba(255,255,255,.7);text-decoration:none;font-size:14px;font-weight:500;padding:4px 8px;border-radius:4px;transition:color .15s,background .15s}
+    .nav a:hover,.nav a.active{color:white;background:rgba(255,255,255,.1)}
 
+    /* TOOLBAR */
     .toolbar{background:white;border-bottom:1px solid #e8eaf0;padding:12px 24px;display:flex;align-items:center;gap:12px}
     .toolbar h1{font-size:18px;font-weight:600;flex:1}
-    .btn-primary{background:#0e3d5c;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px}
-    
+    .toolbar-meta{font-size:13px;color:#9ba3b8}
     .view-toggle{display:flex;border:1px solid #dde1ec;border-radius:6px;overflow:hidden}
-    .view-btn{height:36px;width:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:white;border:none;color:#9ba3b8}
+    .view-btn{height:36px;width:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:white;border:none;color:#9ba3b8;transition:background .15s,color .15s}
     .view-btn.active{background:#0e3d5c;color:white}
+    .view-btn:hover:not(.active){background:#f5f6fa}
 
-    .subbar{display:none;background:white;border-bottom:1px solid #e8eaf0;padding:0 24px;gap:2px;overflow-x:auto}
+    /* SUBBAR */
+    .subbar{display:none;background:white;border-bottom:1px solid #e8eaf0;padding:0 24px;gap:2px;overflow-x:auto;scrollbar-width:none}
     .subbar.show{display:flex}
-    .stab{padding:10px 14px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:#6b7494;border-bottom:2px solid transparent}
+    .stab{padding:10px 14px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#6b7494;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
+    .stab:hover{color:#1a1a2e}
     .stab.active{color:#0e3d5c;border-bottom-color:#0e3d5c}
+    .stab-n{font-size:11px;color:#9ba3b8;margin-left:4px}
 
+    /* CONTENT / KANBAN */
     .content{padding:24px}
-    .kanban{display:flex;gap:12px;overflow-x:auto;align-items:flex-start}
+    .kanban{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:20px;scrollbar-width:thin;scrollbar-color:#dde1ec transparent}
     .kcol{flex-shrink:0;width:240px;display:flex;flex-direction:column;gap:8px}
     .col-hdr{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:10px 14px}
-    .col-hdr-top{display:flex;align-items:center;gap:8px}
-    .cdot{width:8px;height:8px;border-radius:50%}
+    .col-hdr-top{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+    .cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
     .col-name{font-size:12px;font-weight:600;flex:1}
     .col-cnt{font-size:11px;color:#9ba3b8;background:#f5f6fa;border:1px solid #e8eaf0;border-radius:20px;padding:1px 7px}
-    .drop-zone{min-height:40px;display:flex;flex-direction:column;gap:8px}
-    .kcard{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer}
-    .kcard-titre{font-size:12px;font-weight:600;margin-bottom:2px}
+    .col-sub{font-size:11px;color:#9ba3b8}
+    .drop-zone{min-height:40px;border-radius:8px;border:2px dashed transparent;transition:border-color .15s,background .15s,min-height .15s;display:flex;flex-direction:column;gap:8px}
+    .drop-zone.drag-over{border-color:#0e3d5c;background:rgba(14,61,92,.04);min-height:80px}
+    .kcard{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer;transition:box-shadow .15s,border-color .15s,opacity .15s;user-select:none;position:relative}
+    .kcard:hover{border-color:#c5cce0;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+    .kcard.dragging{opacity:.4;cursor:grabbing;box-shadow:none}
+    .kcard.active-so{border-color:#0e3d5c;box-shadow:0 0 0 2px rgba(14,61,92,.18)}
+    .kcard-titre{font-size:12px;font-weight:600;line-height:1.35;margin-bottom:2px}
     .kcard-co{font-size:11px;color:#6b7494;margin-bottom:10px}
+    .kcard-ft{display:flex;align-items:center;justify-content:space-between;gap:4px}
     .kcard-val{font-size:11px;font-weight:600}
+    .kcard-val.z{color:#9ba3b8;font-weight:400}
+    .kcard-st{font-size:10px;color:#6b7494;background:#f5f6fa;border-radius:4px;padding:2px 6px}
+    .kcard-st.soon{color:#e84c0a;background:#fff4f0}
+    .col-empty{border:1px dashed #e8eaf0;border-radius:8px;padding:18px 12px;text-align:center;font-size:11px;color:#9ba3b8}
 
+    /* LISTE */
+    .liste{display:none}
+    .liste.show{display:block}
+    .table-wrap{background:white;border-radius:8px;border:1px solid #e8eaf0;overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    thead{background:#f8f9fc;border-bottom:1px solid #e8eaf0}
+    th{text-align:left;padding:10px 16px;font-size:11px;font-weight:700;color:#6b7494;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+    th.r{text-align:right}
+    tbody tr{border-bottom:1px solid #f0f2f7;transition:background .1s;cursor:pointer}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:#f8f9fc}
+    tbody tr.active-so{background:#e8f0fe!important}
+    td{padding:12px 16px;vertical-align:middle}
+    .tt{font-size:13px;font-weight:500}
+    .tc{font-size:11px;color:#6b7494;margin-top:2px}
+    .tv{text-align:right;font-size:13px;font-weight:500;white-space:nowrap}
+    .tv.z{color:#9ba3b8;font-weight:400}
+    .td2{font-size:12px;color:#6b7494}
+    .td2.soon{color:#e84c0a;font-weight:500}
+
+    /* BADGES */
+    .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px 3px 6px;border-radius:20px;white-space:nowrap}
+    .badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .bq{background:#e8f0fe;color:#1967d2}.bq::before{background:#3b82f6}
+    .bd{background:#f3f0ff;color:#6d28d9}.bd::before{background:#8b5cf6}
+    .bv{background:#fce7f3;color:#be185d}.bv::before{background:#ec4899}
+    .br{background:#fff7ed;color:#c2410c}.br::before{background:#f97316}
+    .bn{background:#fefce8;color:#a16207}.bn::before{background:#eab308}
+    .bc{background:#e6f4ea;color:#137333}.bc::before{background:#22c55e}
+    .bp{background:#fce8e6;color:#c5221f}.bp::before{background:#ef4444}
+
+    /* ÉTATS / TOAST */
+    .state{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:80px;text-align:center;color:#9ba3b8;font-size:13px}
+    .state strong{display:block;color:#6b7494;font-size:14px;font-weight:500;margin-bottom:4px}
+    .spinner{width:20px;height:20px;border:2px solid #e8eaf0;border-top-color:#0e3d5c;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+    .toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:500;color:white;z-index:999;transform:translateY(80px);opacity:0;transition:transform .3s,opacity .3s;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+    .toast-success{background:#137333}
+    .toast-error{background:#c5221f}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* SLIDE-OVER */
     .so-overlay{display:none;position:fixed;inset:0;background:rgba(9,30,66,.35);z-index:200}
     .so-overlay.open{display:block}
     .slideover{position:fixed;top:0;right:0;bottom:0;width:480px;background:#fff;z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;box-shadow:-4px 0 24px rgba(0,0,0,.14)}
     .slideover.open{transform:translateX(0)}
-    .so-hdr{padding:16px 20px 12px;border-bottom:1px solid #e8eaf0}
-    .so-title-input{font-size:15px;font-weight:600;flex:1;border:1px solid transparent;outline:none;font-family:inherit;color:#1a1a2e;padding:4px}
-    .so-title-input:focus{border-bottom:1px solid #0e3d5c;background:#f8f9fc}
 
-    .so-body{flex:1;overflow-y:auto}
-    .so-form{padding:16px 20px}
-    .so-stitle{font-size:10px;font-weight:700;text-transform:uppercase;color:#9ba3b8;margin:14px 0 8px}
-    .so-field{margin-bottom:10px}
+    .so-hdr{padding:16px 20px 12px;border-bottom:1px solid #e8eaf0;flex-shrink:0}
+    .so-hdr-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .so-title-input{font-size:15px;font-weight:600;flex:1;border:1px solid transparent;background:transparent;outline:none;padding:2px 0}
+    .so-title-input:hover{border-bottom:1px dashed #dde1ec}
+    .so-title-input:focus{border-bottom:1px solid #0e3d5c}
+    .so-close{background:none;border:none;cursor:pointer;color:#9ba3b8;font-size:20px;line-height:1;padding:2px 4px;flex-shrink:0}
+    .so-close:hover{color:#1a1a2e}
+    .so-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:22px}
+
+    .so-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0}
+    .so-loading{padding:32px 20px;text-align:center;color:#9ba3b8;font-size:13px}
+    .so-spin{width:16px;height:16px;border:2px solid #e8eaf0;border-top-color:#0e3d5c;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px}
+
+    /* Formulaire slide-over */
+    .so-form{padding:16px 20px 8px}
+    .so-stitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ba3b8;margin:14px 0 8px}
     .so-field label{display:block;font-size:11px;font-weight:600;color:#6b7494;margin-bottom:4px}
-    .so-field input, .so-field select, .so-field textarea{width:100%;border:1px solid #dde1ec;border-radius:6px;padding:7px 10px;font-family:inherit;font-size:13px}
-    .so-finance{background:#f8f9fc;border:1px solid #e8eaf0;border-radius:8px;padding:10px 14px}
-    .so-fr{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}
-    .so-fr.ttc{font-weight:700;border-top:1px solid #eee;margin-top:5px;padding-top:8px}
+    .so-field input,.so-field select,.so-field textarea{width:100%;border:1px solid #dde1ec;border-radius:6px;padding:7px 10px;font-family:'DM Sans',sans-serif;font-size:13px;color:#1a1a2e;background:#fff;outline:none;transition:border-color .15s}
+    .so-field input:focus,.so-field select:focus,.so-field textarea:focus{border-color:#0e3d5c}
+    .so-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-    .so-save-bar{padding:10px 20px;border-top:1px solid #e8eaf0}
-    .btn-save-deal{width:100%;height:36px;background:#0e3d5c;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer}
-    .so-tabs{display:flex;border-bottom:1px solid #e8eaf0}
-    .so-tab{padding:11px 20px;border:none;background:none;font-size:13px;color:#6b7494;cursor:pointer;border-bottom:2px solid transparent}
+    /* Bloc financier */
+    .so-finance{background:#f8f9fc;border:1px solid #e8eaf0;border-radius:8px;padding:10px 14px;margin-top:2px}
+    .so-fr{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0f2f7}
+    .so-fr:last-child{border-bottom:none}
+    .so-fr .l{color:#6b7494}
+    .so-fr .v{font-weight:500}
+    .so-fr.ttc .l{font-weight:700;color:#1a1a2e;font-size:13px}
+    .so-fr.ttc .v{font-weight:700;color:#137333;font-size:14px}
+
+    .so-save-bar{padding:10px 20px;border-top:1px solid #e8eaf0;border-bottom:1px solid #e8eaf0;flex-shrink:0;background:#fff}
+    .btn-save-deal{width:100%;height:36px;background:#0e3d5c;color:white;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+    .btn-primary{background:#0e3d5c;color:white;border:none;border-radius:6px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px}
+
+    .so-tabs{display:flex;border-bottom:1px solid #e8eaf0;flex-shrink:0;background:#fff}
+    .so-tab{padding:11px 20px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#6b7494;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
     .so-tab.active{color:#0e3d5c;border-bottom-color:#0e3d5c;font-weight:600}
     .so-panel{display:none;padding:14px 20px}.so-panel.active{display:block}
-    .note-ta{width:100%;border:1px solid #dde1ec;border-radius:6px;padding:8px;min-height:60px;margin-bottom:8px}
+    .note-ta{width:100%;border:1px solid #dde1ec;border-radius:6px;padding:8px;margin-bottom:8px;resize:vertical}
   </style>
 </head>
 <body>
@@ -86,11 +162,18 @@
 <div class="toolbar">
   <h1>Deals</h1>
   <button class="btn-primary" onclick="createNewDeal()">+ Nouveau Deal</button>
-  
-  <span class="toolbar-meta" id="chip" style="margin-left:15px"></span>
-  <div class="view-toggle">
-    <button class="view-btn active" id="bk"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="3" height="12" rx=".8"/><rect x="5.5" y="1" width="3" height="8" rx=".8"/><rect x="10" y="1" width="3" height="10" rx=".8"/></svg></button>
-    <button class="view-btn" id="bl"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="10.5" x2="13" y2="10.5"/></svg></button>
+  <span class="toolbar-meta" id="chip" style="margin-left:12px"></span>
+  <div class="view-toggle" style="margin-left:auto">
+    <button class="view-btn active" id="bk">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
+        <rect x="1" y="1" width="3" height="12" rx=".8"/><rect x="5.5" y="1" width="3" height="8" rx=".8"/><rect x="10" y="1" width="3" height="10" rx=".8"/>
+      </svg>
+    </button>
+    <button class="view-btn" id="bl">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
+        <line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="10.5" x2="13" y2="10.5"/>
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -106,7 +189,7 @@
 </div>
 
 <div class="content">
-  <div id="state-loading" class="state"><div class="spinner"></div>Chargement...</div>
+  <div id="state-loading" class="state"><div class="spinner"></div>Chargement des deals…</div>
   <div class="kanban" id="kanban-view" style="display:none"></div>
   <div class="liste" id="liste-view" style="display:none">
     <div class="table-wrap">
@@ -121,11 +204,11 @@
 <div class="so-overlay" id="so-overlay" onclick="closeSlideOver()"></div>
 <div class="slideover" id="slideover">
   <div class="so-hdr">
-    <div style="display:flex; align-items:center; gap:10px;">
-      <input type="text" id="so-titre-input" class="so-title-input" placeholder="Nom du deal">
-      <button onclick="closeSlideOver()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#9ba3b8">✕</button>
+    <div class="so-hdr-row">
+      <input type="text" id="so-titre-input" class="so-title-input">
+      <button class="so-close" onclick="closeSlideOver()">✕</button>
     </div>
-    <div id="so-meta" style="margin-top:8px"></div>
+    <div class="so-meta" id="so-meta"></div>
   </div>
   <div class="so-body" id="so-body"></div>
   <div class="so-save-bar">
@@ -144,7 +227,7 @@ const STAGES = [
   {key:'recherche',label:'Recherche',dot:'#f97316'},
   {key:'negociation',label:'Négociation',dot:'#eab308'},
   {key:'closing',label:'Closing',dot:'#22c55e'},
-  {key:'perdu',label:'Perdu',dot:'#ef4444'}
+  {key:'perdu',label:'Perdu',dot:'#ef4444'},
 ];
 const BCLS = {qualification:'bq',diagnostic:'bd',valorisation:'bv',recherche:'br',negociation:'bn',closing:'bc',perdu:'bp'};
 const STATUTS = ['ouvert','gagné','perdu','en attente'];
@@ -152,13 +235,13 @@ const STATUTS = ['ouvert','gagné','perdu','en attente'];
 let allDeals=[], currentView='kanban', filtreEtape='', currentSoId=null;
 
 function toast(msg, type='success'){
-  const el=document.getElementById('toast'); el.textContent=msg;
-  el.className='toast toast-'+type+' show';
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast toast-'+type+' show';
   setTimeout(()=>el.classList.remove('show'),2800);
 }
 
 async function loadDeals(){
-  const {data,error}=await sb.from('deals').select('*,entreprises(nom),contacts(prenom,nom,fonction)').order('created_at',{ascending:false});
+  const {data,error}=await sb.from('deals').select('*,entreprises(nom),contacts(prenom,nom)').order('created_at',{ascending:false});
   if(error) return;
   allDeals=data||[];
   refreshMeta(); renderKanban(); renderListe(); showView(currentView);
@@ -201,25 +284,19 @@ function renderListe(){
 
 function showView(v){
   currentView=v;
+  document.getElementById('bk').classList.toggle('active', v==='kanban');
+  document.getElementById('bl').classList.toggle('active', v==='liste');
   document.getElementById('kanban-view').style.display=v==='kanban'?'flex':'none';
   document.getElementById('liste-view').style.display=v==='liste'?'block':'none';
   document.getElementById('state-loading').style.display='none';
 }
 
 async function createNewDeal() {
-    const titre = prompt("Nom de la nouvelle affaire ?");
+    const titre = prompt("Nom de l'affaire ?");
     if (!titre) return;
-    const { data, error } = await sb.from('deals').insert([{ 
-        titre: titre, 
-        etape: 'qualification', 
-        statut: 'ouvert' 
-    }]).select();
-    if (error) toast("Erreur création", "error");
-    else {
-        toast("Affaire créée ✓");
-        loadDeals();
-        if(data[0]) openSo(data[0].id);
-    }
+    const { data, error } = await sb.from('deals').insert([{ titre: titre, etape: 'qualification', statut: 'ouvert' }]).select();
+    if (error) toast("Erreur", "error");
+    else { toast("Affaire créée ✓"); loadDeals(); if(data[0]) openSo(data[0].id); }
 }
 
 async function openSo(id){
@@ -239,14 +316,12 @@ async function openSo(id){
   const prod=leads?.[0]?.produits;
   const tvaRate=prod?.taxe||20;
   const ht=parseFloat(deal.valeur_ht)||0;
-  const tva=ht*tvaRate/100;
 
   document.getElementById('so-body').innerHTML=`
     <div class="so-form">
       ${deal.entreprises?.nom ? `<div style="font-size:12px; color:#6b7494; margin-bottom:12px">🏢 ${esc(deal.entreprises.nom)}</div>` : ''}
-      ${prod ? `<div style="background:#e8f4fd; padding:8px; border-radius:6px; font-size:12px; margin-bottom:12px">Produit : <strong>${esc(prod.nom)}</strong></div>` : ''}
       <div class="so-stitle">Pipeline</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+      <div class="so-row2">
         <div class="so-field"><label>Étape</label><select id="f-etape">${STAGES.map(s=>`<option value="${s.key}" ${deal.etape===s.key?'selected':''}>${s.label}</option>`).join('')}</select></div>
         <div class="so-field"><label>Statut</label><select id="f-statut">${STATUTS.map(s=>`<option value="${s}" ${deal.statut===s?'selected':''}>${s}</option>`).join('')}</select></div>
       </div>
@@ -254,8 +329,8 @@ async function openSo(id){
       <div class="so-field"><label>Valeur HT (€)</label><input type="number" id="f-valeur-ht" value="${ht}" oninput="recalc()"></div>
       <div class="so-finance">
         <div class="so-fr"><span>Base HT</span><span id="fi-ht">${eur(ht)}</span></div>
-        <div class="so-fr"><span>TVA ${tvaRate}%</span><span id="fi-tva">${eur(tva)}</span></div>
-        <div class="so-fr ttc"><span>Total TTC</span><span id="fi-ttc">${eur(ht+tva)}</span></div>
+        <div class="so-fr"><span>TVA ${tvaRate}%</span><span id="fi-tva">${eur(ht*tvaRate/100)}</span></div>
+        <div class="so-fr ttc"><span>Total TTC</span><span id="fi-ttc">${eur(ht*(1+tvaRate/100))}</span></div>
       </div>
       <div class="so-stitle">Dates</div>
       <div class="so-field"><label>Échéance prévue</label><input type="date" id="f-closing" value="${deal.date_closing_prevu||''}"></div>
@@ -264,11 +339,11 @@ async function openSo(id){
       <button class="so-tab active" id="tab-act" onclick="switchTab('act')">Activités</button>
       <button class="so-tab" id="tab-notes" onclick="switchTab('notes')">Notes</button>
     </div>
-    <div class="so-panel active" id="panel-act">${acts?.length ? acts.map(a=>`<div style="font-size:12px; padding:8px 0; border-bottom:1px solid #f0f2f7">${a.sujet} - ${fd(a.date_echeance)}</div>`).join('') : 'Aucune activité'}</div>
+    <div class="so-panel active" id="panel-act">${acts?.length ? acts.map(a=>`<div style="font-size:12px; padding:8px 0; border-bottom:1px solid #f0f2f7">${a.sujet}</div>`).join('') : 'Aucune activité'}</div>
     <div class="so-panel" id="panel-notes">
-      <textarea id="new-note" class="note-ta" placeholder="Ajouter une note..."></textarea>
+      <textarea id="new-note" class="note-ta" placeholder="Note..."></textarea>
       <button class="btn-save-deal" style="height:30px; margin-bottom:10px" onclick="addNote('${id}')">Ajouter</button>
-      ${notes?.map(n=>`<div style="font-size:12px; background:#f8f9fc; padding:8px; border-radius:6px; margin-bottom:8px">${esc(n.contenu)}</div>`).join('')}
+      ${notes?.map(n=>`<div style="font-size:12px; background:#f8f9fc; padding:8px; margin-bottom:8px">${esc(n.contenu)}</div>`).join('')}
     </div>`;
     
   document.getElementById('btn-save-deal').onclick=()=>saveDeal(id);
@@ -276,10 +351,9 @@ async function openSo(id){
 
 function recalc(){
   const ht=parseFloat(document.getElementById('f-valeur-ht').value)||0;
-  const ttc=ht*1.2;
   document.getElementById('fi-ht').textContent=eur(ht);
   document.getElementById('fi-tva').textContent=eur(ht*0.2);
-  document.getElementById('fi-ttc').textContent=eur(ttc);
+  document.getElementById('fi-ttc').textContent=eur(ht*1.2);
 }
 
 async function saveDeal(id){
