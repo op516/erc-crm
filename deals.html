@@ -10,24 +10,36 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <style>
-    /* Styles structurels spécifiques à la page Deals non présents dans style.css */
-    .kanban { display: flex; gap: 12px; overflow-x: auto; align-items: flex-start; padding: 20px 0; }
-    .kcol { flex-shrink: 0; width: 260px; display: flex; flex-direction: column; gap: 8px; }
+    /* STYLES CRITIQUES SPECIFIQUES A DEALS (Non présents dans style.css) */
+    .kanban { display: flex; gap: 12px; overflow-x: auto; align-items: flex-start; padding-bottom: 20px; min-height: calc(100vh - 200px); }
+    .kcol { flex-shrink: 0; width: 250px; display: flex; flex-direction: column; gap: 8px; }
+    .col-hdr { background: white; border: 1px solid #e8eaf0; border-radius: 8px; padding: 10px 14px; }
+    .col-hdr-top { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+    .cdot { width: 8px; height: 8px; border-radius: 50%; }
+    .col-name { font-size: 12px; font-weight: 600; flex: 1; text-transform: uppercase; letter-spacing: 0.5px; }
+    .col-cnt { font-size: 11px; color: #9ba3b8; background: #f5f6fa; border: 1px solid #e8eaf0; border-radius: 20px; padding: 1px 7px; }
     .drop-zone { min-height: 100px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
-    .kcard { background: white; border: 1px solid #e8eaf0; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s; }
-    .kcard:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #c5cce0; }
-    .kcard-titre { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-    .kcard-co { font-size: 11px; color: #6b7494; margin-bottom: 8px; }
-    .kcard-val { font-size: 12px; font-weight: 600; color: #137333; }
-    
-    /* Slide-over */
-    .so-overlay { display: none; position: fixed; inset: 0; background: rgba(9,30,66,0.35); z-index: 200; }
+    .kcard { background: white; border: 1px solid #e8eaf0; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,.05); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+    .kcard:hover { border-color: #c5cce0; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+    .kcard-titre { font-size: 12px; font-weight: 600; line-height: 1.35; margin-bottom: 2px; color: #172b4d; }
+    .kcard-co { font-size: 11px; color: #6b7494; margin-bottom: 10px; }
+    .kcard-ft { display: flex; align-items: center; justify-content: space-between; }
+    .kcard-val { font-size: 11px; font-weight: 600; color: #1a1a2e; }
+
+    /* SLIDE-OVER FIX */
+    .so-overlay { display: none; position: fixed; inset: 0; background: rgba(9,30,66,.35); z-index: 200; }
     .so-overlay.open { display: block; }
-    .slideover { position: fixed; top: 0; right: 0; bottom: 0; width: 480px; background: white; z-index: 201; transform: translateX(100%); transition: transform 0.25s ease; box-shadow: -4px 0 24px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+    .slideover { position: fixed; top: 0; right: 0; bottom: 0; width: 480px; background: #fff; z-index: 201; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s ease; box-shadow: -4px 0 24px rgba(0,0,0,.14); }
     .slideover.open { transform: translateX(0); }
-    .so-hdr { padding: 16px 20px; border-bottom: 1px solid #e8eaf0; }
+    .so-hdr { padding: 16px 20px 12px; border-bottom: 1px solid #e8eaf0; flex-shrink: 0; }
+    .so-hdr-row { display: flex; align-items: center; gap: 10px; }
+    .so-title-input { font-size: 16px; font-weight: 600; flex: 1; border: 1px solid transparent; padding: 4px; outline: none; color: #172b4d; font-family: inherit; }
+    .so-title-input:hover { border-bottom: 1px dashed #dde1ec; }
+    .so-title-input:focus { border-bottom: 1px solid #0e3d5c; background: #f8f9fc; }
     .so-body { flex: 1; overflow-y: auto; padding: 20px; }
-    .so-save-bar { padding: 16px 20px; border-top: 1px solid #e8eaf0; background: #f8f9fc; }
+    .so-save-bar { padding: 15px 20px; border-top: 1px solid #e8eaf0; background: #fff; }
+    .btn-save { width: 100%; height: 38px; background: #0e3d5c; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .btn-save:hover { background: #0b3050; }
   </style>
 </head>
 <body>
@@ -55,11 +67,11 @@
 
 <div class="subbar" id="subbar">
   <button class="stab active" data-e="">Toutes <span class="stab-n" id="f-all"></span></button>
-  <button class="stab" data-e="qualification">Qualif. <span class="stab-n" id="f-qualification"></span></button>
-  <button class="stab" data-e="diagnostic">Diag. <span class="stab-n" id="f-diagnostic"></span></button>
-  <button class="stab" data-e="valorisation">Valo. <span class="stab-n" id="f-valorisation"></span></button>
-  <button class="stab" data-e="recherche">Rech. <span class="stab-n" id="f-recherche"></span></button>
-  <button class="stab" data-e="negociation">Négo. <span class="stab-n" id="f-negociation"></span></button>
+  <button class="stab" data-e="qualification">Qualification <span class="stab-n" id="f-qualification"></span></button>
+  <button class="stab" data-e="diagnostic">Diagnostic <span class="stab-n" id="f-diagnostic"></span></button>
+  <button class="stab" data-e="valorisation">Valorisation <span class="stab-n" id="f-valorisation"></span></button>
+  <button class="stab" data-e="recherche">Recherche <span class="stab-n" id="f-recherche"></span></button>
+  <button class="stab" data-e="negociation">Négociation <span class="stab-n" id="f-negociation"></span></button>
   <button class="stab" data-e="closing">Closing <span class="stab-n" id="f-closing"></span></button>
   <button class="stab" data-e="perdu">Perdu <span class="stab-n" id="f-perdu"></span></button>
 </div>
@@ -80,15 +92,15 @@
 <div class="so-overlay" id="so-overlay" onclick="closeSlideOver()"></div>
 <div class="slideover" id="slideover">
   <div class="so-hdr">
-    <div style="display:flex; align-items:center; gap:12px;">
-      <input type="text" id="so-titre-input" class="so-title" style="flex:1; border:1px solid transparent; background:transparent; font-size:16px; font-weight:600; padding:4px; outline:none;" onmouseover="this.style.borderColor='#dde1ec'" onfocus="this.style.borderColor='#0e3d5c'" onblur="this.style.borderColor='transparent'">
+    <div class="so-hdr-row">
+      <input type="text" id="so-titre-input" class="so-title-input" placeholder="Nom du deal">
       <button class="so-close" onclick="closeSlideOver()">✕</button>
     </div>
-    <div id="so-meta" style="margin-top:8px;"></div>
+    <div id="so-meta" style="margin-top: 8px;"></div>
   </div>
   <div class="so-body" id="so-body"></div>
   <div class="so-save-bar">
-    <button class="btn-save-deal" id="btn-save-deal" style="width:100%; height:36px; background:#0e3d5c; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">Enregistrer les modifications</button>
+    <button class="btn-save" id="btn-save-deal">Enregistrer les modifications</button>
   </div>
 </div>
 
@@ -135,14 +147,14 @@ function refreshMeta(){
 function renderKanban(){
   const wrap=document.getElementById('kanban-view'); wrap.innerHTML='';
   STAGES.forEach(stage=>{
-    const deals=allDeals.filter(d=>d.etape===stage.key);
-    const col=document.createElement('div'); col.className='kcol';
-    col.innerHTML=`<div class="col-hdr"><div class="col-hdr-top"><div class="cdot" style="background:${stage.dot}"></div><span class="col-name">${stage.label}</span><span class="col-cnt">${deals.length}</span></div></div>`;
-    const zone=document.createElement('div'); zone.className='drop-zone';
-    deals.forEach(d=>{
-      const card=document.createElement('div'); card.className='kcard';
-      card.innerHTML=`<div class="kcard-titre">${d.titre}</div><div class="kcard-co">${d.entreprises?.nom||''}</div><div class="kcard-val">${eur(d.valeur)}</div>`;
-      card.onclick=()=>openSo(d.id);
+    const deals = allDeals.filter(d => d.etape === stage.key);
+    const col = document.createElement('div'); col.className = 'kcol';
+    col.innerHTML = `<div class="col-hdr"><div class="col-hdr-top"><div class="cdot" style="background:${stage.dot}"></div><span class="col-name">${stage.label}</span><span class="col-cnt">${deals.length}</span></div></div>`;
+    const zone = document.createElement('div'); zone.className = 'drop-zone';
+    deals.forEach(d => {
+      const card = document.createElement('div'); card.className = 'kcard';
+      card.innerHTML = `<div class="kcard-titre">${esc(d.titre)}</div><div class="kcard-co">${esc(d.entreprises?.nom||'')}</div><div class="kcard-val">${eur(d.valeur)}</div>`;
+      card.onclick = () => openSo(d.id);
       zone.appendChild(card);
     });
     col.appendChild(zone); wrap.appendChild(col);
@@ -153,7 +165,10 @@ function renderListe(){
   const tbody=document.getElementById('deals-body'); tbody.innerHTML='';
   allDeals.forEach(d=>{
     const tr=document.createElement('tr'); tr.onclick=()=>openSo(d.id);
-    tr.innerHTML=`<td><div class="tt">${d.titre}</div><div class="tc">${d.entreprises?.nom||''}</div></td><td><span class="badge ${BCLS[d.etape]||'bq'}">${d.etape}</span></td><td>${d.statut||''}</td><td class="r">${eur(d.valeur)}</td><td>${fd(d.date_closing_prevu)}</td>`;
+    tr.innerHTML=`<td><div class="tt">${esc(d.titre)}</div><div class="tc">${esc(d.entreprises?.nom||'')}</div></td>
+      <td><span class="badge ${BCLS[d.etape]||'bq'}">${d.etape}</span></td>
+      <td><span style="font-size:12px;color:#6b7494">${esc(d.statut||'—')}</span></td>
+      <td class="r">${eur(d.valeur)}</td><td>${fd(d.date_closing_prevu)}</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -180,12 +195,14 @@ async function openSo(id){
     <div class="so-field"><label>Statut</label><select id="f-statut" class="so-input">${STATUTS.map(s=>`<option value="${s}" ${deal.statut===s?'selected':''}>${s}</option>`).join('')}</select></div>
     <div class="so-field"><label>Valeur HT (€)</label><input type="number" id="f-valeur" class="so-input" value="${deal.valeur||''}"></div>
     <div class="so-field"><label>Échéance prévue</label><input type="date" id="f-closing" class="so-input" value="${deal.date_closing_prevu||''}"></div>
-    <div class="so-field"><label>Notes</label><textarea id="f-notes" class="so-input" style="height:100px">${deal.notes||''}</textarea></div>`;
+    <div class="so-field"><label>Notes internes</label><textarea id="f-notes" class="so-input" style="height:120px">${deal.notes||''}</textarea></div>`;
   
   document.getElementById('btn-save-deal').onclick=()=>saveDeal(id);
 }
 
 async function saveDeal(id){
+  const btn = document.getElementById('btn-save-deal');
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
   const payload={
     titre: document.getElementById('so-titre-input').value,
     etape: document.getElementById('f-etape').value,
@@ -195,8 +212,12 @@ async function saveDeal(id){
     notes: document.getElementById('f-notes').value,
     updated_at: new Date().toISOString()
   };
-  await sb.from('deals').update(payload).eq('id',id);
-  toast('Deal mis à jour ✓'); closeSlideOver(); loadDeals();
+  const {error} = await sb.from('deals').update(payload).eq('id',id);
+  if(error) { toast('Erreur','error'); btn.disabled=false; return; }
+  
+  toast('Deal mis à jour ✓');
+  closeSlideOver();
+  loadDeals();
 }
 
 function closeSlideOver(){
@@ -205,7 +226,8 @@ function closeSlideOver(){
 }
 
 function eur(n){return (n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0});}
-function fd(d){if(!d) return '—'; return new Date(d).toLocaleDateString('fr-FR');}
+function fd(d){if(!d) return '—'; const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('fr-FR');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 document.getElementById('bk').onclick=()=>showView('kanban');
 document.getElementById('bl').onclick=()=>showView('liste');
