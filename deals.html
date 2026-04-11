@@ -9,8 +9,28 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
+  <style>
+    /* Styles structurels spécifiques à la page Deals non présents dans style.css */
+    .kanban { display: flex; gap: 12px; overflow-x: auto; align-items: flex-start; padding: 20px 0; }
+    .kcol { flex-shrink: 0; width: 260px; display: flex; flex-direction: column; gap: 8px; }
+    .drop-zone { min-height: 100px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
+    .kcard { background: white; border: 1px solid #e8eaf0; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s; }
+    .kcard:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #c5cce0; }
+    .kcard-titre { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .kcard-co { font-size: 11px; color: #6b7494; margin-bottom: 8px; }
+    .kcard-val { font-size: 12px; font-weight: 600; color: #137333; }
+    
+    /* Slide-over */
+    .so-overlay { display: none; position: fixed; inset: 0; background: rgba(9,30,66,0.35); z-index: 200; }
+    .so-overlay.open { display: block; }
+    .slideover { position: fixed; top: 0; right: 0; bottom: 0; width: 480px; background: white; z-index: 201; transform: translateX(100%); transition: transform 0.25s ease; box-shadow: -4px 0 24px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+    .slideover.open { transform: translateX(0); }
+    .so-hdr { padding: 16px 20px; border-bottom: 1px solid #e8eaf0; }
+    .so-body { flex: 1; overflow-y: auto; padding: 20px; }
+    .so-save-bar { padding: 16px 20px; border-top: 1px solid #e8eaf0; background: #f8f9fc; }
+  </style>
 </head>
-<body style="background:#f5f6fa;">
+<body>
 
 <nav class="nav">
   <a href="index.html" class="nav-logo">ERC CRM</a>
@@ -25,19 +45,15 @@
   <span class="toolbar-meta" id="chip"></span>
   <div class="view-toggle">
     <button class="view-btn active" id="bk" title="Kanban">
-      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="1" y="1" width="3" height="12" rx=".8"/><rect x="5.5" y="1" width="3" height="8" rx=".8"/><rect x="10" y="1" width="3" height="10" rx=".8"/>
-      </svg>
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="3" height="12" rx=".8"/><rect x="5.5" y="1" width="3" height="8" rx=".8"/><rect x="10" y="1" width="3" height="10" rx=".8"/></svg>
     </button>
     <button class="view-btn" id="bl" title="Liste">
-      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
-        <line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="10.5" x2="13" y2="10.5"/>
-      </svg>
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="10.5" x2="13" y2="10.5"/></svg>
     </button>
   </div>
 </div>
 
-<div class="subbar show" id="subbar">
+<div class="subbar" id="subbar">
   <button class="stab active" data-e="">Toutes <span class="stab-n" id="f-all"></span></button>
   <button class="stab" data-e="qualification">Qualif. <span class="stab-n" id="f-qualification"></span></button>
   <button class="stab" data-e="diagnostic">Diag. <span class="stab-n" id="f-diagnostic"></span></button>
@@ -49,17 +65,12 @@
 </div>
 
 <div class="content">
-  <div id="state-loading" class="state"><div class="spinner"></div>Chargement...</div>
-  
-  <div class="kanban" id="kanban-view" style="display:flex; gap:12px; overflow-x:auto; padding-bottom:20px;"></div>
-  
-  <div class="liste" id="liste-view" style="display:none;">
+  <div id="state-loading" class="state"><div class="spinner"></div>Chargement des deals…</div>
+  <div class="kanban" id="kanban-view" style="display:none"></div>
+  <div class="liste" id="liste-view" style="display:none">
     <div class="table-wrap">
       <table>
-        <thead><tr>
-          <th>Affaire / Entreprise</th><th>Étape</th><th>Statut</th>
-          <th class="r">Valeur HT</th><th>Échéance prévue</th>
-        </tr></thead>
+        <thead><tr><th>Affaire / Entreprise</th><th>Étape</th><th>Statut</th><th class="r">Valeur HT</th><th>Échéance prévue</th></tr></thead>
         <tbody id="deals-body"></tbody>
       </table>
     </div>
@@ -69,14 +80,16 @@
 <div class="so-overlay" id="so-overlay" onclick="closeSlideOver()"></div>
 <div class="slideover" id="slideover">
   <div class="so-hdr">
-    <div class="so-hdr-row" style="display:flex; align-items:center; gap:10px;">
-      <input type="text" id="so-titre-input" class="so-title" placeholder="Nom du deal" style="flex:1; border:none; background:transparent; font-size:16px; font-weight:600; outline:none; color:#1a1a2e;">
-      <button class="so-close" onclick="closeSlideOver()" style="background:none; border:none; cursor:pointer; font-size:18px;">✕</button>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <input type="text" id="so-titre-input" class="so-title" style="flex:1; border:1px solid transparent; background:transparent; font-size:16px; font-weight:600; padding:4px; outline:none;" onmouseover="this.style.borderColor='#dde1ec'" onfocus="this.style.borderColor='#0e3d5c'" onblur="this.style.borderColor='transparent'">
+      <button class="so-close" onclick="closeSlideOver()">✕</button>
     </div>
-    <div class="so-meta" id="so-meta"></div>
+    <div id="so-meta" style="margin-top:8px;"></div>
   </div>
-  <div class="so-body" id="so-body">
-    </div>
+  <div class="so-body" id="so-body"></div>
+  <div class="so-save-bar">
+    <button class="btn-save-deal" id="btn-save-deal" style="width:100%; height:36px; background:#0e3d5c; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">Enregistrer les modifications</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -95,20 +108,16 @@ const STAGES = [
 const BCLS = {qualification:'bq',diagnostic:'bd',valorisation:'bv',recherche:'br',negociation:'bn',closing:'bc',perdu:'bp'};
 const STATUTS = ['ouvert','gagné','perdu','en attente'];
 
-let allDeals=[], currentView='kanban', filtreEtape='';
-let dragId=null, isDragging=false, currentSoId=null;
+let allDeals=[], currentView='kanban', filtreEtape='', currentSoId=null;
 
 function toast(msg, type='success'){
   const el=document.getElementById('toast');
   el.textContent=msg; el.className='toast toast-'+type+' show';
-  clearTimeout(window.toastT); window.toastT=setTimeout(()=>el.classList.remove('show'),2800);
+  setTimeout(()=>el.classList.remove('show'),2800);
 }
 
 async function loadDeals(){
-  document.getElementById('state-loading').style.display='block';
-  const {data,error}=await sb.from('deals')
-    .select('*,entreprises(nom),contacts(prenom,nom,fonction)')
-    .order('created_at',{ascending:false});
+  const {data,error}=await sb.from('deals').select('*,entreprises(nom)').order('created_at',{ascending:false});
   if(error) return;
   allDeals=data||[];
   refreshMeta(); renderKanban(); renderListe(); showView(currentView);
@@ -117,9 +126,9 @@ async function loadDeals(){
 function refreshMeta(){
   document.getElementById('chip').textContent=allDeals.length+' deal'+(allDeals.length>1?'s':'');
   document.getElementById('f-all').textContent=allDeals.length;
-  STAGES.forEach(s=>{
-    const el=document.getElementById('f-'+s.key);
-    if(el) el.textContent=allDeals.filter(d=>d.etape===s.key).length||'0';
+  STAGES.forEach(s=> {
+    const el = document.getElementById('f-'+s.key);
+    if(el) el.textContent = allDeals.filter(d=>d.etape===s.key).length;
   });
 }
 
@@ -127,32 +136,32 @@ function renderKanban(){
   const wrap=document.getElementById('kanban-view'); wrap.innerHTML='';
   STAGES.forEach(stage=>{
     const deals=allDeals.filter(d=>d.etape===stage.key);
-    const col=document.createElement('div'); col.className='kcol'; col.style.width='240px'; col.style.flexShrink='0';
+    const col=document.createElement('div'); col.className='kcol';
     col.innerHTML=`<div class="col-hdr"><div class="col-hdr-top"><div class="cdot" style="background:${stage.dot}"></div><span class="col-name">${stage.label}</span><span class="col-cnt">${deals.length}</span></div></div>`;
-    const zone=document.createElement('div'); zone.className='drop-zone'; zone.style.minHeight='100px';
-    deals.forEach(d=>zone.appendChild(buildCard(d)));
+    const zone=document.createElement('div'); zone.className='drop-zone';
+    deals.forEach(d=>{
+      const card=document.createElement('div'); card.className='kcard';
+      card.innerHTML=`<div class="kcard-titre">${d.titre}</div><div class="kcard-co">${d.entreprises?.nom||''}</div><div class="kcard-val">${eur(d.valeur)}</div>`;
+      card.onclick=()=>openSo(d.id);
+      zone.appendChild(card);
+    });
     col.appendChild(zone); wrap.appendChild(col);
   });
 }
 
-function buildCard(deal){
-  const card=document.createElement('div'); card.className='kcard';
-  card.innerHTML=`<div class="kcard-titre">${deal.titre}</div><div class="kcard-co">${deal.entreprises?.nom||''}</div><div class="kcard-ft"><span class="kcard-val">${eur(deal.valeur)}</span></div>`;
-  card.onclick=()=>openSo(deal.id);
-  return card;
-}
-
 function renderListe(){
   const tbody=document.getElementById('deals-body'); tbody.innerHTML='';
-  allDeals.forEach(deal=>{
-    const tr=document.createElement('tr'); tr.onclick=()=>openSo(deal.id);
-    tr.innerHTML=`<td><div class="tt">${deal.titre}</div><div class="tc">${deal.entreprises?.nom||''}</div></td><td><span class="badge ${BCLS[deal.etape]||'bq'}">${deal.etape}</span></td><td>${deal.statut||''}</td><td class="r">${eur(deal.valeur)}</td><td>${fd(deal.date_closing_prevu)}</td>`;
+  allDeals.forEach(d=>{
+    const tr=document.createElement('tr'); tr.onclick=()=>openSo(d.id);
+    tr.innerHTML=`<td><div class="tt">${d.titre}</div><div class="tc">${d.entreprises?.nom||''}</div></td><td><span class="badge ${BCLS[d.etape]||'bq'}">${d.etape}</span></td><td>${d.statut||''}</td><td class="r">${eur(d.valeur)}</td><td>${fd(d.date_closing_prevu)}</td>`;
     tbody.appendChild(tr);
   });
 }
 
 function showView(v){
   currentView=v;
+  document.getElementById('bk').classList.toggle('active', v==='kanban');
+  document.getElementById('bl').classList.toggle('active', v==='liste');
   document.getElementById('kanban-view').style.display=v==='kanban'?'flex':'none';
   document.getElementById('liste-view').style.display=v==='liste'?'block':'none';
   document.getElementById('state-loading').style.display='none';
@@ -160,29 +169,20 @@ function showView(v){
 
 async function openSo(id){
   currentSoId=id;
+  const deal=allDeals.find(d=>d.id===id);
   document.getElementById('so-overlay').classList.add('open');
   document.getElementById('slideover').classList.add('open');
-  const {data:deal}=await sb.from('deals').select('*,entreprises(nom),contacts(prenom,nom)').eq('id',id).single();
-  const {data:notes}=await sb.from('notes').select('*').eq('deal_id',id).order('created_at',{ascending:false});
-  
   document.getElementById('so-titre-input').value=deal.titre;
   document.getElementById('so-meta').innerHTML=`<span class="badge ${BCLS[deal.etape]||'bq'}">${deal.etape}</span>`;
   
-  let html=`<div class="so-form">
-    <div class="so-stitle">Détails de l'affaire</div>
-    <div class="so-row2">
-      <div class="so-field"><label>Étape</label><select id="f-etape">${STAGES.map(s=>`<option value="${s.key}" ${deal.etape===s.key?'selected':''}>${s.label}</option>`).join('')}</select></div>
-      <div class="so-field"><label>Statut</label><select id="f-statut">${STATUTS.map(s=>`<option value="${s}" ${deal.statut===s?'selected':''}>${s}</option>`).join('')}</select></div>
-    </div>
-    <div class="so-field"><label>Valeur HT (€)</label><input type="number" id="f-valeur" value="${deal.valeur||''}"></div>
-    <div class="so-field"><label>Échéance prévue</label><input type="date" id="f-closing" value="${deal.date_closing_prevu||''}"></div>
-    <div class="so-stitle">Notes</div>
-    <div class="note-form"><textarea class="note-ta" id="new-note" placeholder="Ajouter une note..."></textarea><button class="btn-note" onclick="addNote('${id}')">Ajouter</button></div>
-    <div id="notes-list">${notes.map(n=>`<div class="note-item"><div class="note-d">${fd(n.created_at)}</div><div class="note-c">${n.contenu}</div></div>`).join('')}</div>
-  </div>
-  <div class="so-save-bar"><button class="btn-save-deal" onclick="saveDeal('${id}')">Enregistrer les modifications</button></div>`;
+  document.getElementById('so-body').innerHTML=`
+    <div class="so-field"><label>Étape</label><select id="f-etape" class="so-input">${STAGES.map(s=>`<option value="${s.key}" ${deal.etape===s.key?'selected':''}>${s.label}</option>`).join('')}</select></div>
+    <div class="so-field"><label>Statut</label><select id="f-statut" class="so-input">${STATUTS.map(s=>`<option value="${s}" ${deal.statut===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="so-field"><label>Valeur HT (€)</label><input type="number" id="f-valeur" class="so-input" value="${deal.valeur||''}"></div>
+    <div class="so-field"><label>Échéance prévue</label><input type="date" id="f-closing" class="so-input" value="${deal.date_closing_prevu||''}"></div>
+    <div class="so-field"><label>Notes</label><textarea id="f-notes" class="so-input" style="height:100px">${deal.notes||''}</textarea></div>`;
   
-  document.getElementById('so-body').innerHTML=html;
+  document.getElementById('btn-save-deal').onclick=()=>saveDeal(id);
 }
 
 async function saveDeal(id){
@@ -192,17 +192,11 @@ async function saveDeal(id){
     statut: document.getElementById('f-statut').value,
     valeur: parseFloat(document.getElementById('f-valeur').value)||0,
     date_closing_prevu: document.getElementById('f-closing').value||null,
+    notes: document.getElementById('f-notes').value,
     updated_at: new Date().toISOString()
   };
   await sb.from('deals').update(payload).eq('id',id);
   toast('Deal mis à jour ✓'); closeSlideOver(); loadDeals();
-}
-
-async function addNote(id){
-  const content=document.getElementById('new-note').value;
-  if(!content) return;
-  await sb.from('notes').insert([{contenu:content, deal_id:id}]);
-  openSo(id);
 }
 
 function closeSlideOver(){
