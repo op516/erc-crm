@@ -10,29 +10,38 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <style>
-    /* STYLE ORIGINAL RESTAURÉ */
+    /* STYLE ORIGINAL RESTAURÉ ET SÉCURISÉ */
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'DM Sans',sans-serif;font-size:14px;color:#1a1a2e;background:#f5f6fa;min-height:100vh}
+
+    /* NAV */
     .nav{background:#0e3d5c;padding:0 24px;height:52px;display:flex;align-items:center;gap:32px}
     .nav-logo{font-weight:700;font-size:16px;color:white;text-decoration:none}
     .nav a{color:rgba(255,255,255,.7);text-decoration:none;font-size:14px;font-weight:500;padding:4px 8px;border-radius:4px}
     .nav a.active{color:white;background:rgba(255,255,255,.1)}
+
+    /* TOOLBAR */
     .toolbar{background:white;border-bottom:1px solid #e8eaf0;padding:12px 24px;display:flex;align-items:center;gap:12px}
     .toolbar h1{font-size:18px;font-weight:600;flex:1}
     .btn-primary{background:#0e3d5c;color:white;border:none;border-radius:6px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px}
     .view-toggle{display:flex;border:1px solid #dde1ec;border-radius:6px;overflow:hidden}
     .view-btn{height:36px;width:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:white;border:none;color:#9ba3b8}
     .view-btn.active{background:#0e3d5c;color:white}
+
+    /* SUBBAR */
     .subbar{display:none;background:white;border-bottom:1px solid #e8eaf0;padding:0 24px;gap:2px;overflow-x:auto}.subbar.show{display:flex}
     .stab{padding:10px 14px;border:none;background:none;cursor:pointer;font-size:13px;color:#6b7494;border-bottom:2px solid transparent}
     .stab.active{color:#0e3d5c;border-bottom-color:#0e3d5c;font-weight:600}
+    .stab-n{font-size:11px;color:#9ba3b8;margin-left:4px}
+
+    /* KANBAN */
     .content{padding:24px}
     .kanban{display:flex;gap:12px;overflow-x:auto;align-items:flex-start}
     .kcol{flex-shrink:0;width:240px;display:flex;flex-direction:column;gap:8px}
     .col-hdr{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:10px 14px}
     .col-hdr-top{display:flex;align-items:center;gap:8px}.cdot{width:8px;height:8px;border-radius:50%}
     .col-name{font-size:12px;font-weight:600;flex:1}.col-cnt{font-size:11px;color:#9ba3b8;background:#f5f6fa;border-radius:20px;padding:1px 7px}
-    .kcard{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer;margin-bottom:8px}
+    .kcard{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer}
     .kcard-titre{font-size:12px;font-weight:600;margin-bottom:2px}.kcard-co{font-size:11px;color:#6b7494}
     
     /* SLIDE-OVER */
@@ -46,12 +55,14 @@
     .so-stitle{font-size:10px;font-weight:700;text-transform:uppercase;color:#9ba3b8;margin:14px 0 8px}
     .so-field{margin-bottom:12px}
     .so-field label{display:block;font-size:11px;font-weight:600;color:#6b7494;margin-bottom:4px}
-    .so-field input, .so-field select, .so-field textarea{width:100%;border:1px solid #dde1ec;border-radius:6px;padding:7px 10px;font-family:inherit;font-size:13px}
+    .so-field input, .so-field select, .so-field textarea{width:100%;border:1px solid #dde1ec;border-radius:6px;padding:7px 10px;font-family:inherit;font-size:13px;outline:none}
     .so-finance{background:#f8f9fc;border:1px solid #e8eaf0;border-radius:8px;padding:10px 14px}
     .so-fr{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}.so-fr.ttc{font-weight:700;border-top:1px solid #eee;margin-top:5px;padding-top:8px}
     .so-save-bar{padding:10px 20px;border-top:1px solid #e8eaf0}
     .btn-save-deal{width:100%;height:36px;background:#0e3d5c;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer}
-    .so-tabs{display:flex;border-bottom:1px solid #e8eaf0}
+    
+    /* TABS */
+    .so-tabs{display:flex;border-bottom:1px solid #e8eaf0;background:#fff}
     .so-tab{padding:11px 20px;border:none;background:none;font-size:13px;color:#6b7494;cursor:pointer;border-bottom:2px solid transparent}
     .so-tab.active{color:#0e3d5c;border-bottom-color:#0e3d5c;font-weight:600}
     .so-panel{display:none;padding:14px 20px}.so-panel.active{display:block}
@@ -105,7 +116,7 @@
 <div class="slideover" id="slideover">
   <div class="so-hdr">
     <div style="display:flex; align-items:center; gap:10px;">
-      <input type="text" id="so-titre-input" class="so-title-input" placeholder="Nom de l'affaire...">
+      <input type="text" id="so-titre-input" class="so-title-input" placeholder="Nom du deal...">
       <button onclick="closeSlideOver()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#9ba3b8">✕</button>
     </div>
     <div id="so-meta" style="margin-top:8px"></div>
@@ -132,6 +143,12 @@ const STAGES = [
 const STATUTS = ['ouvert','gagné','perdu','en attente'];
 
 let allDeals=[], currentView='kanban', currentSoId=null;
+
+function toast(msg, type='success'){
+  const el=document.getElementById('toast'); el.textContent=msg;
+  el.className='toast toast-'+type+' show';
+  setTimeout(()=>el.classList.remove('show'),2800);
+}
 
 async function loadDeals(){
   const {data,error}=await sb.from('deals').select('*,entreprises(nom)').order('created_at',{ascending:false});
@@ -177,6 +194,8 @@ function renderListe(){
 
 function showView(v){
   currentView=v;
+  document.getElementById('bk').classList.toggle('active', v==='kanban');
+  document.getElementById('bl').classList.toggle('active', v==='liste');
   document.getElementById('kanban-view').style.display=v==='kanban'?'flex':'none';
   document.getElementById('liste-view').style.display=v==='liste'?'block':'none';
   document.getElementById('state-loading').style.display='none';
@@ -184,7 +203,7 @@ function showView(v){
 
 async function openSo(id){
   currentSoId = id;
-  const deal = id ? allDeals.find(d => d.id === id) : { titre:'', etape:'qualification', statut:'ouvert', valeur_ht:0 };
+  const deal = id ? allDeals.find(d => d.id === id) : { titre:'', etape:'qualification', statut:'ouvert', valeur_ht:0, notes:'' };
   
   document.getElementById('so-overlay').classList.add('open');
   document.getElementById('slideover').classList.add('open');
@@ -204,54 +223,4 @@ async function openSo(id){
         <div class="so-field"><label>Statut</label><select id="f-statut">${STATUTS.map(s=>`<option value="${s}" ${deal.statut===s?'selected':''}>${s}</option>`).join('')}</select></div>
       </div>
       <div class="so-stitle">Financier</div>
-      <div class="so-field"><label>Valeur HT (€)</label><input type="number" id="f-valeur-ht" value="${deal.valeur_ht||0}" oninput="recalc()"></div>
-      <div class="so-finance">
-        <div class="so-fr"><span>HT</span><span id="fi-ht">${eur(deal.valeur_ht||0)}</span></div>
-        <div class="so-fr ttc"><span>TTC (estimé)</span><span id="fi-ttc">${eur((deal.valeur_ht||0)*1.2)}</span></div>
-      </div>
-      <div class="so-stitle">Dates</div>
-      <div class="so-field"><label>Échéance prévue</label><input type="date" id="f-closing" value="${deal.date_closing_prevu||''}"></div>
-    </div>`;
-  
-  document.getElementById('btn-save-deal').onclick = () => saveDeal(id);
-}
-
-function recalc(){
-  const ht = parseFloat(document.getElementById('f-valeur-ht').value)||0;
-  document.getElementById('fi-ht').textContent = eur(ht);
-  document.getElementById('fi-ttc').textContent = eur(ht*1.2);
-}
-
-async function saveDeal(id){
-  const payload = {
-    titre: document.getElementById('so-titre-input').value,
-    entreprise_id: document.getElementById('f-entreprise').value || null,
-    etape: document.getElementById('f-etape').value,
-    statut: document.getElementById('f-statut').value,
-    valeur_ht: parseFloat(document.getElementById('f-valeur-ht').value)||0,
-    valeur: (parseFloat(document.getElementById('f-valeur-ht').value)||0)*1.2,
-    date_closing_prevu: document.getElementById('f-closing').value || null
-  };
-
-  const {error} = id 
-    ? await sb.from('deals').update(payload).eq('id', id)
-    : await sb.from('deals').insert([payload]);
-
-  if(!error) { closeSlideOver(); loadDeals(); }
-}
-
-function closeSlideOver(){
-  document.getElementById('so-overlay').classList.remove('open');
-  document.getElementById('slideover').classList.remove('open');
-}
-
-function eur(n){return (n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0});}
-function fd(d){return d ? new Date(d).toLocaleDateString('fr-FR') : '—';}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-document.getElementById('bk').onclick=()=>showView('kanban');
-document.getElementById('bl').onclick=()=>showView('liste');
-loadDeals();
-</script>
-</body>
-</html>
+      <div class="so-field"><label>Valeur HT (€)</label><input type="number" id="f-valeur-ht"
