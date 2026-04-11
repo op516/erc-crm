@@ -2,31 +2,20 @@
 
 *Dernière mise à jour : avril 2026*
 
-## 0. LECTURE OBLIGATOIRE EN DÉBUT DE SESSION
+## PROMPT DE DÉMARRAGE — COLLER TEL QUEL EN DÉBUT DE NOUVELLE SESSION
 
-Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs **raw** :
+```
+Lis ces fichiers dans cet ordre via web_fetch, confirme chaque lecture, puis attends ma prochaine instruction :
+https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
+https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
+https://raw.githubusercontent.com/op516/erc-crm/main/style.css
+https://raw.githubusercontent.com/op516/erc-crm/main/deals.html
+https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
+https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
+https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
+```
 
-1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
-2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
-3. https://raw.githubusercontent.com/op516/erc-crm/main/style.css
-4. https://raw.githubusercontent.com/op516/erc-crm/main/deals.html
-5. https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
-6. https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
-
-**Règles strictes :**
-- Utiliser exclusivement les URLs `raw.githubusercontent.com`
-- Si un fichier échoue → réessayer une fois avant de signaler
-- Ne jamais conclure qu'un fichier est absent sans avoir tenté l'URL raw
-- Confirmer la lecture de chaque fichier avant de commencer le travail
-
-## 0bis. PROTOCOLE DE FIN DE SESSION
-
-Quand Olivier signale qu'il quitte la conversation, Claude doit produire :
-
-1. **Synthèse** de ce qui a été fait
-2. **CONTEXTE.md mis à jour**
-3. **Prompt prêt à coller** pour la prochaine session
-4. **Rappel** des fichiers à commiter dans GitHub
+---
 
 ## 1. QUI ET POURQUOI
 
