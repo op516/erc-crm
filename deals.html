@@ -6,20 +6,12 @@
   <title>Deals — ERC CRM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'DM Sans',sans-serif;font-size:14px;color:#1a1a2e;background:#f5f6fa;min-height:100vh}
-
-    /* NAV */
-    .nav{background:#0e3d5c;padding:0 24px;height:52px;display:flex;align-items:center;gap:32px}
-    .nav-logo{font-weight:700;font-size:16px;color:white;text-decoration:none}
-    .nav a{color:rgba(255,255,255,.7);text-decoration:none;font-size:14px;font-weight:500;padding:4px 8px;border-radius:4px;transition:color .15s,background .15s}
-    .nav a:hover,.nav a.active{color:white;background:rgba(255,255,255,.1)}
-
-    /* TOOLBAR */
-    .toolbar{background:white;border-bottom:1px solid #e8eaf0;padding:12px 24px;display:flex;align-items:center;gap:12px}
+    /* TOOLBAR — compléments spécifiques deals */
+    .toolbar{padding:12px 24px}
     .toolbar h1{font-size:18px;font-weight:600;flex:1}
     .toolbar-meta{font-size:13px;color:#9ba3b8}
     .view-toggle{display:flex;border:1px solid #dde1ec;border-radius:6px;overflow:hidden}
@@ -80,8 +72,8 @@
     .td2{font-size:12px;color:#6b7494}
     .td2.soon{color:#e84c0a;font-weight:500}
 
-    /* BADGES */
-    .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px 3px 6px;border-radius:20px;white-space:nowrap}
+    /* BADGES étapes (override style.css : ajout du dot ::before + padding gauche) */
+    .badge{padding:3px 9px 3px 6px}
     .badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
     .bq{background:#e8f0fe;color:#1967d2}.bq::before{background:#3b82f6}
     .bd{background:#f3f0ff;color:#6d28d9}.bd::before{background:#8b5cf6}
@@ -91,14 +83,13 @@
     .bc{background:#e6f4ea;color:#137333}.bc::before{background:#22c55e}
     .bp{background:#fce8e6;color:#c5221f}.bp::before{background:#ef4444}
 
-    /* ÉTATS / TOAST */
+    /* ÉTATS */
     .state{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:80px;text-align:center;color:#9ba3b8;font-size:13px}
     .state strong{display:block;color:#6b7494;font-size:14px;font-weight:500;margin-bottom:4px}
     .spinner{width:20px;height:20px;border:2px solid #e8eaf0;border-top-color:#0e3d5c;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
-    .toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:500;color:white;z-index:999;transform:translateY(80px);opacity:0;transition:transform .3s,opacity .3s;pointer-events:none}
-    .toast.show{transform:translateY(0);opacity:1}
-    .toast-success{background:#137333}
-    .toast-error{background:#c5221f}
+    /* Toast : override positionnement (style.css centre, ici on aligne à droite) */
+    .toast{bottom:24px;left:auto;right:24px;transform:translateY(80px)}
+    .toast.show{transform:translateY(0)}
     @keyframes spin{to{transform:rotate(360deg)}}
 
     /* SLIDE-OVER */
@@ -192,13 +183,17 @@
 </head>
 <body>
 
-<nav class="nav">
-  <a href="index.html" class="nav-logo">ERC CRM</a>
-  <a href="entreprises.html">Entreprises</a>
-  <a href="contacts.html">Contacts</a>
-  <a href="deals.html" class="active">Deals</a>
-  <a href="activites.html">Activités</a>
-</nav>
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>ERC CRM</h1>
+    <nav class="topbar-nav">
+      <a href="entreprises.html">Entreprises</a>
+      <a href="contacts.html">Contacts</a>
+      <a href="deals.html" class="active">Deals</a>
+      <a href="activites.html">Activités</a>
+    </nav>
+  </div>
+</div>
 
 <div class="toolbar">
   <h1>Deals</h1>
