@@ -147,10 +147,10 @@
 
 <!-- TABS PÉRIODE -->
 <div class="period-tabs">
-  <button class="ptab active" data-period="retard" onclick="setPeriod('retard')">En retard <span class="ptab-badge hidden" id="badge-retard">0</span></button>
+  <button class="ptab" data-period="retard" onclick="setPeriod('retard')">En retard <span class="ptab-badge hidden" id="badge-retard">0</span></button>
   <button class="ptab" data-period="today" onclick="setPeriod('today')">Aujourd'hui</button>
   <button class="ptab" data-period="week" onclick="setPeriod('week')">Cette semaine</button>
-  <button class="ptab" data-period="all" onclick="setPeriod('all')">Toutes</button>
+  <button class="ptab active" data-period="all" onclick="setPeriod('all')">Toutes</button>
 </div>
 
 <!-- FILTRES TYPE -->
@@ -284,7 +284,7 @@
 
 <script>
   let allActivites = [];
-  let currentPeriod = 'retard', currentType = 'all', currentView = 'table';
+  let currentPeriod = 'all', currentType = 'all', currentView = 'table';
   let sortCol = 'date', sortAsc = true;
   let modalMode = 'create', editingId = null;
 
