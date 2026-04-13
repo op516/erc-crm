@@ -77,6 +77,15 @@
       border: 1px solid #e0e6f0;
       border-radius: 8px;
       overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .dash-card:hover {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      border-color: #c5cce0;
     }
     .dash-card-header {
       padding: 16px 20px;
@@ -283,37 +292,34 @@
 
   <!-- Pipeline + Activités -->
   <div class="dash-row">
-    <div class="dash-card">
+    <a class="dash-card" href="deals.html">
       <div class="dash-card-header">
         <span class="dash-card-title">Pipeline deals</span>
-        <a href="deals.html" class="dash-card-link">Voir tous →</a>
       </div>
       <div class="dash-card-body" id="pipelineBody">
         <div class="skel"></div><div class="skel"></div><div class="skel"></div>
       </div>
-    </div>
+    </a>
 
-    <div class="dash-card">
+    <a class="dash-card" href="activites.html">
       <div class="dash-card-header">
         <span class="dash-card-title">Activités en retard &amp; aujourd'hui</span>
-        <a href="activites.html" class="dash-card-link">Voir toutes →</a>
       </div>
       <div class="dash-card-body" id="activitesBody">
         <div class="skel"></div><div class="skel"></div><div class="skel"></div>
       </div>
-    </div>
+    </a>
   </div>
 
   <!-- Deals récents -->
-  <div class="dash-card">
+  <a class="dash-card" href="deals.html">
     <div class="dash-card-header">
       <span class="dash-card-title">Deals récents</span>
-      <a href="deals.html" class="dash-card-link">Voir tous →</a>
     </div>
     <div class="dash-card-body" id="dealsBody">
       <div class="skel"></div><div class="skel"></div><div class="skel"></div>
     </div>
-  </div>
+  </a>
 
 </div>
 
@@ -357,7 +363,7 @@
       { data: contacts },
       { data: entreprises },
     ] = await Promise.all([
-      supabase.from('deals').select('id,titre,etape,statut,valeur,created_at,entreprises(nom)').eq('statut','ouvert').order('created_at', { ascending: false }),
+      supabase.from('deals').select('id,titre,etape,statut,valeur,probabilite,created_at,entreprises(nom)').eq('statut','ouvert').order('created_at', { ascending: false }),
       supabase.from('activites').select('id,type,sujet,date_echeance,faite,deals(titre),entreprises(nom)').eq('faite', false).order('date_echeance', { ascending: true }),
       supabase.from('contacts').select('id', { count: 'exact', head: true }),
       supabase.from('entreprises').select('id', { count: 'exact', head: true }),
@@ -368,7 +374,11 @@
 
     // ── KPIs ──
     const pipeline = allDeals.filter(d => d.etape !== 'perdu');
-    const valeurTotal = pipeline.reduce((s, d) => s + (parseFloat(d.valeur) || 0), 0);
+    const valeurPonderee = pipeline.reduce((s, d) => {
+      const v = parseFloat(d.valeur) || 0;
+      const p = parseFloat(d.probabilite) || 0;
+      return s + (v * p / 100);
+    }, 0);
     const enRetard = allActivites.filter(a => a.date_echeance && a.date_echeance < today).length;
     const nbContacts = contacts?.length ?? '—';
 
@@ -379,9 +389,9 @@
         <div class="kpi-sub">dossiers en cours</div>
       </a>
       <a class="kpi-card success" href="deals.html">
-        <div class="kpi-label">Valeur pipeline</div>
-        <div class="kpi-value">${fmtEur(valeurTotal)}</div>
-        <div class="kpi-sub">deals ouverts cumulés</div>
+        <div class="kpi-label">Valeur pondérée</div>
+        <div class="kpi-value">${fmtEur(valeurPonderee)}</div>
+        <div class="kpi-sub">valeur × probabilité</div>
       </a>
       <a class="kpi-card ${enRetard > 0 ? 'alert' : ''}" href="activites.html">
         <div class="kpi-label">Activités en retard</div>
@@ -400,8 +410,12 @@
     document.getElementById('pipelineBody').innerHTML = STAGES.map(s => {
       const stageDeals = allDeals.filter(d => d.etape === s.key);
       const count = stageDeals.length;
-      const val   = stageDeals.reduce((sum, d) => sum + (parseFloat(d.valeur) || 0), 0);
-      const pct   = Math.round((count / maxCount) * 100);
+      const valPonderee = stageDeals.reduce((sum, d) => {
+        const v = parseFloat(d.valeur) || 0;
+        const p = parseFloat(d.probabilite) || 0;
+        return sum + (v * p / 100);
+      }, 0);
+      const pct = Math.round((count / maxCount) * 100);
       return `
         <div class="pipeline-row">
           <div class="pipeline-dot" style="background:${s.color}"></div>
@@ -410,7 +424,7 @@
             <div class="pipeline-bar" style="width:${pct}%;background:${s.color};opacity:0.7"></div>
           </div>
           <div class="pipeline-count">${count}</div>
-          <div class="pipeline-val">${val > 0 ? fmtEur(val) : ''}</div>
+          <div class="pipeline-val">${valPonderee > 0 ? fmtEur(valPonderee) : ''}</div>
         </div>`;
     }).join('');
 
