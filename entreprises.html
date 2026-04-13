@@ -164,6 +164,7 @@
       <h2 id="soNom">—</h2>
       <span id="soBadge"></span>
     </div>
+    <button id="soActBtn" onclick="openEntActModal()" style="display:none;height:30px;padding:0 10px;background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#0052cc;cursor:pointer;flex-shrink:0">+ Activité</button>
     <button class="btn-close" onclick="closeSlideOver()">✕</button>
   </div>
   <div class="slideover-body" id="slideoverBody">
@@ -211,12 +212,40 @@
   </div>
 </div>
 
+<!-- MODAL CRÉER ACTIVITÉ -->
+<div class="overlay" id="na-overlay" onclick="closeEntActModal()" style="z-index:210"></div>
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:440px;max-width:95vw;background:#fff;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.2);z-index:211;display:none;flex-direction:column" id="na-modal">
+  <div style="padding:16px 20px;border-bottom:1px solid #e8eaf0;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:15px;font-weight:600">Nouvelle activité</span>
+    <button class="btn-close" onclick="closeEntActModal()">×</button>
+  </div>
+  <div style="padding:18px 20px">
+    <div id="na-ent-label" style="background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;padding:7px 12px;font-size:12px;color:#0052cc;font-weight:600;margin-bottom:12px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="form-group"><label>Type *</label>
+        <select class="form-control" id="na-type"><option value="">— Choisir —</option><option value="appel">📞 Appel</option><option value="rdv">🤝 RDV</option><option value="email">✉️ Email</option><option value="tache">✅ Tâche</option><option value="autre">Autre</option></select>
+      </div>
+      <div class="form-group"><label>Date *</label><input type="date" class="form-control" id="na-date"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px"><label>Sujet</label><input type="text" class="form-control" id="na-sujet" placeholder="Ex : Appel de suivi"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="form-group"><label>Heure</label><input type="time" class="form-control" id="na-heure"></div>
+      <div class="form-group"><label>Deal associé</label><select class="form-control" id="na-deal"><option value="">— Aucun —</option></select></div>
+    </div>
+    <div class="form-group"><label>Note</label><textarea class="form-control" id="na-note" style="min-height:60px" placeholder="Contexte…"></textarea></div>
+  </div>
+  <div style="padding:12px 20px;border-top:1px solid #e8eaf0;display:flex;justify-content:flex-end;gap:8px">
+    <button class="btn btn-ghost" onclick="closeEntActModal()">Annuler</button>
+    <button class="btn-primary" onclick="saveEntActModal()">Créer</button>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
   const db = window.supabase;
-  let allData = [], currentView = 'table';
+  let allData = [], currentView = 'table', currentEntId = null;
 
   document.addEventListener('DOMContentLoaded', () => {
     loadEntreprises();
@@ -289,15 +318,18 @@
   }
 
   async function openSlideOver(id) {
+    currentEntId = id;
     document.getElementById('overlay').classList.add('open');
     document.getElementById('slideover').classList.add('open');
     document.getElementById('slideoverBody').innerHTML = '<div class="loader">Chargement…</div>';
     document.getElementById('soNom').textContent = '…';
     document.getElementById('soBadge').innerHTML = '';
+    document.getElementById('soActBtn').style.display = 'none';
     const { data: e, error } = await db.from('entreprises').select('*').eq('id', id).single();
     if (error || !e) { document.getElementById('slideoverBody').innerHTML = '<p style="color:#c5221f;padding:24px;font-size:13px">Erreur de chargement.</p>'; return; }
     document.getElementById('soNom').textContent = e.nom;
     document.getElementById('soBadge').innerHTML = badge(e.statut);
+    document.getElementById('soActBtn').style.display = 'inline-block';
     const { data: contacts } = await db.from('contacts').select('id, prenom, nom, fonction, email_travail, tel_mobile').eq('entreprise_id', id).order('nom');
     document.getElementById('slideoverBody').innerHTML = buildSlideOverHTML(e, contacts || []);
   }
@@ -347,6 +379,48 @@
     const [cls, label] = map[statut] || ['badge-inactif', statut || '—'];
     return `<span class="badge ${cls}">${label}</span>`;
   }
+  async function openEntActModal(){
+    const nom = document.getElementById('soNom').textContent;
+    document.getElementById('na-ent-label').textContent = '🏢 Entreprise : ' + nom;
+    document.getElementById('na-type').value = '';
+    document.getElementById('na-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('na-sujet').value = '';
+    document.getElementById('na-heure').value = '';
+    document.getElementById('na-note').value = '';
+    const {data:deals} = await db.from('deals').select('id,titre').eq('statut','ouvert').order('titre');
+    document.getElementById('na-deal').innerHTML = '<option value="">— Aucun —</option>'
+      + (deals||[]).map(d=>`<option value="${d.id}">${esc(d.titre)}</option>`).join('');
+    document.getElementById('na-overlay').classList.add('open');
+    document.getElementById('na-modal').style.display = 'flex';
+  }
+
+  function closeEntActModal(){
+    document.getElementById('na-modal').style.display = 'none';
+    document.getElementById('na-overlay').classList.remove('open');
+  }
+
+  async function saveEntActModal(){
+    const type = document.getElementById('na-type').value;
+    const date = document.getElementById('na-date').value;
+    if(!type||!date){ showToast('Type et date sont requis', 'error'); return; }
+    const payload = {
+      type, date_echeance: date,
+      sujet:          document.getElementById('na-sujet').value.trim()||null,
+      heure_echeance: document.getElementById('na-heure').value||null,
+      deal_id:        document.getElementById('na-deal').value||null,
+      entreprise_id:  currentEntId||null,
+      faite: false,
+    };
+    const noteContenu = document.getElementById('na-note').value.trim();
+    const {data, error} = await db.from('activites').insert([payload]).select('id');
+    if(error){ showToast('Erreur : '+error.message, 'error'); return; }
+    if(noteContenu && data?.[0]){
+      await db.from('notes').insert([{contenu:noteContenu, entreprise_id:currentEntId||null, deal_id:payload.deal_id||null}]);
+    }
+    closeEntActModal();
+    showToast('Activité créée ✓', 'success');
+  }
+
   function showToast(msg, type = 'success') { const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast toast-${type} show`; setTimeout(() => t.classList.remove('show'), 3000); }
 </script>
 </body>
