@@ -31,21 +31,13 @@
   <input class="search-input" type="text" id="searchInput" placeholder="Rechercher par nom…" oninput="applyFilters()" />
   <select class="filter-select" id="filterCategorie" onchange="applyFilters()">
     <option value="">Toutes catégories</option>
-    <option>Cédant</option>
-    <option>Acquéreur</option>
-    <option>Prescripteur</option>
-    <option>Partenaire</option>
-    <option>Autre</option>
+    <option>Cédant</option><option>Acquéreur</option><option>Prescripteur</option>
+    <option>Partenaire</option><option>Autre</option>
   </select>
   <select class="filter-select" id="filterOrigine" onchange="applyFilters()">
     <option value="">Toutes origines</option>
-    <option>Réseau</option>
-    <option>Recommandation</option>
-    <option>Site web</option>
-    <option>Salon</option>
-    <option>Appel entrant</option>
-    <option>Prospection</option>
-    <option>Autre</option>
+    <option>Réseau</option><option>Recommandation</option><option>Site web</option>
+    <option>Salon</option><option>Appel entrant</option><option>Prospection</option><option>Autre</option>
   </select>
   <button class="btn-reset" onclick="resetFilters()">Réinitialiser</button>
   <span class="count-label" id="countLabel"></span>
@@ -56,13 +48,8 @@
   <table>
     <thead>
       <tr>
-        <th>Nom</th>
-        <th>Entreprise</th>
-        <th>Fonction</th>
-        <th>Email</th>
-        <th>Téléphone</th>
-        <th>Catégorie</th>
-        <th>Origine</th>
+        <th>Nom</th><th>Entreprise</th><th>Fonction</th>
+        <th>Email</th><th>Téléphone</th><th>Catégorie</th><th>Origine</th>
       </tr>
     </thead>
     <tbody id="contactsBody">
@@ -92,50 +79,28 @@
       <div class="form-row">
         <div class="form-group" style="flex:0 0 90px;">
           <label>Civilité</label>
-          <select id="f_civilite">
-            <option value="">—</option>
-            <option>M.</option>
-            <option>Mme</option>
-          </select>
+          <select id="f_civilite"><option value="">—</option><option>M.</option><option>Mme</option></select>
         </div>
-        <div class="form-group">
-          <label>Prénom</label>
-          <input type="text" id="f_prenom" />
-        </div>
-        <div class="form-group">
-          <label>Nom *</label>
-          <input type="text" id="f_nom" />
-        </div>
+        <div class="form-group"><label>Prénom</label><input type="text" id="f_prenom" /></div>
+        <div class="form-group"><label>Nom *</label><input type="text" id="f_nom" /></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Fonction</label>
-          <input type="text" id="f_fonction" />
-        </div>
+        <div class="form-group"><label>Fonction</label><input type="text" id="f_fonction" /></div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Catégorie</label>
           <select id="f_classification">
-            <option value="">—</option>
-            <option>Cédant</option>
-            <option>Acquéreur</option>
-            <option>Prescripteur</option>
-            <option>Partenaire</option>
-            <option>Autre</option>
+            <option value="">—</option><option>Cédant</option><option>Acquéreur</option>
+            <option>Prescripteur</option><option>Partenaire</option><option>Autre</option>
           </select>
         </div>
         <div class="form-group">
           <label>Origine contact</label>
           <select id="f_origine_contact">
-            <option value="">—</option>
-            <option>Réseau</option>
-            <option>Recommandation</option>
-            <option>Site web</option>
-            <option>Salon</option>
-            <option>Appel entrant</option>
-            <option>Prospection</option>
-            <option>Autre</option>
+            <option value="">—</option><option>Réseau</option><option>Recommandation</option>
+            <option>Site web</option><option>Salon</option><option>Appel entrant</option>
+            <option>Prospection</option><option>Autre</option>
           </select>
         </div>
       </div>
@@ -146,9 +111,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Entreprise liée</label>
-          <select id="f_entreprise_id">
-            <option value="">— Aucune —</option>
-          </select>
+          <select id="f_entreprise_id"><option value="">— Aucune —</option></select>
         </div>
       </div>
     </div>
@@ -159,12 +122,12 @@
         <div class="form-group">
           <label>Email professionnel</label>
           <input type="text" id="f_email_travail" oninput="validateEmail(this,'hint_email_travail')" />
-          <span class="field-hint" id="hint_email_travail">Format attendu : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="315f5e5c71555e5c50585f541f5743">[email&#160;protected]</a></span>
+          <span class="field-hint" id="hint_email_travail">Format attendu : nom@domaine.fr</span>
         </div>
         <div class="form-group">
           <label>Email personnel</label>
           <input type="text" id="f_email_perso" oninput="validateEmail(this,'hint_email_perso')" />
-          <span class="field-hint" id="hint_email_perso">Format attendu : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e9878684a98d86848880878cc78f9b">[email&#160;protected]</a></span>
+          <span class="field-hint" id="hint_email_perso">Format attendu : nom@domaine.fr</span>
         </div>
       </div>
       <div class="form-row">
@@ -182,29 +145,20 @@
     <div class="form-section">
       <div class="form-section-title">Adresse</div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Adresse</label>
-          <input type="text" id="f_adresse_perso" />
-        </div>
+        <div class="form-group"><label>Adresse</label><input type="text" id="f_adresse_perso" /></div>
       </div>
       <div class="form-row">
         <div class="form-group" style="flex:0 0 130px;">
-          <label>Code postal</label>
-          <input type="text" id="f_cp_perso" maxlength="5" />
+          <label>Code postal</label><input type="text" id="f_cp_perso" maxlength="5" />
         </div>
-        <div class="form-group">
-          <label>Ville</label>
-          <input type="text" id="f_ville_perso" />
-        </div>
+        <div class="form-group"><label>Ville</label><input type="text" id="f_ville_perso" /></div>
       </div>
     </div>
 
     <div class="form-section">
       <div class="form-section-title">Notes</div>
       <div class="form-row">
-        <div class="form-group">
-          <textarea id="f_notes" rows="4"></textarea>
-        </div>
+        <div class="form-group"><textarea id="f_notes" rows="4"></textarea></div>
       </div>
     </div>
 
@@ -221,17 +175,28 @@
   <div style="padding:18px 20px">
     <div id="na-contact-label" style="background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;padding:7px 12px;font-size:12px;color:#0052cc;font-weight:600;margin-bottom:12px"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div class="form-group"><label>Type *</label>
-        <select id="na-type"><option value="">— Choisir —</option><option value="appel">📞 Appel</option><option value="rdv">🤝 RDV</option><option value="email">✉️ Email</option><option value="tache">✅ Tâche</option><option value="autre">Autre</option></select>
+      <div class="form-group">
+        <label>Type *</label>
+        <select id="na-type">
+          <option value="">— Choisir —</option>
+          <option value="appel">📞 Appel</option><option value="rdv">🤝 RDV</option>
+          <option value="email">✉️ Email</option><option value="tache">✅ Tâche</option>
+          <option value="autre">Autre</option>
+        </select>
       </div>
       <div class="form-group"><label>Date *</label><input type="date" id="na-date"></div>
     </div>
-    <div class="form-group" style="margin-bottom:10px"><label>Sujet</label><input type="text" id="na-sujet" placeholder="Ex : Appel de suivi"></div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Sujet</label><input type="text" id="na-sujet" placeholder="Ex : Appel de suivi">
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
       <div class="form-group"><label>Heure</label><input type="time" id="na-heure"></div>
       <div class="form-group"><label>Deal associé</label><select id="na-deal"><option value="">— Aucun —</option></select></div>
     </div>
-    <div class="form-group"><label>Note</label><textarea id="na-note" style="min-height:60px;width:100%;border:1px solid #dfe1e6;border-radius:4px;padding:8px;font-family:'DM Sans',sans-serif;font-size:13px" placeholder="Contexte…"></textarea></div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="na-note" style="width:100%;min-height:60px;border:1px solid #dfe1e6;border-radius:4px;padding:8px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical" placeholder="Contexte…"></textarea>
+    </div>
   </div>
   <div style="padding:12px 20px;border-top:1px solid #e8eaf0;display:flex;justify-content:flex-end;gap:8px">
     <button class="btn-secondary" onclick="closeContactActModal()">Annuler</button>
@@ -242,7 +207,7 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
   let allContacts = [];
   let entreprises  = [];
   let currentId    = null;
@@ -272,16 +237,15 @@
       const nomComplet = [c.prenom, c.nom].filter(Boolean).join(' ');
       const ent        = c.entreprises?.nom || '';
       const badgeClass = { 'Cédant':'cedant','Acquéreur':'acquereur','Prescripteur':'prescripteur','Partenaire':'partenaire' }[c.classification] || '';
-      return `
-        <tr onclick="openDrawer('${c.id}')">
-          <td><div class="nom-wrap"><div class="avatar">${initiales}</div>${nomComplet}</div></td>
-          <td class="muted">${ent}</td>
-          <td class="muted">${c.fonction || ''}</td>
-          <td class="muted">${c.email_travail || ''}</td>
-          <td class="muted">${c.tel_mobile || ''}</td>
-          <td>${c.classification ? `<span class="badge ${badgeClass}">${c.classification}</span>` : ''}</td>
-          <td class="muted">${c.origine_contact || ''}</td>
-        </tr>`;
+      return `<tr onclick="openDrawer('${c.id}')">
+        <td><div class="nom-wrap"><div class="avatar">${initiales}</div>${nomComplet}</div></td>
+        <td class="muted">${ent}</td>
+        <td class="muted">${c.fonction || ''}</td>
+        <td class="muted">${c.email_travail || ''}</td>
+        <td class="muted">${c.tel_mobile || ''}</td>
+        <td>${c.classification ? `<span class="badge ${badgeClass}">${c.classification}</span>` : ''}</td>
+        <td class="muted">${c.origine_contact || ''}</td>
+      </tr>`;
     }).join('');
   }
 
@@ -308,8 +272,7 @@
     sel.innerHTML = '<option value="">— Aucune —</option>';
     entreprises.forEach(e => {
       const opt = document.createElement('option');
-      opt.value = e.id;
-      opt.textContent = e.nom;
+      opt.value = e.id; opt.textContent = e.nom;
       sel.appendChild(opt);
     });
   }
@@ -346,53 +309,6 @@
     }
     document.getElementById('overlay').classList.add('open');
     document.getElementById('drawer').classList.add('open');
-  }
-
-  // ── Modal Créer activité (depuis contact) ──
-  async function openContactActModal(){
-    const c = allContacts.find(x=>x.id===currentId);
-    const nom = c ? [c.prenom,c.nom].filter(Boolean).join(' ') : '';
-    document.getElementById('na-contact-label').textContent = '👤 Contact : ' + nom;
-    document.getElementById('na-type').value = '';
-    document.getElementById('na-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('na-sujet').value = '';
-    document.getElementById('na-heure').value = '';
-    document.getElementById('na-note').value = '';
-    // Charger les deals pour le select
-    const {data:deals} = await supabase.from('deals').select('id,titre').eq('statut','ouvert').order('titre');
-    document.getElementById('na-deal').innerHTML = '<option value="">— Aucun —</option>'
-      + (deals||[]).map(d=>`<option value="${d.id}">${esc(d.titre)}</option>`).join('');
-    document.getElementById('na-overlay').classList.add('open');
-    document.getElementById('na-modal').style.display = 'flex';
-  }
-
-  function closeContactActModal(){
-    document.getElementById('na-modal').style.display = 'none';
-    document.getElementById('na-overlay').classList.remove('open');
-  }
-
-  async function saveContactActModal(){
-    const type = document.getElementById('na-type').value;
-    const date = document.getElementById('na-date').value;
-    if(!type||!date){ showToast('Type et date sont requis', true); return; }
-    const c = allContacts.find(x=>x.id===currentId);
-    const payload = {
-      type, date_echeance: date,
-      sujet:          document.getElementById('na-sujet').value.trim()||null,
-      heure_echeance: document.getElementById('na-heure').value||null,
-      deal_id:        document.getElementById('na-deal').value||null,
-      contact_id:     currentId||null,
-      entreprise_id:  c?.entreprise_id||null,
-      faite: false,
-    };
-    const noteContenu = document.getElementById('na-note').value.trim();
-    const {data, error} = await supabase.from('activites').insert([payload]).select('id');
-    if(error){ showToast('Erreur : '+error.message, true); return; }
-    if(noteContenu && data?.[0]){
-      await supabase.from('notes').insert([{contenu:noteContenu, contact_id:currentId||null, deal_id:payload.deal_id||null, entreprise_id:payload.entreprise_id||null}]);
-    }
-    closeContactActModal();
-    showToast('Activité créée ✓');
   }
 
   function closeDrawer() {
@@ -453,4 +369,70 @@
     if (!confirm('Supprimer ce contact ? Cette action est irréversible.')) return;
     const { error } = await supabase.from('contacts').delete().eq('id', currentId);
     if (error) { showToast('Erreur : ' + error.message, true); return; }
-    showToast('Contact su
+    showToast('Contact supprimé');
+    closeDrawer(); init();
+  }
+
+  // ── Modal Créer activité ──────────────────────────────────────────
+  async function openContactActModal() {
+    const c = allContacts.find(x => x.id === currentId);
+    const nom = c ? [c.prenom, c.nom].filter(Boolean).join(' ') : '';
+    document.getElementById('na-contact-label').textContent = '👤 Contact : ' + nom;
+    document.getElementById('na-type').value = '';
+    document.getElementById('na-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('na-sujet').value = '';
+    document.getElementById('na-heure').value = '';
+    document.getElementById('na-note').value = '';
+    const { data: deals } = await supabase.from('deals').select('id, titre').eq('statut', 'ouvert').order('titre');
+    document.getElementById('na-deal').innerHTML = '<option value="">— Aucun —</option>'
+      + (deals || []).map(d => `<option value="${d.id}">${esc(d.titre)}</option>`).join('');
+    document.getElementById('na-overlay').classList.add('open');
+    document.getElementById('na-modal').style.display = 'flex';
+  }
+
+  function closeContactActModal() {
+    document.getElementById('na-modal').style.display = 'none';
+    document.getElementById('na-overlay').classList.remove('open');
+  }
+
+  async function saveContactActModal() {
+    const type = document.getElementById('na-type').value;
+    const date = document.getElementById('na-date').value;
+    if (!type || !date) { showToast('Type et date sont requis', true); return; }
+    const c = allContacts.find(x => x.id === currentId);
+    const payload = {
+      type, date_echeance: date,
+      sujet:          document.getElementById('na-sujet').value.trim() || null,
+      heure_echeance: document.getElementById('na-heure').value || null,
+      deal_id:        document.getElementById('na-deal').value || null,
+      contact_id:     currentId || null,
+      entreprise_id:  c?.entreprise_id || null,
+      faite: false,
+    };
+    const noteContenu = document.getElementById('na-note').value.trim();
+    const { data, error } = await supabase.from('activites').insert([payload]).select('id');
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+    if (noteContenu && data?.[0]) {
+      await supabase.from('notes').insert([{ contenu: noteContenu, contact_id: currentId || null, deal_id: payload.deal_id || null, entreprise_id: payload.entreprise_id || null }]);
+    }
+    closeContactActModal();
+    showToast('Activité créée ✓');
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  init();
+</script>
+</body>
+</html>
