@@ -197,6 +197,7 @@
 
 <div class="toolbar">
   <h1>Deals</h1>
+  <input class="search-input" type="text" id="searchInput" placeholder="Rechercher deal, entreprise, contact…" oninput="renderKanban();renderListe()" style="width:260px">
   <span class="toolbar-meta" id="chip"></span>
   <div class="view-toggle">
     <button class="view-btn active" id="bk" title="Kanban">
@@ -307,11 +308,25 @@ function refreshMeta(){
   });
 }
 
+// Filtrage global (recherche + étape)
+function getFiltered(){
+  const q=(document.getElementById('searchInput')?.value||'').toLowerCase().trim();
+  return allDeals.filter(d=>{
+    if(filtreEtape && d.etape!==filtreEtape) return false;
+    if(!q) return true;
+    const titre=(d.titre||'').toLowerCase();
+    const ent=(d.entreprises?.nom||'').toLowerCase();
+    const ct=([d.contacts?.prenom,d.contacts?.nom].filter(Boolean).join(' ')).toLowerCase();
+    return titre.includes(q)||ent.includes(q)||ct.includes(q);
+  });
+}
+
 // Kanban
 function renderKanban(){
+  const filtered=getFiltered();
   const wrap=document.getElementById('kanban-view'); wrap.innerHTML='';
   STAGES.forEach(stage=>{
-    const deals=allDeals.filter(d=>d.etape===stage.key);
+    const deals=filtered.filter(d=>d.etape===stage.key);
     const total=deals.reduce((s,d)=>s+(parseFloat(d.valeur)||0),0);
     const col=document.createElement('div'); col.className='kcol'; col.dataset.etape=stage.key;
     col.innerHTML='<div class="col-hdr"><div class="col-hdr-top">'
@@ -380,7 +395,7 @@ function buildCard(deal){
 function renderListe(){
   const today=new Date();today.setHours(0,0,0,0);
   const in30=new Date(today);in30.setDate(in30.getDate()+30);
-  const deals=filtreEtape?allDeals.filter(d=>d.etape===filtreEtape):allDeals;
+  const deals=getFiltered();
   const tbody=document.getElementById('deals-body'); tbody.innerHTML='';
   deals.forEach(deal=>{
     const tr=document.createElement('tr');
@@ -563,8 +578,12 @@ async function saveDeal(id){
   };
   const {error}=await sb.from('deals').update(payload).eq('id',id);
   if(error){toast('Erreur : '+error.message,'error');btn.disabled=false;btn.textContent='Enregistrer les modifications';return;}
+  // Recharger le deal avec les joins pour rafraîchir liste et kanban
+  const {data:refreshed}=await sb.from('deals')
+    .select('id,titre,etape,statut,valeur,probabilite,date_closing_prevu,date_gain,contact_id,entreprise_id,entreprises(nom),contacts(prenom,nom)')
+    .eq('id',id).single();
   const idx=allDeals.findIndex(d=>d.id===id);
-  if(idx!==-1) allDeals[idx]={...allDeals[idx],...payload};
+  if(idx!==-1) allDeals[idx]=refreshed||{...allDeals[idx],...payload};
   refreshMeta(); renderKanban(); renderListe();
   document.getElementById('so-meta').innerHTML=buildMeta({...(allDeals[idx]||{}),...payload});
   toast('Deal enregistré ✓');
