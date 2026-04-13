@@ -127,8 +127,10 @@
 
 <!-- TOOLBAR -->
 <div class="toolbar">
-  <span style="font-size:18px;font-weight:600;color:#172b4d">Activités</span>
+  <h1 style="font-size:18px;font-weight:600;color:#172b4d;white-space:nowrap;margin-right:4px">Activités</h1>
+  <input class="search-input" type="text" id="searchInput" placeholder="Rechercher sujet, deal, contact…" oninput="render()" style="width:240px">
   <span class="count-label" id="countLabel"></span>
+  <div style="flex:1"></div>
   <div class="view-toggle">
     <button class="view-btn" id="btn-cards" onclick="setView('cards')" title="Vue cartes">
       <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -313,11 +315,19 @@
   // ── Filtrage
   function getFiltered() {
     const t=todayStr(),sow=startOfWeek(),eow=endOfWeek();
+    const q=(document.getElementById('searchInput')?.value||'').toLowerCase().trim();
     return allActivites.filter(a=>{
       if(currentType!=='all'&&a.type!==currentType)return false;
       if(currentPeriod==='retard')return !a.faite&&a.date_echeance&&a.date_echeance<t;
       if(currentPeriod==='today')return a.date_echeance===t;
       if(currentPeriod==='week')return a.date_echeance>=sow&&a.date_echeance<=eow;
+      if(q){
+        const sujet=(a.sujet||'').toLowerCase();
+        const deal=(a.deals?.titre||'').toLowerCase();
+        const ct=([a.contacts?.prenom,a.contacts?.nom].filter(Boolean).join(' ')).toLowerCase();
+        const ent=(a.entreprises?.nom||'').toLowerCase();
+        return sujet.includes(q)||deal.includes(q)||ct.includes(q)||ent.includes(q);
+      }
       return true;
     });
   }
