@@ -31,12 +31,12 @@
     .content{padding:24px}
     .kanban{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:20px;scrollbar-width:thin;scrollbar-color:#dde1ec transparent}
     .kcol{flex-shrink:0;width:240px;display:flex;flex-direction:column;gap:8px}
-    .col-hdr{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:10px 14px}
+    .col-hdr{padding:4px 2px 10px;border-bottom:2px solid #e8eaf0;margin-bottom:2px}
     .col-hdr-top{display:flex;align-items:center;gap:8px;margin-bottom:3px}
-    .cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-    .col-name{font-size:12px;font-weight:600;flex:1}
-    .col-cnt{font-size:11px;color:#9ba3b8;background:#f5f6fa;border:1px solid #e8eaf0;border-radius:20px;padding:1px 7px}
-    .col-sub{font-size:11px;color:#9ba3b8}
+    .cdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .col-name{font-size:13px;font-weight:700;flex:1;color:#1a1a2e;letter-spacing:0}
+    .col-cnt{font-size:11px;color:#6b7494;background:#f0f2f7;border-radius:20px;padding:1px 8px;font-weight:600}
+    .col-sub{font-size:12px;color:#6b7494;font-weight:500;padding-left:18px}
     .drop-zone{min-height:40px;border-radius:8px;border:2px dashed transparent;transition:border-color .15s,background .15s,min-height .15s;display:flex;flex-direction:column;gap:8px}
     .drop-zone.drag-over{border-color:#0e3d5c;background:rgba(14,61,92,.04);min-height:80px}
     .kcard{background:white;border:1px solid #e8eaf0;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer;transition:box-shadow .15s,border-color .15s,opacity .15s;user-select:none;position:relative}
@@ -187,18 +187,19 @@
   <div class="topbar-left">
     <h1>ERC CRM</h1>
     <nav class="topbar-nav">
-      <a href="entreprises.html">Entreprises</a>
       <a href="contacts.html">Contacts</a>
+      <a href="entreprises.html">Entreprises</a>
       <a href="deals.html" class="active">Deals</a>
       <a href="activites.html">Activités</a>
     </nav>
   </div>
+  <button class="btn-primary" onclick="openNewDeal()">+ Nouveau deal</button>
 </div>
 
 <div class="toolbar">
-  <h1>Deals</h1>
   <input class="search-input" type="text" id="searchInput" placeholder="Rechercher deal, entreprise, contact…" oninput="renderKanban();renderListe()" style="width:260px">
   <span class="toolbar-meta" id="chip"></span>
+  <div style="flex:1"></div>
   <div class="view-toggle">
     <button class="view-btn active" id="bk" title="Kanban">
       <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -242,6 +243,37 @@
         <tbody id="deals-body"></tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- MODAL NOUVEAU DEAL -->
+<div class="so-overlay" id="nd-overlay" onclick="closeNewDeal()" style="z-index:300"></div>
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) translateY(20px);width:460px;max-width:95vw;background:#fff;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.2);z-index:301;display:none;flex-direction:column" id="nd-modal">
+  <div style="padding:18px 24px;border-bottom:1px solid #e8eaf0;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:15px;font-weight:600">Nouveau deal</span>
+    <button class="so-close" onclick="closeNewDeal()">✕</button>
+  </div>
+  <div style="padding:20px 24px">
+    <div class="so-field"><label>Titre du deal *</label><input type="text" id="nd-titre" placeholder="Ex : Mission cession Dupont" autofocus></div>
+    <div class="so-field"><label>Étape</label>
+      <select id="nd-etape">
+        <option value="qualification" selected>Qualification</option>
+        <option value="diagnostic">Diagnostic</option>
+        <option value="valorisation">Valorisation</option>
+        <option value="recherche">Recherche</option>
+        <option value="negociation">Négociation</option>
+        <option value="closing">Closing</option>
+      </select>
+    </div>
+    <div class="so-row2">
+      <div class="so-field"><label>Entreprise</label><select id="nd-entreprise"><option value="">— Aucune —</option></select></div>
+      <div class="so-field"><label>Contact</label><select id="nd-contact"><option value="">— Aucun —</option></select></div>
+    </div>
+    <div class="so-field"><label>Valeur HT (€)</label><input type="number" id="nd-valeur" min="0" step="100" placeholder="Ex : 12000"></div>
+  </div>
+  <div style="padding:14px 24px;border-top:1px solid #e8eaf0;display:flex;justify-content:flex-end;gap:8px">
+    <button class="btn-secondary" onclick="closeNewDeal()">Annuler</button>
+    <button class="btn-primary" onclick="saveNewDeal()">Créer le deal</button>
   </div>
 </div>
 
@@ -651,6 +683,53 @@ function fd(d){if(!d)return'—';const dt=new Date(d+'T00:00:00');return isNaN(d
 function fdt(iso){if(!iso)return'';const dt=new Date(iso);return dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})+' '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}
 function vHtml(v){if(v==null||v==='')return'<span class="tv z">—</span>';const n=parseFloat(v);return isNaN(n)?'<span class="tv z">—</span>':'<span class="tv">'+eur(n)+'</span>';}
 function dHtml(d,today,in30){if(!d)return'<span class="td2">—</span>';const dt=new Date(d);if(isNaN(dt.getTime()))return'<span class="td2">—</span>';const soon=dt>=today&&dt<=in30;return'<span class="td2'+(soon?' soon':'')+'">'+dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})+'</span>';}
+
+// ── Nouveau deal ──────────────────────────────
+async function openNewDeal(){
+  const modal=document.getElementById('nd-modal');
+  const overlay=document.getElementById('nd-overlay');
+  // Charger listes
+  const [{data:ents},{data:cts}]=await Promise.all([
+    sb.from('entreprises').select('id,nom').order('nom'),
+    sb.from('contacts').select('id,prenom,nom').order('nom')
+  ]);
+  document.getElementById('nd-entreprise').innerHTML='<option value="">— Aucune —</option>'
+    +(ents||[]).map(e=>'<option value="'+e.id+'">'+esc(e.nom)+'</option>').join('');
+  document.getElementById('nd-contact').innerHTML='<option value="">— Aucun —</option>'
+    +(cts||[]).map(c=>'<option value="'+c.id+'">'+esc([c.prenom,c.nom].filter(Boolean).join(' '))+'</option>').join('');
+  document.getElementById('nd-titre').value='';
+  document.getElementById('nd-valeur').value='';
+  document.getElementById('nd-etape').value='qualification';
+  overlay.classList.add('open');
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('nd-titre').focus(),50);
+}
+
+function closeNewDeal(){
+  document.getElementById('nd-modal').style.display='none';
+  document.getElementById('nd-overlay').classList.remove('open');
+}
+
+async function saveNewDeal(){
+  const titre=document.getElementById('nd-titre').value.trim();
+  if(!titre){toast('Le titre est obligatoire','error');return;}
+  const payload={
+    titre,
+    etape:         document.getElementById('nd-etape').value||'qualification',
+    statut:        'ouvert',
+    entreprise_id: document.getElementById('nd-entreprise').value||null,
+    contact_id:    document.getElementById('nd-contact').value||null,
+    valeur:        document.getElementById('nd-valeur').value?parseFloat(document.getElementById('nd-valeur').value):null,
+  };
+  const {data,error}=await sb.from('deals').insert([payload])
+    .select('id,titre,etape,statut,valeur,probabilite,date_closing_prevu,date_gain,contact_id,entreprise_id,entreprises(nom),contacts(prenom,nom)')
+    .single();
+  if(error){toast('Erreur : '+error.message,'error');return;}
+  allDeals.unshift(data);
+  refreshMeta(); renderKanban(); renderListe();
+  closeNewDeal();
+  toast('Deal créé ✓');
+}
 
 loadDeals();
 </script>
