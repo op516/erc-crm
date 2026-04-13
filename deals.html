@@ -197,7 +197,8 @@
 </div>
 
 <div class="toolbar">
-  <input class="search-input" type="text" id="searchInput" placeholder="Rechercher deal, entreprise, contact…" oninput="renderKanban();renderListe()" style="width:260px">
+  <h1 style="font-size:18px;font-weight:600;color:#172b4d;white-space:nowrap;margin-right:4px">Deals</h1>
+  <input class="search-input" type="text" id="searchInput" placeholder="Rechercher deal, entreprise, contact…" oninput="renderKanban();renderListe()" style="width:240px">
   <span class="toolbar-meta" id="chip"></span>
   <div style="flex:1"></div>
   <div class="view-toggle">
@@ -274,6 +275,41 @@
   <div style="padding:14px 24px;border-top:1px solid #e8eaf0;display:flex;justify-content:flex-end;gap:8px">
     <button class="btn-secondary" onclick="closeNewDeal()">Annuler</button>
     <button class="btn-primary" onclick="saveNewDeal()">Créer le deal</button>
+  </div>
+</div>
+
+<!-- MODAL CRÉER ACTIVITÉ (depuis slide-over deal) -->
+<div class="so-overlay" id="na-overlay" onclick="closeActModal()" style="z-index:300"></div>
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:460px;max-width:95vw;background:#fff;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.2);z-index:301;display:none;flex-direction:column;max-height:90vh;overflow-y:auto" id="na-modal">
+  <div style="padding:18px 24px;border-bottom:1px solid #e8eaf0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <span style="font-size:15px;font-weight:600">Nouvelle activité</span>
+    <button class="so-close" onclick="closeActModal()">✕</button>
+  </div>
+  <div style="padding:20px 24px">
+    <div id="na-deal-label" style="background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;padding:8px 12px;font-size:12px;color:#0052cc;font-weight:600;margin-bottom:14px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="so-field"><label>Type *</label>
+        <select id="na-type">
+          <option value="">— Choisir —</option>
+          <option value="appel">📞 Appel</option>
+          <option value="rdv">🤝 RDV</option>
+          <option value="email">✉️ Email</option>
+          <option value="tache">✅ Tâche</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div class="so-field"><label>Date *</label><input type="date" id="na-date"></div>
+    </div>
+    <div class="so-field"><label>Sujet</label><input type="text" id="na-sujet" placeholder="Ex : Appel de suivi"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="so-field"><label>Heure</label><input type="time" id="na-heure"></div>
+      <div class="so-field"><label>Lieu / Durée</label><input type="text" id="na-lieu" placeholder="Ex : Visio, 1h"></div>
+    </div>
+    <div class="so-field"><label>Note</label><textarea id="na-note" style="min-height:60px" placeholder="Contexte, points à aborder…"></textarea></div>
+  </div>
+  <div style="padding:14px 24px;border-top:1px solid #e8eaf0;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
+    <button class="btn-secondary" onclick="closeActModal()">Annuler</button>
+    <button class="btn-primary" onclick="saveActModal()">Créer l'activité</button>
   </div>
 </div>
 
@@ -579,7 +615,7 @@ function buildBody(deal,produit,acts,notes,ents,cts){
     +'<button class="so-tab active" id="tab-act" onclick="switchTab(\'act\')">Activités <span class="so-cnt" id="cnt-act">'+(acts.length||'')+'</span></button>'
     +'<button class="so-tab" id="tab-notes" onclick="switchTab(\'notes\')">Notes <span class="so-cnt" id="cnt-notes">'+(notes.length||'')+'</span></button>'
     +'</div>'
-    +'<div class="so-panel active" id="panel-act">'+buildActs(acts)+'</div>'
+    +'<div class="so-panel active" id="panel-act">'+buildActs(acts,deal.id)+'</div>'
     +'<div class="so-panel" id="panel-notes">'+buildNotes(notes,deal.id)+'</div>';
 }
 
@@ -622,15 +658,19 @@ async function saveDeal(id){
   closeSlideOver();
 }
 
-function buildActs(acts){
-  if(!acts.length) return '<div class="so-empty">Aucune activité pour ce deal.</div>';
+function buildActs(acts, dealId){
   const today=new Date().toISOString().split('T')[0];
   const PILL={appel:'p-appel',rdv:'p-rdv',email:'p-email',tache:'p-tache'};
   const PLBL={appel:'📞 Appel',rdv:'🤝 RDV',email:'✉️ Email',tache:'✅ Tâche',autre:'Autre'};
-  return acts.map(a=>{
-    const late=!a.faite&&a.date_echeance&&a.date_echeance<today;
-    return '<div class="act-item'+(a.faite?' act-done':'')+(late?' act-late':'')+'"><span class="act-pill '+(PILL[a.type]||'p-autre')+'">'+(PLBL[a.type]||a.type||'?')+'</span><div class="act-info"><div class="act-sujet">'+esc(a.sujet||'(sans sujet)')+'</div><div class="act-date">'+(a.date_echeance?fd(a.date_echeance):'—')+(a.heure_echeance?' · '+a.heure_echeance.slice(0,5):'')+(a.faite?' · Fait':'')+'</div></div></div>';
-  }).join('');
+  const list=acts.length
+    ? acts.map(a=>{
+        const late=!a.faite&&a.date_echeance&&a.date_echeance<today;
+        return '<div class="act-item'+(a.faite?' act-done':'')+(late?' act-late':'')+'"><span class="act-pill '+(PILL[a.type]||'p-autre')+'">'+(PLBL[a.type]||a.type||'?')+'</span><div class="act-info"><div class="act-sujet">'+esc(a.sujet||'(sans sujet)')+'</div><div class="act-date">'+(a.date_echeance?fd(a.date_echeance):'—')+(a.heure_echeance?' · '+a.heure_echeance.slice(0,5):'')+(a.faite?' · <em>Fait</em>':'')+'</div></div></div>';
+      }).join('')
+    : '<div class="so-empty">Aucune activité pour ce deal.</div>';
+  return '<div style="margin-bottom:12px">'
+    +'<button onclick="openActModal(\''+dealId+'\')" style="height:30px;padding:0 12px;background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:600;color:#0052cc;cursor:pointer">+ Créer une activité</button>'
+    +'</div>'+list;
 }
 
 function buildNotes(notes,dealId){
@@ -729,6 +769,64 @@ async function saveNewDeal(){
   refreshMeta(); renderKanban(); renderListe();
   closeNewDeal();
   toast('Deal créé ✓');
+}
+
+// ── Créer activité depuis slide-over ──────────────────────────────
+let naCurrentDealId = null;
+
+async function openActModal(dealId){
+  naCurrentDealId = dealId;
+  const deal = allDeals.find(d=>d.id===dealId);
+  document.getElementById('na-deal-label').textContent = '📋 Deal : ' + esc(deal?.titre||'');
+  document.getElementById('na-type').value = '';
+  document.getElementById('na-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('na-sujet').value = '';
+  document.getElementById('na-heure').value = '';
+  document.getElementById('na-lieu').value = '';
+  document.getElementById('na-note').value = '';
+  document.getElementById('na-overlay').classList.add('open');
+  document.getElementById('na-modal').style.display = 'flex';
+  setTimeout(()=>document.getElementById('na-type').focus(), 50);
+}
+
+function closeActModal(){
+  document.getElementById('na-modal').style.display = 'none';
+  document.getElementById('na-overlay').classList.remove('open');
+  naCurrentDealId = null;
+}
+
+async function saveActModal(){
+  const type = document.getElementById('na-type').value;
+  const date = document.getElementById('na-date').value;
+  if(!type||!date){ toast('Type et date sont requis','error'); return; }
+  const deal = allDeals.find(d=>d.id===naCurrentDealId);
+  const payload = {
+    type, date_echeance: date,
+    sujet:          document.getElementById('na-sujet').value.trim()||null,
+    heure_echeance: document.getElementById('na-heure').value||null,
+    lieu:           document.getElementById('na-lieu').value.trim()||null,
+    deal_id:        naCurrentDealId||null,
+    entreprise_id:  deal?.entreprise_id||null,
+    contact_id:     deal?.contact_id||null,
+    faite: false,
+  };
+  const noteContenu = document.getElementById('na-note').value.trim();
+  const {data, error} = await sb.from('activites').insert([payload]).select('*');
+  if(error){ toast('Erreur : '+error.message,'error'); return; }
+  if(noteContenu && data?.[0]){
+    await sb.from('notes').insert([{contenu:noteContenu, deal_id:naCurrentDealId||null, entreprise_id:deal?.entreprise_id||null, contact_id:deal?.contact_id||null}]);
+  }
+  closeActModal();
+  toast('Activité créée ✓');
+  // Rafraîchir le panel activités du slide-over
+  if(currentSoId === naCurrentDealId) {
+    const {data:acts} = await sb.from('activites').select('*').eq('deal_id',naCurrentDealId).order('date_echeance',{ascending:false});
+    const panel = document.getElementById('panel-act');
+    if(panel && acts) {
+      panel.innerHTML = buildActs(acts, naCurrentDealId);
+      const cnt = document.getElementById('cnt-act'); if(cnt) cnt.textContent = acts.length||'';
+    }
+  }
 }
 
 loadDeals();
