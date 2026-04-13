@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produits — ERC CRM</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* ── CSS spécifique produits.html ── */
+    .badge-actif   { background: #e8f5e9; color: #2e7d32; }
+    .badge-inactif { background: #f4f5f7; color: #6b778c; }
+
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+    }
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #dfe1e6;
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 3px; top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: #0052cc; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+    .toggle-label { font-size: 14px; color: #172b4d; }
+
+    td.prix { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>ERC CRM</h1>
+    <nav class="topbar-nav">
+      <a href="deals.html">Deals</a>
+      <a href="contacts.html">Contacts</a>
+      <a href="entreprises.html">Entreprises</a>
+      <a href="activites.html">Activités</a>
+      <a href="produits.html" class="active">Produits</a>
+    </nav>
+  </div>
+  <button class="btn-primary" onclick="openDrawer(null)">+ Nouveau produit</button>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <input class="search-input" type="text" id="searchInput" placeholder="Rechercher par nom…" oninput="applyFilters()" />
+  <select class="filter-select" id="filterCategorie" onchange="applyFilters()">
+    <option value="">Toutes catégories</option>
+    <option>Cession</option>
+    <option>Acquisition</option>
+    <option>Conseil</option>
+    <option>Diagnostic</option>
+    <option>Valorisation</option>
+    <option>Autre</option>
+  </select>
+  <select class="filter-select" id="filterActif" onchange="applyFilters()">
+    <option value="">Tous statuts</option>
+    <option value="true">Actifs</option>
+    <option value="false">Inactifs</option>
+  </select>
+  <button class="btn-reset" onclick="resetFilters()">Réinitialiser</button>
+  <span class="count-label" id="countLabel"></span>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Catégorie</th>
+        <th>Code</th>
+        <th style="text-align:right">Prix HT</th>
+        <th>Unité</th>
+        <th>Taxe</th>
+        <th>Facturation</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody id="produitsBody">
+      <tr><td colspan="8" class="empty-state">Chargement…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- DRAWER -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawerTitle">Nouveau produit</h2>
+    <div class="drawer-actions">
+      <button class="btn-danger" id="btnDelete" onclick="deleteProduit()" style="display:none;">Supprimer</button>
+      <button class="btn-save" onclick="saveProduit()">Enregistrer</button>
+      <button class="btn-close" onclick="closeDrawer()">×</button>
+    </div>
+  </div>
+  <div class="drawer-body">
+
+    <div class="form-section">
+      <div class="form-section-title">Identification</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" id="f_nom" />
+        </div>
+        <div class="form-group" style="flex:0 0 140px;">
+          <label>Code produit</label>
+          <input type="text" id="f_code_produit" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Catégorie</label>
+          <select id="f_categorie">
+            <option value="">—</option>
+            <option>Cession</option>
+            <option>Acquisition</option>
+            <option>Conseil</option>
+            <option>Diagnostic</option>
+            <option>Valorisation</option>
+            <option>Autre</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="f_description" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Tarification</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prix HT (€)</label>
+          <input type="number" id="f_prix_eur" min="0" step="0.01" placeholder="Ex : 15000" />
+        </div>
+        <div class="form-group">
+          <label>Taxe (%)</label>
+          <input type="number" id="f_taxe" min="0" max="100" step="0.1" placeholder="Ex : 20" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Unité</label>
+          <input type="text" id="f_unite" placeholder="Ex : mission, heure, forfait" />
+        </div>
+        <div class="form-group">
+          <label>Fréquence facturation</label>
+          <select id="f_frequence_facturation">
+            <option value="">—</option>
+            <option>Une fois</option>
+            <option>Mensuel</option>
+            <option>Trimestriel</option>
+            <option>Annuel</option>
+            <option>Au résultat</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 180px;">
+          <label>Cycles de facturation</label>
+          <input type="number" id="f_cycles_facturation" min="1" step="1" placeholder="Ex : 3" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Références externes</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Réf. interne</label>
+          <input type="text" id="f_ref_interne" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Réf. Fuscaq</label>
+          <input type="text" id="f_ref_fuscaq" />
+        </div>
+        <div class="form-group">
+          <label>Réf. Cession PME</label>
+          <input type="text" id="f_ref_cession_pme" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Statut</div>
+      <div class="toggle-wrap">
+        <label class="toggle">
+          <input type="checkbox" id="f_actif" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label" id="toggleLabel">Produit actif</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let allProduits = [];
+  let currentId   = null;
+
+  // ── Init ──
+  async function init() {
+    const { data, error } = await supabase
+      .from('produits')
+      .select('*')
+      .order('nom', { ascending: true });
+    if (error) { showToast('Erreur chargement produits', true); return; }
+    allProduits = data || [];
+    applyFilters();
+  }
+
+  // ── Rendu tableau ──
+  function renderTable(produits) {
+    const tbody = document.getElementById('produitsBody');
+    document.getElementById('countLabel').textContent =
+      produits.length + ' produit' + (produits.length > 1 ? 's' : '');
+
+    if (!produits.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Aucun produit trouvé.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = produits.map(p => {
+      const prixFmt = p.prix_eur != null
+        ? Number(p.prix_eur).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+        : '<span class="muted">—</span>';
+      const taxeFmt = p.taxe != null ? p.taxe + ' %' : '<span class="muted">—</span>';
+      const statutBadge = p.actif
+        ? '<span class="badge badge-actif">Actif</span>'
+        : '<span class="badge badge-inactif">Inactif</span>';
+      return `
+        <tr onclick="openDrawer('${p.id}')">
+          <td style="font-weight:500">${esc(p.nom)}</td>
+          <td class="muted">${esc(p.categorie) || ''}</td>
+          <td class="muted">${esc(p.code_produit) || ''}</td>
+          <td class="prix">${prixFmt}</td>
+          <td class="muted">${esc(p.unite) || ''}</td>
+          <td class="muted">${taxeFmt}</td>
+          <td class="muted">${esc(p.frequence_facturation) || ''}</td>
+          <td>${statutBadge}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── Filtres ──
+  function applyFilters() {
+    const q    = document.getElementById('searchInput').value.toLowerCase();
+    const cat  = document.getElementById('filterCategorie').value;
+    const act  = document.getElementById('filterActif').value;
+
+    const filtered = allProduits.filter(p => {
+      const nom = (p.nom || '').toLowerCase();
+      const matchQ   = !q   || nom.includes(q);
+      const matchCat = !cat || p.categorie === cat;
+      const matchAct = act === '' || String(p.actif) === act;
+      return matchQ && matchCat && matchAct;
+    });
+    renderTable(filtered);
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value    = '';
+    document.getElementById('filterCategorie').value = '';
+    document.getElementById('filterActif').value    = '';
+    applyFilters();
+  }
+
+  // ── Drawer ──
+  function openDrawer(id) {
+    currentId = id;
+    clearForm();
+    if (id) {
+      const p = allProduits.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('drawerTitle').textContent = p.nom || 'Produit';
+      document.getElementById('btnDelete').style.display = 'inline-block';
+      fillForm(p);
+    } else {
+      document.getElementById('drawerTitle').textContent = 'Nouveau produit';
+      document.getElementById('btnDelete').style.display = 'none';
+    }
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('drawer').classList.add('open');
+  }
+
+  function closeDrawer() {
+    document.getElementById('overlay').classList.remove('open');
+    document.getElementById('drawer').classList.remove('open');
+    currentId = null;
+  }
+
+  function clearForm() {
+    ['f_nom','f_code_produit','f_categorie','f_description','f_prix_eur',
+     'f_taxe','f_unite','f_frequence_facturation','f_cycles_facturation',
+     'f_ref_interne','f_ref_fuscaq','f_ref_cession_pme']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('f_actif').checked = true;
+    updateToggleLabel(true);
+  }
+
+  function fillForm(p) {
+    const set = (id, val) => { document.getElementById(id).value = val ?? ''; };
+    set('f_nom',                  p.nom);
+    set('f_code_produit',         p.code_produit);
+    set('f_categorie',            p.categorie);
+    set('f_description',          p.description);
+    set('f_prix_eur',             p.prix_eur);
+    set('f_taxe',                 p.taxe);
+    set('f_unite',                p.unite);
+    set('f_frequence_facturation',p.frequence_facturation);
+    set('f_cycles_facturation',   p.cycles_facturation);
+    set('f_ref_interne',          p.ref_interne);
+    set('f_ref_fuscaq',           p.ref_fuscaq);
+    set('f_ref_cession_pme',      p.ref_cession_pme);
+    document.getElementById('f_actif').checked = p.actif !== false;
+    updateToggleLabel(p.actif !== false);
+  }
+
+  function getFormData() {
+    const g  = id => document.getElementById(id).value.trim();
+    const gN = id => { const v = g(id); return v !== '' ? parseFloat(v) : null; };
+    const gI = id => { const v = g(id); return v !== '' ? parseInt(v, 10) : null; };
+    return {
+      nom:                  g('f_nom'),
+      code_produit:         g('f_code_produit')          || null,
+      categorie:            g('f_categorie')             || null,
+      description:          g('f_description')           || null,
+      prix_eur:             gN('f_prix_eur'),
+      taxe:                 gN('f_taxe'),
+      unite:                g('f_unite')                 || null,
+      frequence_facturation:g('f_frequence_facturation') || null,
+      cycles_facturation:   gI('f_cycles_facturation'),
+      ref_interne:          g('f_ref_interne')           || null,
+      ref_fuscaq:           g('f_ref_fuscaq')            || null,
+      ref_cession_pme:      g('f_ref_cession_pme')       || null,
+      actif:                document.getElementById('f_actif').checked,
+      updated_at:           new Date().toISOString(),
+    };
+  }
+
+  // ── Save / Delete ──
+  async function saveProduit() {
+    const data = getFormData();
+    if (!data.nom) { showToast('Le nom est obligatoire', true); return; }
+    let error;
+    if (currentId) {
+      ({ error } = await supabase.from('produits').update(data).eq('id', currentId));
+    } else {
+      ({ error } = await supabase.from('produits').insert(data));
+    }
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+    showToast(currentId ? 'Produit mis à jour ✓' : 'Produit créé ✓');
+    closeDrawer();
+    init();
+  }
+
+  async function deleteProduit() {
+    if (!confirm('Supprimer ce produit ? Cette action est irréversible.')) return;
+    const { error } = await supabase.from('produits').delete().eq('id', currentId);
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+    showToast('Produit supprimé');
+    closeDrawer();
+    init();
+  }
+
+  // ── Toggle label ──
+  function updateToggleLabel(checked) {
+    document.getElementById('toggleLabel').textContent = checked ? 'Produit actif' : 'Produit inactif';
+  }
+  document.getElementById('f_actif').addEventListener('change', function() {
+    updateToggleLabel(this.checked);
+  });
+
+  // ── Toast ──
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── Helpers ──
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  init();
+</script>
+</body>
+</html>
