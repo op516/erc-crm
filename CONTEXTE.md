@@ -2,26 +2,36 @@
 
 *Dernière mise à jour : avril 2026*
 
-## PROMPT DE DÉMARRAGE — COLLER TEL QUEL EN DÉBUT DE NOUVELLE SESSION
+## 0. LECTURE OBLIGATOIRE EN DÉBUT DE SESSION
 
-```
-Lis ces fichiers dans cet ordre via web_fetch, confirme chaque lecture, puis attends ma prochaine instruction :
-https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
-https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
-https://raw.githubusercontent.com/op516/erc-crm/main/style.css
-https://raw.githubusercontent.com/op516/erc-crm/main/deals.html
-https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
-https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
-https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
-```
+Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs **raw** :
 
----
+1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
+2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
+3. https://raw.githubusercontent.com/op516/erc-crm/main/style.css
+4. https://raw.githubusercontent.com/op516/erc-crm/main/deals.html
+5. https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
+6. https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
+7. https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
+
+**Règles strictes :**
+- Utiliser exclusivement les URLs `raw.githubusercontent.com`
+- Si un fichier échoue → réessayer une fois avant de signaler
+- Confirmer la lecture de chaque fichier avant de commencer le travail
+
+## 0bis. PROTOCOLE DE FIN DE SESSION
+
+Quand Olivier signale qu'il quitte la conversation, Claude doit produire :
+
+1. **Synthèse** de ce qui a été fait
+2. **CONTEXTE.md mis à jour**
+3. **Prompt prêt à coller** pour la prochaine conversation
+4. **Rappel** des fichiers à commiter dans GitHub
 
 ## 1. QUI ET POURQUOI
 
 Olivier Pichon, cabinet ERC Conseil, transmission d'entreprise.
 Objectif : apprendre à coder en construisant des vrais outils utiles.
-Stack identique à ComptaFlow — réutilisation directe.
 
 ## 2. STACK FIXE — NE PAS CHANGER
 
@@ -46,67 +56,83 @@ Stack identique à ComptaFlow — réutilisation directe.
 * Un seul fichier par session de travail
 * Si Olivier dit "hors sujet" → arrêt immédiat, retour au cadre
 * Pas de nouveaux services sans demande explicite
+* **Outil create_file UNIQUEMENT pour écrire les fichiers HTML** — ne jamais utiliser bash heredoc pour du HTML (bloque)
 * Fin de session → produire la mise à jour de CONTEXTE.md
 
 ## 5. ÉTAT ACTUEL DU PROJET
 
-### Fichiers en place
-* `SCHEMA.sql` — schéma défini et exécuté dans Supabase ✓
+### Fichiers livrés et commitables
+* `SCHEMA.sql` — schéma défini et **exécuté dans Supabase** ✓
 * `style.css` — charte graphique partagée ✓
 * `supabase-client.js` — client Supabase partagé ✓
-* `deals.html` — Kanban + liste, drag & drop ✓ (CSS intégré, pas encore migré vers style.css)
 * `contacts.html` — liste + filtres + drawer CRUD, branché sur style.css ✓
-* `entreprises.html` — en place, pas encore migré vers style.css
-* `activites.html` — agenda commercial ✓ (branché sur style.css)
-  - Vue tableau par défaut + vue cartes (toggle)
-  - Onglets : En retard / Aujourd'hui / Cette semaine / Toutes
-  - Filtres type : Appel / RDV / Email / Tâche
-  - Tri par colonne (clic en-tête) dans la vue tableau
-  - Drawer d'exécution au clic sur une ligne :
-    * Historique notes du dossier lié (table `notes`)
-    * Saisie nouvelle note → INSERT dans `notes`
-    * "Marquer faite + créer la suivante" → UPDATE faite + ouvre modal pré-rempli
-  - Modal création : type (requis), date (requis), sujet (optionnel), heure, deal, entreprise, contact, note
-  - Associations : deal_id, entreprise_id, contact_id
+* `activites.html` — vue tableau + vue cartes, drawer exécution, branché sur style.css ✓
+* `entreprises.html` — liste + cards + slide-over, CSS encore intégré (pas migré vers style.css)
 
-### Table `deals` — colonnes ajoutées (ALTER TABLE exécuté en Supabase)
-```sql
-ALTER TABLE deals
-  ADD COLUMN produit_id UUID REFERENCES produits(id),
-  ADD COLUMN quantite INTEGER DEFAULT 1,
-  ADD COLUMN remise DECIMAL(5,2) DEFAULT 0,
-  ADD COLUMN taux_tva DECIMAL(5,2) DEFAULT 20.00,
-  ADD COLUMN valeur_ht DECIMAL(12,2),
-  ADD COLUMN date_realisation DATE,
-  ADD COLUMN probabilite_reussite INTEGER DEFAULT 0;
-```
-- `valeur` existante = valeur TTC calculée (conservée pour compatibilité affichage actuel)
-- `valeur_ht` = saisie manuelle OU calculée depuis produit × quantité × (1 - remise/100)
-- `taux_tva` = hérité de `produits.taxe` si produit sélectionné, sinon liste FR (20/10/5.5/2.1/0%)
-- Calcul TTC : valeur_ht × (1 - remise/100) × (1 + taux_tva/100)
-- `probabilite_reussite` = 0-100, pour stats futures
+### deals.html — état détaillé ✓
+- Kanban + liste, drag & drop entre étapes, Supabase UPDATE optimiste
+- Toggle vue Kanban / Liste
+- Subbar filtres par étape (vue liste)
+- **Slide-over éditable** au clic sur carte ou ligne :
+  - Champs éditables : titre du deal, étape, statut, probabilité, valeur HT, closing (renommé "Échéance"), date réalisation, note interne
+  - Calcul TVA 20% et TTC en temps réel
+  - Onglet Activités : liste des activités liées
+  - Onglet Notes : liste + ajout de note
+  - Bouton Enregistrer → UPDATE Supabase + fermeture automatique
+- **Migré vers style.css** : topbar, reset, body, toast (override position bottom-right)
+- CSS inline réduit au strict spécifique deals (kanban, slide-over, badges à dots)
+- **⚠️ deals → contacts et entreprises NON encore liés** (en cours, voir §6)
 
 ### Pages restantes à construire
-* `leads.html`
+* `produits.html` — catalogue missions + actifs en vente (voir §7)
+* `leads.html` — **décision : ne pas construire** (usage couvert par étape Qualification des deals)
 
-### Prochaine étape prioritaire : enrichir `deals.html`
-- Cartes Kanban et lignes liste **cliquables** → slide-over (pattern entreprises.html)
-- Slide-over deal : infos complètes + produit lié + calcul valeur HT/remise/TVA/TTC
-- Onglets dans le slide-over : Activités liées / Notes liées
-- Drawer notes/activités : même logique que activites.html
+### Passe finale à prévoir
+* Migrer `entreprises.html` vers `style.css`
+* **Harmoniser les menus** sur toutes les pages dans cet ordre : **Contacts · Entreprises · Deals · Activités**
 
-### Passe finale à prévoir (non prioritaire)
-* Migrer `deals.html` et `entreprises.html` vers `style.css`
-* Vérifier cohérence visuelle de toutes les pages
+## 6. TRAVAIL EN COURS — deals.html
 
-## 6. CHARTE GRAPHIQUE — style.css
+### Lier deals → contacts + entreprises
+À faire dans le slide-over de deals.html :
+- Ajouter deux selects : "Entreprise" et "Contact" (chargés depuis Supabase)
+- Inclure `entreprise_id` et `contact_id` dans le payload de `saveDeal()`
+- Afficher en lecture le nom entreprise + contact déjà liés (contexte en haut du slide-over)
+- La requête principale charge déjà `entreprises(nom)` et `contacts(prenom,nom,fonction)` → à enrichir
 
-Toutes les nouvelles pages doivent inclure dans leur `<head>` :
+### Requête actuelle dans `loadDeals()`
+```js
+sb.from('deals')
+  .select('id,titre,etape,statut,valeur,probabilite,date_closing_prevu,date_gain,entreprises(nom)')
+```
+→ Ajouter `contact_id, entreprise_id, contacts(prenom,nom)` au select principal
+
+## 7. PRODUITS — DÉCISIONS MÉTIER
+
+Deux usages distincts, un seul champ `categorie` dans la table `produits` :
+
+| categorie | Usage |
+|-----------|-------|
+| `'mission'` | Prestations catalogue : valorisation, préparation de cession, classeur d'urgence, audit… |
+| `'actif'` | Une société en vente = un enregistrement produit. Permet de regrouper tous les deals acquéreurs sur un même mandat en filtrant par produit. |
+
+→ Pas de modification du schéma nécessaire, `categorie TEXT` suffit.
+→ `produits.html` à construire avec deux sections visuelles distinctes (missions / actifs).
+
+## 8. PIPELINE ERC
+
+qualification → diagnostic → valorisation →
+recherche → négociation → closing → perdu
+
+La première étape "Qualification" fait office de sas de leads. `leads.html` ne sera pas construite.
+
+## 9. CHARTE GRAPHIQUE — style.css
+
+Toutes les pages doivent inclure dans leur `<head>` :
 ```html
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css" />
 ```
-Aucun bloc `<style>` intégré — sauf CSS strictement spécifique à la page.
 
 ### Tokens principaux
 * Fond topbar : `#172b4d`
@@ -116,26 +142,16 @@ Aucun bloc `<style>` intégré — sauf CSS strictement spécifique à la page.
 * Texte secondaire : `#6b778c`
 * Police : DM Sans 400/500/600
 
-## 7. CYCLE COMMERCIAL ERC
+### Menu de navigation — ordre imposé sur toutes les pages
+```
+Contacts · Entreprises · Deals · Activités
+```
 
-**Lead** → contact + produit potentiel, avant qualification (table `leads`, page `leads.html` à construire)
-**Deal** → dossier actif après qualification (table `deals`, `deals.html`)
-La table `leads` a un champ `deal_id` pour tracer la conversion lead → deal.
-**Ne pas supprimer la table `leads`.**
-
-Pipeline deals : qualification → diagnostic → valorisation → recherche → négociation → closing → perdu
-
-## 8. CE QU'ON NE FAIT PAS
+## 10. CE QU'ON NE FAIT PAS
 
 * Pas de reporting complexe
 * Pas de téléphonie
 * Pas de marketplace
 * Pas de clone Pipedrive complet
 * Pas d'architecture multi-fichiers .js complexe
-
-## 9. POINTS EN SUSPENS
-
-* **Leads dans activites.html** : la table `activites` n'a pas de `lead_id`.
-  Quand on construira `leads.html`, prévoir :
-  `ALTER TABLE activites ADD COLUMN lead_id UUID REFERENCES leads(id);`
-  et ajouter le dropdown lead dans le modal de création d'activité.
+* Pas de `leads.html`
