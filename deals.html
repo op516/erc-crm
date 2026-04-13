@@ -109,7 +109,9 @@
 
     .so-hdr{padding:16px 20px 12px;border-bottom:1px solid #e8eaf0;flex-shrink:0}
     .so-hdr-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
-    .so-title{font-size:15px;font-weight:600;flex:1;line-height:1.4}
+    .so-title{font-size:15px;font-weight:600;flex:1;line-height:1.4;border:none;border-bottom:2px solid transparent;background:transparent;font-family:'DM Sans',sans-serif;color:#1a1a2e;padding:2px 0;outline:none;width:100%;transition:border-color .15s}
+    .so-title:hover{border-bottom-color:#dde1ec}
+    .so-title:focus{border-bottom-color:#0e3d5c}
     .so-close{background:none;border:none;cursor:pointer;color:#9ba3b8;font-size:20px;line-height:1;padding:2px 4px;flex-shrink:0}
     .so-close:hover{color:#1a1a2e}
     .so-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:22px}
@@ -252,7 +254,7 @@
 <div class="slideover" id="slideover">
   <div class="so-hdr">
     <div class="so-hdr-row">
-      <div class="so-title" id="so-titre">—</div>
+      <input class="so-title" id="so-titre" type="text" value="—" placeholder="Nom du deal">
       <button class="so-close" onclick="closeSlideOver()">✕</button>
     </div>
     <div class="so-meta" id="so-meta"></div>
@@ -452,7 +454,7 @@ async function openSo(dealId){
   }
 
   const produit=leads?.[0]?.produits||null;
-  document.getElementById('so-titre').textContent=deal.titre;
+  document.getElementById('so-titre').value=deal.titre;
   document.getElementById('so-meta').innerHTML=buildMeta(deal);
   document.getElementById('so-body').innerHTML=buildBody(deal,produit,acts||[],notes||[]);
 
@@ -512,7 +514,7 @@ function buildBody(deal,produit,acts,notes){
 
     +'<div class="so-stitle">Dates</div>'
     +'<div class="so-row2">'
-    +'<div class="so-field"><label>Closing prévu</label><input type="date" id="f-closing" value="'+(deal.date_closing_prevu||'')+'"></div>'
+    +'<div class="so-field"><label>Échéance</label><input type="date" id="f-closing" value="'+(deal.date_closing_prevu||'')+'"></div>'
     +'<div class="so-field"><label>Date réalisation</label><input type="date" id="f-gain" value="'+(deal.date_gain||'')+'"></div>'
     +'</div>'
 
@@ -547,6 +549,7 @@ async function saveDeal(id){
   const payload={
     etape:     g('f-etape')||null,
     statut:    g('f-statut')||null,
+    titre:     document.getElementById('so-titre')?.value.trim()||null,
     valeur:    g('f-valeur')!==''?parseFloat(g('f-valeur')):null,
     probabilite:g('f-proba')!==''?parseInt(g('f-proba')):null,
     date_closing_prevu:g('f-closing')||null,
@@ -561,7 +564,7 @@ async function saveDeal(id){
   refreshMeta(); renderKanban(); renderListe();
   document.getElementById('so-meta').innerHTML=buildMeta({...(allDeals[idx]||{}),...payload});
   toast('Deal enregistré ✓');
-  btn.disabled=false; btn.textContent='Enregistrer les modifications';
+  closeSlideOver();
 }
 
 function buildActs(acts){
