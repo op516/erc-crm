@@ -290,7 +290,7 @@ function toast(msg, type='success'){
 async function loadDeals(){
   showState('loading');
   const {data,error}=await sb.from('deals')
-    .select('id,titre,etape,statut,valeur,probabilite,date_closing_prevu,date_gain,entreprises(nom)')
+    .select('id,titre,etape,statut,valeur,probabilite,date_closing_prevu,date_gain,contact_id,entreprise_id,entreprises(nom),contacts(prenom,nom)')
     .order('created_at',{ascending:false});
   if(error){document.getElementById('error-msg').textContent=error.message;showState('error');return;}
   allDeals=data||[];
@@ -436,11 +436,13 @@ async function openSo(dealId){
   document.getElementById('so-meta').innerHTML='';
   document.getElementById('so-body').innerHTML='<div class="so-loading"><div class="so-spin"></div>Chargement…</div>';
 
-  const [{data:deal,error:err},{data:acts},{data:notes},{data:leads}] = await Promise.all([
+  const [{data:deal,error:err},{data:acts},{data:notes},{data:leads},{data:ents},{data:cts}] = await Promise.all([
     sb.from('deals').select('*,entreprises(id,nom),contacts(id,prenom,nom,fonction)').eq('id',dealId).single(),
     sb.from('activites').select('*').eq('deal_id',dealId).order('date_echeance',{ascending:false}),
     sb.from('notes').select('*').eq('deal_id',dealId).order('created_at',{ascending:false}),
-    sb.from('leads').select('produits(id,nom,taxe,prix_eur)').eq('deal_id',dealId).limit(1)
+    sb.from('leads').select('produits(id,nom,taxe,prix_eur)').eq('deal_id',dealId).limit(1),
+    sb.from('entreprises').select('id,nom').order('nom'),
+    sb.from('contacts').select('id,prenom,nom').order('nom')
   ]);
 
   if(err||!deal){
@@ -451,7 +453,7 @@ async function openSo(dealId){
   const produit=leads?.[0]?.produits||null;
   document.getElementById('so-titre').value=deal.titre;
   document.getElementById('so-meta').innerHTML=buildMeta(deal);
-  document.getElementById('so-body').innerHTML=buildBody(deal,produit,acts||[],notes||[]);
+  document.getElementById('so-body').innerHTML=buildBody(deal,produit,acts||[],notes||[],ents||[],cts||[]);
 
   document.getElementById('f-valeur')?.addEventListener('input',recalcFinance);
   document.getElementById('btn-note')?.addEventListener('click',()=>addNote(dealId));
@@ -465,7 +467,7 @@ function buildMeta(deal){
   return h;
 }
 
-function buildBody(deal,produit,acts,notes){
+function buildBody(deal,produit,acts,notes,ents,cts){
   const ht=parseFloat(deal.valeur)||0;
   const tvaRate=produit?.taxe!=null?parseFloat(produit.taxe):20;
   const tva=ht*tvaRate/100, ttc=ht+tva;
@@ -485,10 +487,15 @@ function buildBody(deal,produit,acts,notes){
 
   const stageOpts=STAGES.map(s=>'<option value="'+s.key+'"'+(deal.etape===s.key?' selected':'')+'>'+s.label+'</option>').join('');
   const statOpts=STATUTS.map(s=>'<option value="'+s+'"'+(deal.statut===s?' selected':'')+'>'+(s.charAt(0).toUpperCase()+s.slice(1))+'</option>').join('');
+  const entOpts='<option value="">— Aucune —</option>'+ents.map(e=>'<option value="'+e.id+'"'+(deal.entreprise_id===e.id?' selected':'')+'>'+esc(e.nom)+'</option>').join('');
+  const ctOpts='<option value="">— Aucun —</option>'+cts.map(c=>'<option value="'+c.id+'"'+(deal.contact_id===c.id?' selected':'')+'>'+(esc([c.prenom,c.nom].filter(Boolean).join(' ')))+'</option>').join('');
 
   return (ctx?'<div class="so-form" style="padding-bottom:0"><div class="so-ctx">'+ctx+'</div></div>':'')
     +prodBlock
     +'<div class="so-form">'
+    +'<div class="so-stitle">Interlocuteurs</div>'
+    +'<div class="so-field"><label>Entreprise</label><select id="f-entreprise">'+entOpts+'</select></div>'
+    +'<div class="so-field"><label>Contact</label><select id="f-contact">'+ctOpts+'</select></div>'
     +'<div class="so-stitle">Pipeline</div>'
     +'<div class="so-row2">'
     +'<div class="so-field"><label>Étape</label><select id="f-etape">'+stageOpts+'</select></div>'
@@ -542,15 +549,17 @@ async function saveDeal(id){
   btn.disabled=true; btn.textContent='Enregistrement…';
   const g=sel=>document.getElementById(sel)?.value;
   const payload={
-    etape:     g('f-etape')||null,
-    statut:    g('f-statut')||null,
-    titre:     document.getElementById('so-titre')?.value.trim()||null,
-    valeur:    g('f-valeur')!==''?parseFloat(g('f-valeur')):null,
+    titre:      document.getElementById('so-titre')?.value.trim()||null,
+    entreprise_id: g('f-entreprise')||null,
+    contact_id: g('f-contact')||null,
+    etape:      g('f-etape')||null,
+    statut:     g('f-statut')||null,
+    valeur:     g('f-valeur')!==''?parseFloat(g('f-valeur')):null,
     probabilite:g('f-proba')!==''?parseInt(g('f-proba')):null,
     date_closing_prevu:g('f-closing')||null,
-    date_gain: g('f-gain')||null,
-    notes:     document.getElementById('f-notes')?.value.trim()||null,
-    updated_at:new Date().toISOString(),
+    date_gain:  g('f-gain')||null,
+    notes:      document.getElementById('f-notes')?.value.trim()||null,
+    updated_at: new Date().toISOString(),
   };
   const {error}=await sb.from('deals').update(payload).eq('id',id);
   if(error){toast('Erreur : '+error.message,'error');btn.disabled=false;btn.textContent='Enregistrer les modifications';return;}
