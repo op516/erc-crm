@@ -17,151 +17,165 @@ Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs *
 **Règles strictes :**
 - Utiliser exclusivement les URLs `raw.githubusercontent.com`
 - Si un fichier échoue → réessayer une fois avant de signaler
+- Ne jamais conclure qu'un fichier est absent sans avoir tenté l'URL raw
 - Confirmer la lecture de chaque fichier avant de commencer le travail
-- **Toujours utiliser `create_file` pour écrire du HTML** — ne jamais utiliser bash heredoc (bloque)
+- Si Olivier colle un fichier directement dans le chat → c'est la version de référence, prioritaire sur GitHub
 
 ## 0bis. PROTOCOLE DE FIN DE SESSION
 
-Quand Olivier signale qu'il quitte, Claude produit :
-1. CONTEXTE.md mis à jour
-2. Prompt prêt à coller pour la prochaine session
-3. Rappel des fichiers à commiter
+Quand Olivier signale qu'il quitte la conversation, Claude doit systématiquement produire :
+
+1. **Synthèse** de ce qui a été fait dans la session
+2. **CONTEXTE.md mis à jour** — refléter l'état réel du projet (fichiers créés, décisions prises, points en suspens)
+3. **Prompt prêt à coller** pour la prochaine conversation
+4. **Rappel** des fichiers à commiter dans GitHub si nécessaire
+
+## 0ter. RÈGLES DE MISE À JOUR DU CONTEXTE
+
+- Ne jamais noter une page comme "non migrée" ou "à faire" sans avoir vérifié le fichier réel
+- Si un doute existe sur l'état d'un fichier → le refetcher depuis GitHub avant de conclure
+- Le CSS local dans un fichier HTML n'est PAS une erreur : chaque page a son propre `<style>` pour le CSS spécifique (kanban, slide-over, cards…). Ce n'est pas une migration incomplète.
+- La migration vers style.css signifie : `<link rel="stylesheet" href="style.css" />` présent + topbar standard `<div class="topbar">` utilisée
 
 ## 1. QUI ET POURQUOI
 
 Olivier Pichon, cabinet ERC Conseil, transmission d'entreprise.
 Objectif : apprendre à coder en construisant des vrais outils utiles.
+Stack identique à ComptaFlow — réutilisation directe.
 
 ## 2. STACK FIXE — NE PAS CHANGER
 
-- Base de données : Supabase (PostgreSQL)
-- Hébergement : Vercel
-- Versionning : GitHub (https://github.com/op516/erc-crm)
-- Frontend : HTML / CSS / JS vanilla
-- PAS de framework, PAS de librairie externe, PAS de nouveau service
+* Base de données : Supabase (PostgreSQL)
+* Hébergement : Vercel
+* Versionning : GitHub (https://github.com/op516/erc-crm)
+* Frontend : HTML / CSS / JS vanilla
+* PAS de framework, PAS de librairie externe, PAS de nouveau service
 
 ## 3. ARCHITECTURE DÉCIDÉE
 
-- Un fichier HTML par page
-- Un seul `supabase-client.js` partagé
-- Un seul `style.css` partagé — toutes les pages doivent l'appeler
-- Pas de router, pas de bundler, pas de build
+* Un fichier HTML par page
+* Un seul `supabase-client.js` partagé
+* Un seul `style.css` partagé — toutes les pages doivent l'appeler
+* Chaque page peut avoir un bloc `<style>` local pour son CSS spécifique — c'est normal et intentionnel
+* `index.html` = tableau de bord (dashboard)
+* Pas de router, pas de bundler, pas de build
 
 ## 4. RÈGLES QUE CLAUDE DOIT RESPECTER
 
-- Spec de 3 lignes MAX avant chaque fonctionnalité
-- Coder uniquement ce qui est dans la spec, rien de plus
-- Un seul fichier par session de travail si possible
-- Fin de session → produire la mise à jour de CONTEXTE.md
+* Spec de 3 lignes MAX avant chaque fonctionnalité
+* Coder uniquement ce qui est dans la spec, rien de plus
+* Un seul fichier par session de travail
+* Si Olivier dit "hors sujet" → arrêt immédiat, retour au cadre
+* Pas de nouveaux services sans demande explicite
+* Fin de session → produire la mise à jour de CONTEXTE.md
 
 ## 5. ÉTAT ACTUEL DU PROJET
 
-### Fichiers livrés — à commiter si pas encore fait
-- `deals.html` ✓
-- `contacts.html` ✓
-- `entreprises.html` ✓
-- `activites.html` ✓
+### Fichiers en place — TOUS MIGRÉS vers style.css ✓
 
-### deals.html — fonctionnalités complètes
-- Kanban + liste, drag & drop, Supabase UPDATE optimiste
-- Toggle vue Kanban / Liste
-- Subbar filtres par étape (vue liste)
-- Recherche globale (titre, entreprise, contact)
-- Bouton **"+ Nouveau deal"** → modal création (titre, étape, entreprise, contact, valeur)
-- **Slide-over éditable** au clic sur carte ou ligne :
-  - Titre modifiable dans le header
-  - Section Interlocuteurs : selects Entreprise + Contact (pré-remplis si déjà liés)
-  - Section Pipeline : Étape, Statut, Probabilité
-  - Section Financier : Valeur HT, TVA 20% calculée live, TTC
-  - Section Dates : Échéance, Date réalisation
-  - Note interne
-  - Bouton **"+ Activité"** dans le header meta (accès direct sans scroll)
-  - Onglet Activités : liste + bouton "+ Créer une activité" en haut
-  - Onglet Notes : liste + textarea ajout note
-  - Enregistrer → UPDATE Supabase + fermeture + rafraîchissement liste/kanban avec joins
-- Migré vers style.css, CSS inline réduit au strict spécifique
+* `SCHEMA.sql` — schéma défini et exécuté dans Supabase ✓
+* `style.css` — charte graphique partagée ✓
+* `supabase-client.js` — client Supabase partagé ✓
+* `login.html` — page d'authentification Supabase, gère la redirection si déjà connecté ✓
+* `index.html` — tableau de bord (dashboard) ✓ — voir section 7 — **à recommitter (écrasé)**
+* `contacts.html` — liste + filtres + drawer CRUD ✓
+* `entreprises.html` — liste (table + cards) + drawer CRUD complet + contacts liés + modal activité rapide ✓ — **mis à jour cette session**
+* `deals.html` — Kanban + liste + slide-over édition complète + modal nouveau deal + modal activité ✓
+* `activites.html` — agenda + filtres période/type + vue tableau + drawer exécution ✓
+* `produits.html` — liste + filtres + drawer CRUD + toggle actif/inactif ✓
 
-### contacts.html — fonctionnalités complètes
-- Liste + filtres (catégorie, origine) + recherche
-- Drawer CRUD complet (créer, modifier, supprimer)
-- Bouton **"+ Activité"** dans le drawer (visible sur contact existant uniquement)
-- Modal activité : type, date, sujet, heure, deal associé, note
-- Branché sur style.css
+### Pages décidées comme non nécessaires
+* `leads.html` — décision de ne pas utiliser les leads
 
-### entreprises.html — fonctionnalités complètes
-- Liste + cards, toggle vue, recherche
-- Slide-over détail complet (infos, coordonnées, CRM, flags, contacts liés)
-- Modal ajout entreprise
-- Bouton **"+ Activité"** dans le header du slide-over
-- Modal activité : type, date, sujet, heure, deal associé, note
-- Migré vers style.css
+## 6. CE QUI A CHANGÉ DANS ENTREPRISES.HTML (cette session)
 
-### activites.html — fonctionnalités complètes
-- Vue tableau (défaut) + vue cartes
-- **Filtre par défaut : "Toutes"** (pas "En retard")
-- Tabs période : En retard / Aujourd'hui / Cette semaine / Toutes
-- Filtres type : Appel / RDV / Email / Tâche
-- Recherche (sujet, deal, contact, entreprise)
-- **Modal unifié création + modification** : tous champs éditables dont la date
-- Mode édition : case "Activité réalisée" + historique notes liées
-- Bouton Supprimer dans le modal (mode édition)
-- Branché sur style.css
+L'ancien slide-over lecture seule + la modal de création simplifiée (7 champs) ont été **remplacés** par un **drawer CRUD unique** sur le modèle de `contacts.html` :
 
-### Pages restantes à construire
-- `produits.html` — **prochaine étape**
-- `leads.html` — **décision : ne pas construire** (qualification = sas de leads)
+- Clic sur une ligne → `openDrawer(id)` : formulaire pré-rempli
+- Bouton "+ Ajouter" → `openDrawer(null)` : formulaire vide
+- **Champs** : Nom*, Sigle, Secteur, Ville, CA annuel, Effectif, Statut, Département, Commentaire (= les 9 champs de l'ancienne modal, pas plus)
+- **Header drawer** : titre dynamique + bouton "+ Activité" (masqué en création) + Supprimer (masqué en création) + Enregistrer + ×
+- **Section "Contacts liés"** (visible uniquement en édition) : affiche les contacts avec `entreprise_id = currentId`, bouton × pour détacher, select + bouton "Rattacher" pour lier un contact existant
+- **Modal activité rapide** : conservée à l'identique
+- **Toolbar** : `h1` conservé, search ramené à gauche (suppression du `flex:1` sur h1)
+- `allContacts` chargé au `init()` en parallèle des entreprises pour alimenter la section contacts liés sans requête supplémentaire à l'ouverture du drawer
 
-### Passe à prévoir plus tard
-- Harmonisation visuelle des menus (Olivier pas 100% satisfait, à préciser)
-- Migration `entreprises.html` CSS (partiellement fait)
+## 7. NAVIGATION — ÉTAT FINAL
 
-## 6. PRODUITS — DÉCISIONS MÉTIER
+Toutes les pages ont la même topbar avec la nav complète dans cet ordre :
 
-Deux usages, un seul champ `categorie` dans la table `produits` :
+```
+Accueil · Contacts · Entreprises · Deals · Activités · Produits
+```
 
-| categorie | Usage |
-|-----------|-------|
-| `'mission'` | Prestations catalogue : valorisation, préparation de cession, classeur d'urgence, audit… |
-| `'actif'` | Une société en vente = un enregistrement produit. Regroupe les deals acquéreurs sur un même mandat. |
+Chaque page a `class="active"` sur son propre lien.
+`index.html` a `class="active"` sur Accueil.
+Le bouton Déconnexion est présent uniquement sur `index.html` (topbar droite).
 
-Le deal reste centré sur l'acquéreur (contact principal), le produit identifie l'actif qui l'intéresse.
-Pas de modification du schéma nécessaire, `categorie TEXT` suffit.
+## 8. DASHBOARD index.html
 
-### produits.html — spec à implémenter
-- Liste des produits avec deux sections visuelles : Missions | Actifs en vente
-- Filtrage par catégorie
-- Formulaire création/modification (nom, categorie, description, prix_eur, taxe, actif)
-- Possibilité de lier un produit à un deal depuis deals.html (à faire après produits.html)
+Construit avec 4 zones :
 
-## 7. PIPELINE ERC
+**KPI cards (cliquables)** :
+- Deals ouverts → liens vers deals.html
+- Valeur pondérée (valeur × probabilité / 100 — 0 si non renseigné) → deals.html
+- Activités en retard (rouge si > 0) → activites.html
+- Contacts → contacts.html
+
+**Pipeline deals** (cliquable → deals.html) :
+- Barre horizontale par étape avec couleurs du Kanban
+- Valeur pondérée par étape
+- Exclut l'étape "perdu"
+
+**Activités urgentes** (cliquable → activites.html) :
+- En retard + aujourd'hui, max 7
+- Date en rouge si retard
+
+**Deals récents** (cliquable → deals.html) :
+- 8 derniers deals ouverts sur 2 colonnes
+
+## 9. AUTHENTIFICATION — À ACTIVER EN PROD
+
+`login.html` est créée et fonctionnelle. Pour activer en prod :
+
+1. Créer l'utilisateur dans Supabase : Authentication → Users → Invite user
+2. Ajouter ce guard silencieux en haut du `<script>` de chaque page (index, contacts, entreprises, deals, activites, produits) :
+
+```js
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) window.location.href = 'login.html';
+})();
+```
+
+`login.html` gère déjà la redirection automatique si déjà connecté.
+
+## 10. PIPELINE ERC
 
 qualification → diagnostic → valorisation →
 recherche → négociation → closing → perdu
 
-## 8. CHARTE GRAPHIQUE — style.css
+## 11. CHARTE GRAPHIQUE — style.css
 
+Toutes les pages incluent dans leur `<head>` :
 ```html
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 ```
 
 ### Tokens principaux
-- Fond topbar : `#172b4d`
-- Bleu action : `#0052cc`
-- Fond page : `#f4f5f7`
-- Texte principal : `#172b4d`
-- Texte secondaire : `#6b778c`
-- Police : DM Sans 400/500/600
+* Fond topbar : `#172b4d`
+* Bleu action : `#0052cc`
+* Fond page : `#f4f5f7`
+* Texte principal : `#172b4d`
+* Texte secondaire : `#6b778c`
+* Police : DM Sans 400/500/600
 
-### Menu de navigation — ordre sur toutes les pages
-```
-Contacts · Entreprises · Deals · Activités
-```
+## 12. CE QU'ON NE FAIT PAS
 
-## 9. CE QU'ON NE FAIT PAS
-
-- Pas de reporting complexe
-- Pas de téléphonie
-- Pas de `leads.html`
-- Pas d'architecture multi-fichiers .js complexe
-- Pas de nouveaux services sans demande explicite
+* Pas de reporting complexe
+* Pas de téléphonie
+* Pas de marketplace
+* Pas de clone Pipedrive complet
+* Pas d'architecture multi-fichiers .js complexe
+* Pas de leads (décision prise)
