@@ -12,89 +12,60 @@
     /* ── CSS spécifique entreprises.html ── */
 
     /* Toggle vue */
-    .view-toggle { display: flex; border: 1px solid #dde1ec; border-radius: 6px; overflow: hidden; }
-    .view-btn { height: 36px; width: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: white; border: none; color: #9ba3b8; transition: background 0.15s, color 0.15s; }
+    .view-toggle { display: flex; border: 1px solid #dfe1e6; border-radius: 4px; overflow: hidden; }
+    .view-btn { height: 36px; width: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: white; border: none; color: #6b778c; transition: background 0.15s, color 0.15s; }
     .view-btn.active { background: #172b4d; color: white; }
-    .view-btn:hover:not(.active) { background: #f5f6fa; }
+    .view-btn:hover:not(.active) { background: #f4f5f7; }
 
     /* Content */
     .content { padding: 24px; }
-    .count-label { font-size: 13px; color: #9ba3b8; margin-left: auto; }
 
-    /* Table */
-    .table-wrap { background: white; border-radius: 8px; border: 1px solid #e8eaf0; overflow: hidden; }
-    table { width: 100%; border-collapse: collapse; }
-    thead { background: #f8f9fc; border-bottom: 1px solid #e8eaf0; }
-    th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 700; color: #6b7494; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-    tbody tr { border-bottom: 1px solid #f0f2f7; cursor: pointer; transition: background 0.1s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #f8f9fc; }
-    td { padding: 12px 16px; color: #1a1a2e; font-size: 14px; }
-    td.nom { font-weight: 500; }
-
-    .empty-state { text-align: center; padding: 60px 24px; color: #9ba3b8; }
-    .empty-state p { margin-top: 10px; font-size: 13px; }
+    /* Table spécifique (non couverte par style.css table-wrap qui a flex) */
+    .ent-table-wrap { background: white; border-radius: 6px; border: 1px solid #dfe1e6; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .ent-table-wrap table { width: 100%; border-collapse: collapse; }
+    .ent-table-wrap thead tr { background: #f8f9fa; border-bottom: 2px solid #e0e0e0; }
+    .ent-table-wrap th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 600; color: #6b778c; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+    .ent-table-wrap tbody tr { border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.1s; }
+    .ent-table-wrap tbody tr:last-child { border-bottom: none; }
+    .ent-table-wrap tbody tr:hover { background: #f4f5f7; }
+    .ent-table-wrap td { padding: 12px 16px; font-size: 14px; color: #172b4d; }
+    .ent-table-wrap td.nom { font-weight: 500; }
 
     /* Cards */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .card { background: white; border-radius: 8px; border: 1px solid #e8eaf0; padding: 20px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
-    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: #c5cce0; }
-    .card-nom { font-weight: 600; font-size: 15px; color: #1a1a2e; margin-bottom: 4px; }
-    .card-sub { font-size: 13px; color: #6b7494; margin-bottom: 14px; }
-    .card-meta { display: flex; gap: 20px; font-size: 11px; color: #9ba3b8; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 14px; }
-    .card-meta span strong { color: #1a1a2e; font-weight: 600; display: block; font-size: 13px; text-transform: none; letter-spacing: 0; margin-top: 2px; }
-    .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #f0f2f7; }
+    .card { background: white; border-radius: 8px; border: 1px solid #dfe1e6; padding: 20px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: #c1c7d0; }
+    .card-nom { font-weight: 600; font-size: 15px; color: #172b4d; margin-bottom: 4px; }
+    .card-sub { font-size: 13px; color: #6b778c; margin-bottom: 14px; }
+    .card-meta { display: flex; gap: 20px; font-size: 11px; color: #6b778c; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 14px; }
+    .card-meta span strong { color: #172b4d; font-weight: 600; display: block; font-size: 13px; text-transform: none; letter-spacing: 0; margin-top: 2px; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #f0f0f0; }
 
     /* Badges entreprises */
-    .badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-    .badge-prospect { background: #e8f0fe; color: #1967d2; }
-    .badge-actif    { background: #e6f4ea; color: #137333; }
-    .badge-inactif  { background: #f1f3f4; color: #6b7494; }
-    .badge-cible    { background: #fce8e6; color: #c5221f; }
-    .badge-mandat   { background: #fef7e0; color: #b06000; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-prospect { background: #e3ecfa; color: #0052cc; }
+    .badge-actif    { background: #e8f5e9; color: #2e7d32; }
+    .badge-inactif  { background: #f4f5f7; color: #6b778c; }
+    .badge-cible    { background: #fce8e6; color: #de350b; }
+    .badge-mandat   { background: #fff3e0; color: #b45309; }
 
-    /* Overlay */
-    .overlay { position: fixed; inset: 0; background: rgba(10,20,40,0.4); z-index: 100; display: none; }
-    .overlay.open { display: block; }
-
-    /* Drawer élargi */
+    /* Drawer élargi (override width) */
     .drawer { width: 560px; right: -560px; }
     .drawer.open { right: 0; }
 
-    /* Toast */
-    .toast { bottom: 24px; left: auto; right: 24px; transform: translateY(80px); }
-    .toast.show { transform: translateY(0); }
+    /* Loader */
+    .loader { text-align: center; padding: 60px; color: #6b778c; font-size: 13px; }
 
-    .loader { text-align: center; padding: 60px; color: #9ba3b8; font-size: 13px; }
-
-    /* Bouton activité */
-    .btn-act { height: 30px; padding: 0 10px; background: #f0f5ff; border: 1px solid #c5d8fc; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #0052cc; cursor: pointer; }
+    /* Bouton activité rapide */
+    .btn-act { height: 30px; padding: 0 10px; background: #e3ecfa; border: 1px solid #c5d8fc; border-radius: 4px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #0052cc; cursor: pointer; }
     .btn-act:hover { background: #dbeafe; }
 
-    /* Contacts liés dans le drawer */
-    .contact-linked {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border: 1px solid #e8eaf0;
-      border-radius: 6px;
-      margin-bottom: 6px;
-      background: #f8f9fc;
-    }
+    /* Contacts liés dans drawer */
+    .contact-linked { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid #dfe1e6; border-radius: 6px; margin-bottom: 6px; background: #f8f9fa; }
     .contact-linked-info { flex: 1; min-width: 0; }
     .contact-linked-nom { font-size: 13px; font-weight: 600; color: #172b4d; }
     .contact-linked-meta { font-size: 12px; color: #6b778c; margin-top: 1px; }
-    .contact-linked-unlink {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #c1c7d0;
-      font-size: 16px;
-      line-height: 1;
-      padding: 0 4px;
-      flex-shrink: 0;
-    }
+    .contact-linked-unlink { background: none; border: none; cursor: pointer; color: #c1c7d0; font-size: 16px; line-height: 1; padding: 0 4px; flex-shrink: 0; transition: color 0.15s; }
     .contact-linked-unlink:hover { color: #de350b; }
     .link-contact-row { display: flex; gap: 8px; margin-top: 10px; }
     .link-contact-row select { flex: 1; }
@@ -102,18 +73,18 @@
     /* Modal activité rapide */
     .modal-wrap { position: fixed; inset: 0; background: rgba(9,30,66,0.45); z-index: 200; display: none; align-items: center; justify-content: center; }
     .modal-wrap.open { display: flex; }
-    .modal { background: #fff; border-radius: 10px; width: 440px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
-    .modal-header { padding: 16px 20px; border-bottom: 1px solid #e8eaf0; display: flex; align-items: center; justify-content: space-between; }
-    .modal-header span { font-size: 15px; font-weight: 600; }
+    .modal { background: #fff; border-radius: 8px; width: 440px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid #dfe1e6; display: flex; align-items: center; justify-content: space-between; }
+    .modal-header span { font-size: 15px; font-weight: 600; color: #172b4d; }
     .modal-body { padding: 18px 20px; }
-    .modal-footer { padding: 12px 20px; border-top: 1px solid #e8eaf0; display: flex; justify-content: flex-end; gap: 8px; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #dfe1e6; display: flex; justify-content: flex-end; gap: 8px; }
     .modal-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
     .modal-row { margin-bottom: 10px; }
-    .form-control { height: 36px; border: 1px solid #dde1ec; border-radius: 6px; padding: 0 12px; font-family: inherit; font-size: 14px; color: #1a1a2e; outline: none; transition: border-color 0.15s; background: white; width: 100%; }
+    .form-control { height: 36px; border: 1px solid #dfe1e6; border-radius: 4px; padding: 0 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #172b4d; outline: none; transition: border-color 0.15s; background: white; width: 100%; }
     .form-control:focus { border-color: #0052cc; }
     textarea.form-control { height: auto; padding: 8px 12px; resize: vertical; min-height: 60px; }
-    .btn-ghost { background: transparent; border: 1px solid #dde1ec; color: #555; border-radius: 6px; padding: 7px 14px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
-    .btn-ghost:hover { background: #f5f6fa; }
+    .btn-ghost { background: transparent; border: 1px solid #dfe1e6; color: #172b4d; border-radius: 4px; padding: 7px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .btn-ghost:hover { background: #f4f5f7; }
   </style>
 </head>
 <body>
@@ -126,7 +97,7 @@
       <a href="index.html">Accueil</a>
       <a href="contacts.html">Contacts</a>
       <a href="entreprises.html" class="active">Entreprises</a>
-      <a href="deals.html">Deals</a>
+      <a href="deals.html">Deals / Pipelines</a>
       <a href="activites.html">Activités</a>
       <a href="produits.html">Produits</a>
     </nav>
@@ -136,7 +107,6 @@
 
 <!-- TOOLBAR -->
 <div class="toolbar">
-  <h1 style="font-size:18px;font-weight:600;margin-right:12px">Entreprises</h1>
   <input type="text" class="search-input" id="searchInput" placeholder="Rechercher nom, ville, secteur…" />
   <span class="count-label" id="countLabel"></span>
   <div class="view-toggle">
@@ -154,7 +124,7 @@
   <div id="viewContainer"><div class="loader">Chargement…</div></div>
 </div>
 
-<!-- OVERLAY -->
+<!-- OVERLAY (depuis style.css) -->
 <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
 
 <!-- DRAWER CRUD -->
@@ -170,7 +140,6 @@
   </div>
   <div class="drawer-body">
 
-    <!-- INFORMATIONS -->
     <div class="form-section">
       <div class="form-section-title">Informations</div>
       <div class="form-row">
@@ -186,21 +155,21 @@
       <div class="form-row">
         <div class="form-group">
           <label>Secteur d'activité</label>
-          <input type="text" id="f_secteur_activite" placeholder="Ex : Industrie, Commerce…" />
+          <input type="text" id="f_secteur_activite" />
         </div>
         <div class="form-group">
           <label>Ville</label>
-          <input type="text" id="f_ville" placeholder="Ex : Nantes" />
+          <input type="text" id="f_ville" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>CA annuel (€)</label>
-          <input type="number" id="f_ca_annuel" min="0" placeholder="Ex : 2500000" />
+          <input type="number" id="f_ca_annuel" min="0" />
         </div>
         <div class="form-group">
           <label>Effectif</label>
-          <input type="number" id="f_nb_employes" min="0" placeholder="Nombre de salariés" />
+          <input type="number" id="f_nb_employes" min="0" />
         </div>
       </div>
       <div class="form-row">
@@ -216,12 +185,11 @@
         </div>
         <div class="form-group" style="flex:0 0 120px">
           <label>Département</label>
-          <input type="text" id="f_departement" placeholder="Ex : 44" />
+          <input type="text" id="f_departement" />
         </div>
       </div>
     </div>
 
-    <!-- NOTES -->
     <div class="form-section">
       <div class="form-section-title">Notes</div>
       <div class="form-row">
@@ -231,12 +199,11 @@
       </div>
     </div>
 
-    <!-- CONTACTS LIÉS (visible uniquement en édition) -->
     <div class="form-section" id="sectionContacts" style="display:none">
       <div class="form-section-title">Contacts liés</div>
       <div id="contactsLinkedList"></div>
       <div class="link-contact-row">
-        <select class="form-group" id="selectLinkContact" style="flex:1;border:1px solid #dde1ec;border-radius:4px;padding:8px 10px;font-size:14px;font-family:'DM Sans',sans-serif;color:#172b4d;background:#fff;">
+        <select id="selectLinkContact" style="flex:1;border:1px solid #dfe1e6;border-radius:4px;padding:8px 10px;font-size:14px;font-family:'DM Sans',sans-serif;color:#172b4d;background:#fff;">
           <option value="">— Rattacher un contact —</option>
         </select>
         <button class="btn-secondary" onclick="linkContact()">Rattacher</button>
@@ -254,7 +221,7 @@
       <button class="btn-close" onclick="closeActModal()">×</button>
     </div>
     <div class="modal-body">
-      <div id="actEntLabel" style="background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;padding:7px 12px;font-size:12px;color:#0052cc;font-weight:600;margin-bottom:14px"></div>
+      <div id="actEntLabel" style="background:#e3ecfa;border:1px solid #c5d8fc;border-radius:4px;padding:7px 12px;font-size:12px;color:#0052cc;font-weight:600;margin-bottom:14px"></div>
       <div class="modal-grid-2">
         <div class="form-group">
           <label>Type *</label>
@@ -302,7 +269,7 @@
   </div>
 </div>
 
-<!-- TOAST -->
+<!-- TOAST (depuis style.css) -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -319,13 +286,12 @@
       db.from('entreprises').select('id, nom, sigle, ville, secteur_activite, ca_annuel, nb_employes, statut, departement').order('nom'),
       db.from('contacts').select('id, prenom, nom, fonction, email_travail, tel_mobile, entreprise_id').order('nom')
     ]);
-    if (error) { showToast('Erreur chargement : ' + error.message, 'error'); return; }
+    if (error) { showToast('Erreur chargement : ' + error.message, true); return; }
     allData     = ents || [];
     allContacts = cts  || [];
     renderCurrent();
   }
 
-  // ── Filtrage ───────────────────────────────────────────────────────────────
   function getFiltered() {
     const q = document.getElementById('searchInput').value.toLowerCase().trim();
     if (!q) return allData;
@@ -344,18 +310,17 @@
     currentView === 'table' ? renderTable(data) : renderCards(data);
   }
 
-  // ── Vues ──────────────────────────────────────────────────────────────────
   function renderTable(data) {
     const c = document.getElementById('viewContainer');
-    if (!data.length) { c.innerHTML = '<div class="empty-state"><p>Aucune entreprise trouvée</p></div>'; return; }
-    c.innerHTML = `<div class="table-wrap"><table>
+    if (!data.length) { c.innerHTML = '<div class="empty-state">Aucune entreprise trouvée.</div>'; return; }
+    c.innerHTML = `<div class="ent-table-wrap"><table>
       <thead><tr><th>Nom</th><th>Ville</th><th>Secteur</th><th>CA annuel</th><th>Effectif</th><th>Statut</th></tr></thead>
       <tbody>${data.map(e => `<tr onclick="openDrawer('${e.id}')">
-        <td class="nom">${esc(e.nom)}${e.sigle ? `<span style="color:#9ba3b8;font-weight:400;font-size:12px;margin-left:6px">${esc(e.sigle)}</span>` : ''}</td>
-        <td>${esc(e.ville)||'<span style="color:#c5cce0">—</span>'}</td>
-        <td>${esc(e.secteur_activite)||'<span style="color:#c5cce0">—</span>'}</td>
-        <td>${e.ca_annuel!=null?formatCA(e.ca_annuel):'<span style="color:#c5cce0">—</span>'}</td>
-        <td>${e.nb_employes!=null?e.nb_employes:'<span style="color:#c5cce0">—</span>'}</td>
+        <td class="nom">${esc(e.nom)}${e.sigle ? `<span style="color:#6b778c;font-weight:400;font-size:12px;margin-left:6px">${esc(e.sigle)}</span>` : ''}</td>
+        <td>${esc(e.ville)||'<span style="color:#c1c7d0">—</span>'}</td>
+        <td>${esc(e.secteur_activite)||'<span style="color:#c1c7d0">—</span>'}</td>
+        <td>${e.ca_annuel!=null?formatCA(e.ca_annuel):'<span style="color:#c1c7d0">—</span>'}</td>
+        <td>${e.nb_employes!=null?e.nb_employes:'<span style="color:#c1c7d0">—</span>'}</td>
         <td>${badge(e.statut)}</td>
       </tr>`).join('')}</tbody>
     </table></div>`;
@@ -363,7 +328,7 @@
 
   function renderCards(data) {
     const c = document.getElementById('viewContainer');
-    if (!data.length) { c.innerHTML = '<div class="empty-state"><p>Aucune entreprise trouvée</p></div>'; return; }
+    if (!data.length) { c.innerHTML = '<div class="empty-state">Aucune entreprise trouvée.</div>'; return; }
     c.innerHTML = `<div class="cards-grid">${data.map(e => `
       <div class="card" onclick="openDrawer('${e.id}')">
         <div class="card-nom">${esc(e.nom)}</div>
@@ -372,7 +337,7 @@
           <span>CA<strong>${e.ca_annuel!=null?formatCA(e.ca_annuel):'—'}</strong></span>
           <span>Effectif<strong>${e.nb_employes!=null?e.nb_employes+' p.':'—'}</strong></span>
         </div>
-        <div class="card-footer">${badge(e.statut)}<span style="font-size:11px;color:#9ba3b8">${esc(e.departement)||''}</span></div>
+        <div class="card-footer">${badge(e.statut)}<span style="font-size:11px;color:#6b778c">${esc(e.departement)||''}</span></div>
       </div>`).join('')}</div>`;
   }
 
@@ -383,12 +348,10 @@
     renderCurrent();
   }
 
-  // ── Drawer CRUD ────────────────────────────────────────────────────────────
   function openDrawer(id) {
     currentId = id;
     clearForm();
     document.getElementById('sectionContacts').style.display = 'none';
-
     if (id) {
       const e = allData.find(x => x.id === id);
       if (!e) return;
@@ -421,10 +384,10 @@
 
   function fillForm(e) {
     const s = (id, v) => { document.getElementById(id).value = v ?? ''; };
-    s('f_nom', e.nom);                           s('f_sigle', e.sigle);
+    s('f_nom', e.nom); s('f_sigle', e.sigle);
     s('f_secteur_activite', e.secteur_activite); s('f_ville', e.ville);
-    s('f_ca_annuel', e.ca_annuel);               s('f_nb_employes', e.nb_employes);
-    s('f_statut', e.statut || 'prospect');        s('f_departement', e.departement);
+    s('f_ca_annuel', e.ca_annuel); s('f_nb_employes', e.nb_employes);
+    s('f_statut', e.statut || 'prospect'); s('f_departement', e.departement);
     s('f_commentaire', e.commentaire);
   }
 
@@ -435,8 +398,8 @@
       sigle:            g('f_sigle')            || null,
       secteur_activite: g('f_secteur_activite') || null,
       ville:            g('f_ville')            || null,
-      ca_annuel:        g('f_ca_annuel')        ? parseFloat(g('f_ca_annuel'))    : null,
-      nb_employes:      g('f_nb_employes')      ? parseInt(g('f_nb_employes'), 10): null,
+      ca_annuel:        g('f_ca_annuel')        ? parseFloat(g('f_ca_annuel'))     : null,
+      nb_employes:      g('f_nb_employes')      ? parseInt(g('f_nb_employes'), 10) : null,
       statut:           g('f_statut')           || 'prospect',
       departement:      g('f_departement')      || null,
       commentaire:      g('f_commentaire')      || null,
@@ -446,52 +409,40 @@
 
   async function saveEntreprise() {
     const data = getFormData();
-    if (!data.nom) { showToast('Le nom est obligatoire', 'error'); return; }
+    if (!data.nom) { showToast('Le nom est obligatoire', true); return; }
     let error;
-    if (currentId) {
-      ({ error } = await db.from('entreprises').update(data).eq('id', currentId));
-    } else {
-      ({ error } = await db.from('entreprises').insert(data));
-    }
-    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
-    showToast(currentId ? 'Entreprise mise à jour ✓' : 'Entreprise créée ✓', 'success');
-    closeDrawer();
-    init();
+    if (currentId) { ({ error } = await db.from('entreprises').update(data).eq('id', currentId)); }
+    else           { ({ error } = await db.from('entreprises').insert(data)); }
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
+    showToast(currentId ? 'Entreprise mise à jour ✓' : 'Entreprise créée ✓');
+    closeDrawer(); init();
   }
 
   async function deleteEntreprise() {
     if (!confirm('Supprimer cette entreprise ? Cette action est irréversible.')) return;
     const { error } = await db.from('entreprises').delete().eq('id', currentId);
-    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
     showToast('Entreprise supprimée');
-    closeDrawer();
-    init();
+    closeDrawer(); init();
   }
 
-  // ── Contacts liés ──────────────────────────────────────────────────────────
   function renderLinkedContacts() {
-    const linked = allContacts.filter(c => c.entreprise_id === currentId);
+    const linked   = allContacts.filter(c => c.entreprise_id === currentId);
     const unlinked = allContacts.filter(c => !c.entreprise_id || c.entreprise_id !== currentId);
-
-    // Liste des contacts rattachés
     const list = document.getElementById('contactsLinkedList');
-    if (!linked.length) {
-      list.innerHTML = '<p style="font-size:13px;color:#9ba3b8;margin-bottom:8px">Aucun contact rattaché.</p>';
-    } else {
-      list.innerHTML = linked.map(c => {
-        const nom = [c.prenom, c.nom].filter(Boolean).join(' ');
-        const meta = [c.fonction, c.email_travail, c.tel_mobile].filter(Boolean).join(' · ');
-        return `<div class="contact-linked">
-          <div class="contact-linked-info">
-            <div class="contact-linked-nom">${esc(nom)}</div>
-            ${meta ? `<div class="contact-linked-meta">${esc(meta)}</div>` : ''}
-          </div>
-          <button class="contact-linked-unlink" onclick="unlinkContact('${c.id}')" title="Détacher">×</button>
-        </div>`;
-      }).join('');
-    }
-
-    // Select pour rattacher un contact sans entreprise (ou déjà rattaché à une autre)
+    list.innerHTML = !linked.length
+      ? '<p style="font-size:13px;color:#6b778c;margin-bottom:8px">Aucun contact rattaché.</p>'
+      : linked.map(c => {
+          const nom  = [c.prenom, c.nom].filter(Boolean).join(' ');
+          const meta = [c.fonction, c.email_travail, c.tel_mobile].filter(Boolean).join(' · ');
+          return `<div class="contact-linked">
+            <div class="contact-linked-info">
+              <div class="contact-linked-nom">${esc(nom)}</div>
+              ${meta ? `<div class="contact-linked-meta">${esc(meta)}</div>` : ''}
+            </div>
+            <button class="contact-linked-unlink" onclick="unlinkContact('${c.id}')" title="Détacher">×</button>
+          </div>`;
+        }).join('');
     const sel = document.getElementById('selectLinkContact');
     sel.innerHTML = '<option value="">— Rattacher un contact —</option>'
       + unlinked.map(c => {
@@ -504,24 +455,20 @@
     const contactId = document.getElementById('selectLinkContact').value;
     if (!contactId) return;
     const { error } = await db.from('contacts').update({ entreprise_id: currentId, updated_at: new Date().toISOString() }).eq('id', contactId);
-    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
-    // Mettre à jour le tableau local
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
     const c = allContacts.find(x => x.id === contactId);
     if (c) c.entreprise_id = currentId;
-    renderLinkedContacts();
-    showToast('Contact rattaché ✓');
+    renderLinkedContacts(); showToast('Contact rattaché ✓');
   }
 
   async function unlinkContact(contactId) {
     const { error } = await db.from('contacts').update({ entreprise_id: null, updated_at: new Date().toISOString() }).eq('id', contactId);
-    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
     const c = allContacts.find(x => x.id === contactId);
     if (c) c.entreprise_id = null;
-    renderLinkedContacts();
-    showToast('Contact détaché');
+    renderLinkedContacts(); showToast('Contact détaché');
   }
 
-  // ── Modal activité rapide ──────────────────────────────────────────────────
   async function openActModal() {
     document.getElementById('actEntLabel').textContent = '🏢 ' + document.getElementById('drawerTitle').textContent;
     document.getElementById('act_type').value  = '';
@@ -540,7 +487,7 @@
   async function saveActModal() {
     const type = document.getElementById('act_type').value;
     const date = document.getElementById('act_date').value;
-    if (!type || !date) { showToast('Type et date sont requis', 'error'); return; }
+    if (!type || !date) { showToast('Type et date sont requis', true); return; }
     const payload = {
       type, date_echeance: date,
       sujet:          document.getElementById('act_sujet').value.trim() || null,
@@ -550,20 +497,18 @@
       faite: false,
     };
     const { data, error } = await db.from('activites').insert([payload]).select('id');
-    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+    if (error) { showToast('Erreur : ' + error.message, true); return; }
     const note = document.getElementById('act_note').value.trim();
     if (note && data?.[0]) {
       await db.from('notes').insert([{ contenu: note, entreprise_id: currentId || null, deal_id: payload.deal_id || null }]);
     }
-    closeActModal();
-    showToast('Activité créée ✓', 'success');
+    closeActModal(); showToast('Activité créée ✓');
   }
 
   document.getElementById('actModalWrap').addEventListener('click', e => {
     if (e.target === document.getElementById('actModalWrap')) closeActModal();
   });
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   function esc(str) {
     if (str == null) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -578,10 +523,11 @@
     const [cls, label] = map[statut] || ['badge-inactif', statut || '—'];
     return `<span class="badge ${cls}">${label}</span>`;
   }
-  function showToast(msg, type = 'success') {
+  function showToast(msg, isError = false) {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.className = `toast toast-${type} show`;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
   }
 </script>
