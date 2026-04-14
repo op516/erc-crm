@@ -324,11 +324,11 @@
       <div class="form-row">
         <div class="form-group">
           <label>Produit</label>
-          <select id="d-produit"></select>
+          <select id="d-produit" onchange="onProduitChange()"></select>
         </div>
         <div class="form-group">
           <label>Quantité</label>
-          <input type="number" id="d-quantite" min="0" />
+          <input type="number" id="d-quantite" min="0" oninput="calcValeur()" />
         </div>
       </div>
       <div class="form-row">
@@ -358,31 +358,27 @@
       <div class="form-row">
         <div class="form-group">
           <label>Valeur HT (€)</label>
-          <input type="number" id="d-valeur-ht" min="0" />
+          <input type="number" id="d-valeur-ht" min="0" oninput="calcValeur()" />
         </div>
         <div class="form-group">
           <label>Remise (%)</label>
-          <input type="number" id="d-remise" min="0" max="100" />
+          <input type="number" id="d-remise" min="0" max="100" oninput="calcValeur()" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>TVA (%)</label>
-          <input type="number" id="d-tva" min="0" />
+          <input type="number" id="d-tva" min="0" oninput="calcValeur()" />
         </div>
         <div class="form-group">
           <label>Valeur TTC (€)</label>
-          <input type="number" id="d-valeur" min="0" />
+          <input type="number" id="d-valeur" min="0" readonly style="background:#f5f6fa;color:#6b7494" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Probabilité (%)</label>
-          <input type="number" id="d-proba" min="0" max="100" />
-        </div>
-        <div class="form-group">
-          <label>Probabilité de réussite (%)</label>
-          <input type="number" id="d-proba-reussite" min="0" max="100" />
+          <input type="number" id="d-proba" min="0" max="100" oninput="calcValeur()" />
         </div>
       </div>
     </div>
@@ -455,7 +451,7 @@
       sb.from('pipelines').select('id,nom,created_at').order('created_at'),
       sb.from('entreprises').select('id,nom').order('nom'),
       sb.from('contacts').select('id,prenom,nom').order('nom'),
-      sb.from('produits').select('id,nom').order('nom')
+      sb.from('produits').select('id,nom,prix_eur,taux_tva').order('nom')
     ]);
     allEntreprises = ents   || [];
     allContacts    = cts    || [];
@@ -740,6 +736,29 @@
     toast(`Deal transféré vers "${targetNom}" ✓`);
   }
 
+  function onProduitChange() {
+    const produitId = document.getElementById('d-produit').value;
+    const produit   = allProduits.find(p => p.id === produitId);
+    if (!produit) return;
+    const qty = parseFloat(document.getElementById('d-quantite').value) || 1;
+    document.getElementById('d-quantite').value = document.getElementById('d-quantite').value || 1;
+    if (produit.prix_eur) document.getElementById('d-valeur-ht').value = (produit.prix_eur * qty).toFixed(2);
+    if (produit.taux_tva) document.getElementById('d-tva').value = produit.taux_tva;
+    calcValeur();
+  }
+
+  function calcValeur() {
+    const ht     = parseFloat(document.getElementById('d-valeur-ht').value) || 0;
+    const remise = parseFloat(document.getElementById('d-remise').value)    || 0;
+    const tva    = parseFloat(document.getElementById('d-tva').value)       || 0;
+    const qty    = parseFloat(document.getElementById('d-quantite').value)  || 1;
+    if (!ht) { document.getElementById('d-valeur').value = ''; return; }
+    const htNet = ht * qty * (1 - remise / 100);
+    const ttc   = htNet * (1 + tva / 100);
+    document.getElementById('d-valeur-ht').value = htNet.toFixed(2);
+    document.getElementById('d-valeur').value    = ttc.toFixed(2);
+  }
+
   // ── Drawer deal
   function openDeal(id) {
     currentDealId = id;
@@ -779,7 +798,6 @@
       g('d-tva').value            = deal.taux_tva || '';
       g('d-valeur').value         = deal.valeur || '';
       g('d-proba').value          = deal.probabilite || '';
-      g('d-proba-reussite').value = deal.probabilite_reussite || '';
       g('d-closing').value        = deal.date_closing_prevu || '';
       g('d-realisation').value    = deal.date_realisation || '';
       g('d-gain').value           = deal.date_gain || '';
@@ -788,7 +806,7 @@
       g('row-raison').style.display = deal.statut === 'perdu' ? 'flex' : 'none';
     } else {
       ['d-titre','d-quantite','d-valeur-ht','d-remise','d-tva','d-valeur','d-proba',
-       'd-proba-reussite','d-closing','d-realisation','d-gain','d-perte','d-raison','d-notes']
+       'd-closing','d-realisation','d-gain','d-perte','d-raison','d-notes']
         .forEach(id => g(id).value = '');
       g('d-statut').value = 'ouvert';
       g('row-raison').style.display = 'none';
@@ -832,7 +850,6 @@
       taux_tva:             parseFloat(g('d-tva')) || null,
       valeur:               parseFloat(g('d-valeur')) || null,
       probabilite:          parseInt(g('d-proba')) || null,
-      probabilite_reussite: parseInt(g('d-proba-reussite')) || null,
       date_closing_prevu:   g('d-closing') || null,
       date_realisation:     g('d-realisation') || null,
       date_gain:            g('d-gain') || null,
