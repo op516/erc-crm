@@ -749,25 +749,26 @@
     toast(`Deal transféré vers "${targetNom}" ✓`);
   }
 
+  let unitPrice = 0;
+
   function onProduitChange() {
     const produitId = document.getElementById('d-produit').value;
     const produit   = allProduits.find(p => p.id === produitId);
-    if (!produit || !produit.prix_eur) return;
-    const qty = parseFloat(document.getElementById('d-quantite').value) || 1;
-    document.getElementById('d-quantite').value = document.getElementById('d-quantite').value || 1;
-    document.getElementById('d-valeur-ht').value = (produit.prix_eur * qty).toFixed(2);
+    if (!produit || !produit.prix_eur) { unitPrice = 0; return; }
+    unitPrice = parseFloat(produit.prix_eur) || 0;
     if (produit.taxe) document.getElementById('d-tva').value = produit.taxe;
     calcValeur();
   }
 
   function calcValeur() {
-    const ht     = parseFloat(document.getElementById('d-valeur-ht').value) || 0;
-    const remise = parseFloat(document.getElementById('d-remise').value)    || 0;
-    const tva    = parseFloat(document.getElementById('d-tva').value)       || 0;
-    if (!ht) { document.getElementById('d-valeur').value = ''; return; }
-    const htNet = ht * (1 - remise / 100);
-    const ttc   = htNet * (1 + tva / 100);
-    document.getElementById('d-valeur').value = ttc.toFixed(2);
+    const qty    = parseFloat(document.getElementById('d-quantite').value) || 1;
+    const remise = parseFloat(document.getElementById('d-remise').value)   || 0;
+    const tva    = parseFloat(document.getElementById('d-tva').value)      || 0;
+    if (!unitPrice) return;
+    const ht  = unitPrice * qty * (1 - remise / 100);
+    const ttc = ht * (1 + tva / 100);
+    document.getElementById('d-valeur-ht').value = ht.toFixed(2);
+    document.getElementById('d-valeur').value    = ttc.toFixed(2);
   }
 
   // ── Drawer deal
@@ -776,6 +777,8 @@
     const deal = allDeals.find(d => d.id === id);
     document.getElementById('deal-drawer-title').textContent = deal ? deal.titre : 'Nouveau deal';
     document.getElementById('deal-btn-del').style.display = deal ? 'inline-block' : 'none';
+
+    unitPrice = 0;
 
     // Peupler selects
     const selE = document.getElementById('d-entreprise');
@@ -815,6 +818,11 @@
       g('d-perte').value          = deal.date_perte || '';
       g('d-notes').value          = deal.notes || '';
       g('row-raison').style.display = deal.statut === 'perdu' ? 'flex' : 'none';
+      // Recharger le prix unitaire si produit existant
+      if (deal.produit_id) {
+        const prod = allProduits.find(p => p.id === deal.produit_id);
+        if (prod) unitPrice = parseFloat(prod.prix_eur) || 0;
+      }
     } else {
       ['d-titre','d-quantite','d-valeur-ht','d-remise','d-tva','d-valeur','d-proba',
        'd-closing','d-realisation','d-gain','d-perte','d-raison','d-notes']
