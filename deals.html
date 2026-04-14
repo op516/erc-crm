@@ -175,6 +175,7 @@
       <a href="produits.html">Produits</a>
     </nav>
   </div>
+  <button class="btn-primary" onclick="openDeal(null)">+ Nouveau deal</button>
 </div>
 
 <!-- TOOLBAR -->
@@ -188,9 +189,9 @@
     </button>
     <div class="pipeline-dd" id="pipelineDD"></div>
   </div>
+  <input class="search-input" type="text" id="searchInput" placeholder="Rechercher un deal…" oninput="applySearch()" />
   <div class="toolbar-spacer"></div>
   <span class="toolbar-meta" id="chip"></span>
-  <button class="btn btn-p" onclick="openDeal(null)">+ Nouveau deal</button>
   <div class="view-toggle">
     <button class="view-btn active" id="bk" title="Kanban">
       <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -452,7 +453,7 @@
       sb.from('pipelines').select('id,nom,created_at').order('created_at'),
       sb.from('entreprises').select('id,nom').order('nom'),
       sb.from('contacts').select('id,prenom,nom').order('nom'),
-      sb.from('produits').select('id,nom').order('nom')
+      sb.from('produits').select('id,nom,prix_eur,taxe').order('nom')
     ]);
     allEntreprises = ents   || [];
     allContacts    = cts    || [];
@@ -515,6 +516,17 @@
     showView(currentView); updateMeta();
   }
 
+  function applySearch() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    const filtered = q
+      ? allDeals.filter(d =>
+          (d.titre || '').toLowerCase().includes(q) ||
+          (d.entreprises?.nom || '').toLowerCase().includes(q))
+      : allDeals;
+    renderKanban(filtered); renderListe(filtered);
+    document.getElementById('chip').textContent = filtered.length + ' deal' + (filtered.length > 1 ? 's' : '');
+  }
+
   function updateMeta() {
     const n = allDeals.length;
     document.getElementById('chip').textContent = n + ' deal' + (n > 1 ? 's' : '');
@@ -538,7 +550,7 @@
   }
 
   // ── Kanban
-  function renderKanban() {
+  function renderKanban(deals = allDeals) {
     const wrap = document.getElementById('kanban');
     wrap.innerHTML = '';
     currentStages.forEach(stage => {
@@ -600,12 +612,12 @@
   }
 
   // ── Liste
-  function renderListe() {
+  function renderListe(deals = allDeals) {
     const today = new Date(); today.setHours(0,0,0,0);
     const in30  = new Date(today); in30.setDate(in30.getDate() + 30);
-    const deals = filtreStage ? allDeals.filter(d => d.stage_id === filtreStage) : allDeals;
+    const list  = filtreStage ? deals.filter(d => d.stage_id === filtreStage) : deals;
     const tbody = document.getElementById('t-body'); tbody.innerHTML = '';
-    deals.forEach(deal => {
+    list.forEach(deal => {
       const stage = currentStages.find(s => s.id === deal.stage_id);
       const co    = deal.entreprises?.nom || '';
       const tr = document.createElement('tr'); tr.style.cursor = 'pointer';
