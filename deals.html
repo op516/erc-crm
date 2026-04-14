@@ -550,11 +550,11 @@
   }
 
   // ── Kanban
-  function renderKanban(deals = allDeals) {
+  function renderKanban(dealsToRender = allDeals) {
     const wrap = document.getElementById('kanban');
     wrap.innerHTML = '';
     currentStages.forEach(stage => {
-      const deals = allDeals.filter(d => d.stage_id === stage.id);
+      const deals = dealsToRender.filter(d => d.stage_id === stage.id);
       const total = deals.reduce((s, d) => s + (parseFloat(d.valeur) || 0), 0);
       const col = document.createElement('div'); col.className = 'kcol';
       col.innerHTML = `<div class="col-hdr">
