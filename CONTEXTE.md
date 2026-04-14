@@ -15,8 +15,6 @@ Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs *
 7. https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
 8. https://raw.githubusercontent.com/op516/erc-crm/main/index.html
 
-⚠️ `index.html` utilise une URL différente (`refs/heads/main` au lieu de `main`) — toujours utiliser cette URL pour ce fichier.
-
 **Règles strictes :**
 - Utiliser exclusivement les URLs `raw.githubusercontent.com`
 - Si un fichier échoue → réessayer une fois avant de signaler
@@ -80,9 +78,9 @@ Stack identique à ComptaFlow — réutilisation directe.
 * `style.css` — charte graphique partagée ✓
 * `supabase-client.js` — client Supabase partagé ✓
 * `login.html` — page d'authentification Supabase, gère la redirection si déjà connecté ✓
-* `index.html` — tableau de bord (dashboard) ✓ — voir section 7 — **à recommitter (écrasé)**
+* `index.html` — tableau de bord (dashboard) ✓ — voir section 8
 * `contacts.html` — liste + filtres + drawer CRUD ✓
-* `entreprises.html` — liste (table + cards) + drawer CRUD complet + contacts liés + modal activité rapide ✓ — **mis à jour cette session**
+* `entreprises.html` — liste (table + cards) + drawer CRUD complet + contacts liés + modal activité rapide ✓
 * `deals.html` — Kanban + liste + slide-over édition complète + modal nouveau deal + modal activité ✓
 * `activites.html` — agenda + filtres période/type + vue tableau + drawer exécution ✓
 * `produits.html` — liste + filtres + drawer CRUD + toggle actif/inactif ✓
