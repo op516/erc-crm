@@ -58,13 +58,13 @@
   <div class="topbar-left">
     <h1>ERC CRM</h1>
     <nav class="topbar-nav">
-  <a href="index.html">Accueil</a>
-  <a href="contacts.html" >Contacts</a>
-  <a href="entreprises.html">Entreprises</a>
-  <a href="deals.html">Deals</a>
-  <a href="activites.html">Activités</a>
-  <a href="produits.html" class="active">Produits</a>
-</nav>
+      <a href="index.html">Accueil</a>
+      <a href="contacts.html">Contacts</a>
+      <a href="entreprises.html">Entreprises</a>
+      <a href="deals.html">Deals / Pipelines</a>
+      <a href="activites.html">Activités</a>
+      <a href="produits.html" class="active">Produits</a>
+    </nav>
   </div>
   <button class="btn-primary" onclick="openDrawer(null)">+ Nouveau produit</button>
 </div>
@@ -299,9 +299,9 @@
   }
 
   function resetFilters() {
-    document.getElementById('searchInput').value    = '';
+    document.getElementById('searchInput').value     = '';
     document.getElementById('filterCategorie').value = '';
-    document.getElementById('filterActif').value    = '';
+    document.getElementById('filterActif').value     = '';
     applyFilters();
   }
 
@@ -340,18 +340,18 @@
 
   function fillForm(p) {
     const set = (id, val) => { document.getElementById(id).value = val ?? ''; };
-    set('f_nom',                  p.nom);
-    set('f_code_produit',         p.code_produit);
-    set('f_categorie',            p.categorie);
-    set('f_description',          p.description);
-    set('f_prix_eur',             p.prix_eur);
-    set('f_taxe',                 p.taxe);
-    set('f_unite',                p.unite);
-    set('f_frequence_facturation',p.frequence_facturation);
-    set('f_cycles_facturation',   p.cycles_facturation);
-    set('f_ref_interne',          p.ref_interne);
-    set('f_ref_fuscaq',           p.ref_fuscaq);
-    set('f_ref_cession_pme',      p.ref_cession_pme);
+    set('f_nom',                   p.nom);
+    set('f_code_produit',          p.code_produit);
+    set('f_categorie',             p.categorie);
+    set('f_description',           p.description);
+    set('f_prix_eur',              p.prix_eur);
+    set('f_taxe',                  p.taxe);
+    set('f_unite',                 p.unite);
+    set('f_frequence_facturation', p.frequence_facturation);
+    set('f_cycles_facturation',    p.cycles_facturation);
+    set('f_ref_interne',           p.ref_interne);
+    set('f_ref_fuscaq',            p.ref_fuscaq);
+    set('f_ref_cession_pme',       p.ref_cession_pme);
     document.getElementById('f_actif').checked = p.actif !== false;
     updateToggleLabel(p.actif !== false);
   }
@@ -361,24 +361,24 @@
     const gN = id => { const v = g(id); return v !== '' ? parseFloat(v) : null; };
     const gI = id => { const v = g(id); return v !== '' ? parseInt(v, 10) : null; };
     return {
-      nom:                  g('f_nom'),
-      code_produit:         g('f_code_produit')          || null,
-      categorie:            g('f_categorie')             || null,
-      description:          g('f_description')           || null,
-      prix_eur:             gN('f_prix_eur'),
-      taxe:                 gN('f_taxe'),
-      unite:                g('f_unite')                 || null,
-      frequence_facturation:g('f_frequence_facturation') || null,
-      cycles_facturation:   gI('f_cycles_facturation'),
-      ref_interne:          g('f_ref_interne')           || null,
-      ref_fuscaq:           g('f_ref_fuscaq')            || null,
-      ref_cession_pme:      g('f_ref_cession_pme')       || null,
-      actif:                document.getElementById('f_actif').checked,
-      updated_at:           new Date().toISOString(),
+      nom:                   g('f_nom'),
+      code_produit:          g('f_code_produit')          || null,
+      categorie:             g('f_categorie')             || null,
+      description:           g('f_description')           || null,
+      prix_eur:              gN('f_prix_eur'),
+      taxe:                  gN('f_taxe'),
+      unite:                 g('f_unite')                 || null,
+      frequence_facturation: g('f_frequence_facturation') || null,
+      cycles_facturation:    gI('f_cycles_facturation'),
+      ref_interne:           g('f_ref_interne')           || null,
+      ref_fuscaq:            g('f_ref_fuscaq')            || null,
+      ref_cession_pme:       g('f_ref_cession_pme')       || null,
+      actif:                 document.getElementById('f_actif').checked,
+      updated_at:            new Date().toISOString(),
     };
   }
 
-  // ── Save / Delete ──
+  // ── Save ──
   async function saveProduit() {
     const data = getFormData();
     if (!data.nom) { showToast('Le nom est obligatoire', true); return; }
@@ -394,7 +394,33 @@
     init();
   }
 
+  // ── Delete (avec vérification FK deals) ──
   async function deleteProduit() {
+    // Vérifier si des deals utilisent ce produit
+    const { data: linkedDeals, error: checkError } = await supabase
+      .from('deals')
+      .select('id')
+      .eq('produit_id', currentId)
+      .limit(1);
+
+    if (checkError) { showToast('Erreur : ' + checkError.message, true); return; }
+
+    if (linkedDeals && linkedDeals.length > 0) {
+      // Produit utilisé → proposer désactivation
+      if (confirm('Ce produit est lié à un ou plusieurs deals et ne peut pas être supprimé.\n\nVoulez-vous le désactiver à la place ?')) {
+        const { error } = await supabase
+          .from('produits')
+          .update({ actif: false, updated_at: new Date().toISOString() })
+          .eq('id', currentId);
+        if (error) { showToast('Erreur : ' + error.message, true); return; }
+        showToast('Produit désactivé');
+        closeDrawer();
+        init();
+      }
+      return;
+    }
+
+    // Aucun deal lié → suppression directe
     if (!confirm('Supprimer ce produit ? Cette action est irréversible.')) return;
     const { error } = await supabase.from('produits').delete().eq('id', currentId);
     if (error) { showToast('Erreur : ' + error.message, true); return; }
