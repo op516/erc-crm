@@ -92,6 +92,7 @@ Structure identique sur toutes les pages :
 - L'onglet actif prend la classe `active`
 - Ne jamais omettre un onglet
 - Ne jamais utiliser d'autre structure de nav
+- Le lien Deals s'appelle **"Deals / Pipelines"** (pas juste "Deals")
 
 ---
 
@@ -114,6 +115,12 @@ Ce qui n'existe PAS dans style.css : kanban, pipeline selector, subbar, cards gr
 
 ### Toutes les pages sont migrées — aucune exception
 
+### Convention toolbar
+Toutes les pages affichent un `<h1>` avec le nom de la page à gauche de la barre de recherche :
+```html
+<h1 style="font-size:18px;font-weight:600;color:#172b4d;white-space:nowrap;margin-right:4px">Nom page</h1>
+```
+
 ---
 
 ## 7. ÉTAT DES FICHIERS
@@ -127,8 +134,8 @@ Ce qui n'existe PAS dans style.css : kanban, pipeline selector, subbar, cards gr
 | `entreprises.html` | ✓ Migré avril 2026 | CSS inline minimal |
 | `index.html` | ✓ Dashboard | |
 | `login.html` | ✓ Auth | |
+| `produits.html` | ✓ Livré avril 2026 | Filtre statut "Actifs" par défaut |
 | `leads.html` | ❌ À créer | |
-| `produits.html` | ❌ À créer | Déjà dans la nav |
 
 ---
 
@@ -172,7 +179,24 @@ Nom : "ERC Transmission"
 
 ---
 
-## 9. ENTREPRISES.HTML — FONCTIONNALITÉS
+## 9. PRODUITS.HTML — DÉTAIL COMPLET
+
+### Fonctionnalités
+- Vue tableau avec colonnes : Nom, Catégorie, Code, Prix HT, Unité, Taxe, Facturation, Statut
+- Recherche par nom
+- Filtre catégorie : Cession, Acquisition, Conseil, Diagnostic, Valorisation, Autre
+- Filtre statut : **"Actifs" sélectionné par défaut** (les inactifs sont masqués à l'ouverture)
+- Bouton réinitialiser
+- Drawer CRUD : Identification, Tarification, Références externes, Statut (toggle actif/inactif)
+- Suppression directe (confirm simple) — les produits liés à des deals doivent être désactivés via le toggle avant suppression
+
+### Points d'attention schema
+- Le champ TVA s'appelle `taxe` (pas `taux_tva`)
+- Champs clés : `id, nom, prix_eur, taxe, actif`
+
+---
+
+## 10. ENTREPRISES.HTML — FONCTIONNALITÉS
 
 - Vue tableau + cards (toggle)
 - Recherche (nom, ville, secteur)
@@ -182,7 +206,7 @@ Nom : "ERC Transmission"
 
 ---
 
-## 10. SCHÉMA — POINTS D'ATTENTION
+## 11. SCHÉMA — POINTS D'ATTENTION
 
 ### Table `produits`
 ⚠️ Le champ TVA s'appelle `taxe` (pas `taux_tva`)
@@ -193,7 +217,7 @@ Champs clés : `id, nom, prix_eur, taxe, actif`
 
 ---
 
-## 11. AUTH (à activer en prod)
+## 12. AUTH (à activer en prod)
 
 Guard silencieux en haut du `<script>` de chaque page :
 ```javascript
@@ -207,17 +231,18 @@ Bouton déconnexion dans `index.html` : `supabase.auth.signOut()`.
 
 ---
 
-## 12. PROMPT DE DÉBUT DE SESSION (à copier-coller)
+## 13. PROMPT DE DÉBUT DE SESSION (à copier-coller)
 
 ```
-Lis ces fichiers dans cet ordre via web_fetch, confirme chaque lecture, puis attends ma prochaine instruction :
-
-1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
-2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
-3. https://raw.githubusercontent.com/op516/erc-crm/main/style.css
-4. https://raw.githubusercontent.com/op516/erc-crm/main/deals.html
-5. https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
-6. https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
-7. https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
-8. https://raw.githubusercontent.com/op516/erc-crm/main/index.html
+Lis ces fichiers dans cet ordre via web_fetch, confirme chaque lecture,
+puis attends ma prochaine instruction.
+Utilise ces URLs avec paramètre cache-busting (timestamp du jour) :
+1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md?cb=AAAAMMJJ
+2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql?cb=AAAAMMJJ
+3. https://raw.githubusercontent.com/op516/erc-crm/main/style.css?cb=AAAAMMJJ
+4. https://raw.githubusercontent.com/op516/erc-crm/main/deals.html?cb=AAAAMMJJ
+5. https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html?cb=AAAAMMJJ
+6. https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html?cb=AAAAMMJJ
+7. https://raw.githubusercontent.com/op516/erc-crm/main/activites.html?cb=AAAAMMJJ
+8. https://raw.githubusercontent.com/op516/erc-crm/main/index.html?cb=AAAAMMJJ
 ```
