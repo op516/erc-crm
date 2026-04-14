@@ -60,21 +60,15 @@
     .overlay { position: fixed; inset: 0; background: rgba(10,20,40,0.4); z-index: 100; display: none; }
     .overlay.open { display: block; }
 
-    /* Drawer élargi pour les nombreux champs */
-    .drawer { width: 560px; right: -560px; }
-    .drawer.open { right: 0; }
-
-    /* Checkboxes flags */
-    .flags-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .flag-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #172b4d; cursor: pointer; padding: 6px 8px; border-radius: 4px; border: 1px solid #e8eaf0; background: #f8f9fc; }
-    .flag-item:hover { border-color: #0052cc; }
-    .flag-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #0052cc; cursor: pointer; flex-shrink: 0; }
-
     /* Toast */
     .toast { bottom: 24px; left: auto; right: 24px; transform: translateY(80px); }
     .toast.show { transform: translateY(0); }
 
     .loader { text-align: center; padding: 60px; color: #9ba3b8; font-size: 13px; }
+
+    /* Bouton activité dans le drawer */
+    .btn-act { height: 30px; padding: 0 10px; background: #f0f5ff; border: 1px solid #c5d8fc; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #0052cc; cursor: pointer; }
+    .btn-act:hover { background: #dbeafe; }
 
     /* Modal activité rapide */
     .modal-wrap { position: fixed; inset: 0; background: rgba(9,30,66,0.45); z-index: 200; display: none; align-items: center; justify-content: center; }
@@ -91,8 +85,6 @@
     textarea.form-control { height: auto; padding: 8px 12px; resize: vertical; min-height: 60px; }
     .btn-ghost { background: transparent; border: 1px solid #dde1ec; color: #555; border-radius: 6px; padding: 7px 14px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
     .btn-ghost:hover { background: #f5f6fa; }
-    .btn-act { height: 30px; padding: 0 10px; background: #f0f5ff; border: 1px solid #c5d8fc; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #0052cc; cursor: pointer; }
-    .btn-act:hover { background: #dbeafe; }
   </style>
 </head>
 <body>
@@ -149,21 +141,40 @@
   </div>
   <div class="drawer-body">
 
-    <!-- IDENTITÉ -->
     <div class="form-section">
-      <div class="form-section-title">Identité</div>
+      <div class="form-section-title">Informations</div>
       <div class="form-row">
         <div class="form-group">
           <label>Nom *</label>
           <input type="text" id="f_nom" placeholder="Raison sociale" />
         </div>
-        <div class="form-group" style="flex:0 0 140px">
+        <div class="form-group" style="flex:0 0 130px">
           <label>Sigle</label>
           <input type="text" id="f_sigle" placeholder="SAS, SARL…" />
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group" style="flex:0 0 170px">
+        <div class="form-group">
+          <label>Secteur d'activité</label>
+          <input type="text" id="f_secteur_activite" placeholder="Ex : Industrie, Commerce…" />
+        </div>
+        <div class="form-group">
+          <label>Ville</label>
+          <input type="text" id="f_ville" placeholder="Ex : Nantes" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>CA annuel (€)</label>
+          <input type="number" id="f_ca_annuel" min="0" placeholder="Ex : 2500000" />
+        </div>
+        <div class="form-group">
+          <label>Effectif</label>
+          <input type="number" id="f_nb_employes" min="0" placeholder="Nombre de salariés" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 180px">
           <label>Statut</label>
           <select id="f_statut">
             <option value="prospect">Prospect</option>
@@ -173,187 +184,18 @@
             <option value="inactif">Inactif</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Secteur d'activité</label>
-          <input type="text" id="f_secteur_activite" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Détail activité</label>
-          <input type="text" id="f_detail_activite" />
-        </div>
         <div class="form-group" style="flex:0 0 120px">
-          <label>Code NAF</label>
-          <input type="text" id="f_naf" placeholder="4619A" />
+          <label>Département</label>
+          <input type="text" id="f_departement" placeholder="Ex : 44" />
         </div>
       </div>
     </div>
 
-    <!-- DONNÉES FINANCIÈRES -->
-    <div class="form-section">
-      <div class="form-section-title">Données financières</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>CA annuel (€)</label>
-          <input type="number" id="f_ca_annuel" min="0" placeholder="Ex : 2500000" />
-        </div>
-        <div class="form-group">
-          <label>Effectif</label>
-          <input type="number" id="f_nb_employes" min="0" placeholder="Nb salariés" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Actionnariat</label>
-          <input type="text" id="f_actionnariat" placeholder="Ex : Familial, PE…" />
-        </div>
-        <div class="form-group">
-          <label>Holding</label>
-          <input type="text" id="f_holding" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group" style="flex:0 0 190px">
-          <label>Mois de clôture</label>
-          <input type="text" id="f_mois_cloture" placeholder="Ex : Décembre" />
-        </div>
-      </div>
-    </div>
-
-    <!-- COORDONNÉES -->
-    <div class="form-section">
-      <div class="form-section-title">Coordonnées</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Site web</label>
-          <input type="text" id="f_site_web" placeholder="https://…" />
-        </div>
-        <div class="form-group">
-          <label>LinkedIn</label>
-          <input type="text" id="f_linkedin" placeholder="https://linkedin.com/…" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Adresse</label>
-          <input type="text" id="f_adresse" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group" style="flex:0 0 100px">
-          <label>Code postal</label>
-          <input type="text" id="f_cp" maxlength="5" />
-        </div>
-        <div class="form-group">
-          <label>Ville</label>
-          <input type="text" id="f_ville" />
-        </div>
-        <div class="form-group" style="flex:0 0 100px">
-          <label>Dép.</label>
-          <input type="text" id="f_departement" placeholder="44" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group" style="flex:0 0 180px">
-          <label>Pays</label>
-          <input type="text" id="f_pays" placeholder="France" />
-        </div>
-      </div>
-    </div>
-
-    <!-- CRM -->
-    <div class="form-section">
-      <div class="form-section-title">CRM</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Type contact</label>
-          <input type="text" id="f_type_contact" />
-        </div>
-        <div class="form-group">
-          <label>Sous-type</label>
-          <input type="text" id="f_sous_type_contact" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Source contact</label>
-          <input type="text" id="f_source_contact" placeholder="Réseau, Site web…" />
-        </div>
-        <div class="form-group">
-          <label>Référence</label>
-          <input type="text" id="f_reference" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Lien dossier</label>
-          <input type="text" id="f_lien_dossier" placeholder="https://…" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>1er contact</label>
-          <input type="date" id="f_date_premier_contact" />
-        </div>
-        <div class="form-group">
-          <label>1er RDV</label>
-          <input type="date" id="f_date_premier_rdv" />
-        </div>
-      </div>
-    </div>
-
-    <!-- PROFIL CIBLE -->
-    <div class="form-section">
-      <div class="form-section-title">Profil cible acquéreur</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Secteur cible</label>
-          <input type="text" id="f_cible_secteur" />
-        </div>
-        <div class="form-group">
-          <label>Détail cible</label>
-          <input type="text" id="f_cible_detail" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Localisation cible</label>
-          <input type="text" id="f_cible_localisation" />
-        </div>
-        <div class="form-group">
-          <label>Capital disponible</label>
-          <input type="text" id="f_cible_capital_dispo" placeholder="Ex : 500K€" />
-        </div>
-      </div>
-    </div>
-
-    <!-- ÉTAPES DU DOSSIER -->
-    <div class="form-section">
-      <div class="form-section-title">Étapes du dossier</div>
-      <div class="flags-form">
-        <label class="flag-item"><input type="checkbox" id="f_rappel_prevoir" /> Rappel à prévoir</label>
-        <label class="flag-item"><input type="checkbox" id="f_suivi" /> Suivi actif</label>
-        <label class="flag-item"><input type="checkbox" id="f_teaser_recu" /> Teaser reçu</label>
-        <label class="flag-item"><input type="checkbox" id="f_engagement_conf" /> Engagement conf.</label>
-        <label class="flag-item"><input type="checkbox" id="f_dossier_envoye" /> Dossier envoyé</label>
-        <label class="flag-item"><input type="checkbox" id="f_visite" /> Visite effectuée</label>
-      </div>
-    </div>
-
-    <!-- NOTES -->
     <div class="form-section">
       <div class="form-section-title">Notes</div>
       <div class="form-row">
         <div class="form-group">
-          <label>Commentaire</label>
-          <textarea id="f_commentaire" rows="3"></textarea>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Autres notes</label>
-          <textarea id="f_autres_notes" rows="3"></textarea>
+          <textarea id="f_commentaire" rows="4" placeholder="Notes libres…"></textarea>
         </div>
       </div>
     </div>
@@ -496,17 +338,16 @@
   }
 
   // ── Drawer CRUD ────────────────────────────────────────────────────────────
-  async function openDrawer(id) {
+  function openDrawer(id) {
     currentId = id;
     clearForm();
     if (id) {
-      document.getElementById('drawerTitle').textContent = '…';
+      const e = allData.find(x => x.id === id);
+      if (!e) return;
+      document.getElementById('drawerTitle').textContent = e.nom || 'Entreprise';
       document.getElementById('btnDelete').style.display = 'inline-block';
       document.getElementById('btnActDrawer').style.display = 'inline-block';
-      const { data, error } = await db.from('entreprises').select('*').eq('id', id).single();
-      if (error || !data) { showToast('Erreur chargement', 'error'); return; }
-      document.getElementById('drawerTitle').textContent = data.nom || 'Entreprise';
-      fillForm(data);
+      fillForm(e);
     } else {
       document.getElementById('drawerTitle').textContent = 'Nouvelle entreprise';
       document.getElementById('btnDelete').style.display = 'none';
@@ -523,89 +364,37 @@
   }
 
   function clearForm() {
-    ['f_nom','f_sigle','f_secteur_activite','f_detail_activite','f_naf',
-     'f_ca_annuel','f_nb_employes','f_actionnariat','f_holding','f_mois_cloture',
-     'f_site_web','f_linkedin','f_adresse','f_cp','f_ville','f_departement','f_pays',
-     'f_type_contact','f_sous_type_contact','f_source_contact','f_reference','f_lien_dossier',
-     'f_date_premier_contact','f_date_premier_rdv',
-     'f_cible_secteur','f_cible_detail','f_cible_localisation','f_cible_capital_dispo',
-     'f_commentaire','f_autres_notes']
-      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    ['f_nom','f_sigle','f_secteur_activite','f_ville','f_ca_annuel','f_nb_employes','f_departement','f_commentaire']
+      .forEach(id => { document.getElementById(id).value = ''; });
     document.getElementById('f_statut').value = 'prospect';
-    ['f_rappel_prevoir','f_suivi','f_teaser_recu','f_engagement_conf','f_dossier_envoye','f_visite']
-      .forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
   }
 
   function fillForm(e) {
-    const s = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
-    const c = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
-    s('f_nom', e.nom);                          s('f_sigle', e.sigle);
-    s('f_secteur_activite', e.secteur_activite); s('f_detail_activite', e.detail_activite);
-    s('f_naf', e.naf);                          s('f_statut', e.statut || 'prospect');
-    s('f_ca_annuel', e.ca_annuel);              s('f_nb_employes', e.nb_employes);
-    s('f_actionnariat', e.actionnariat);        s('f_holding', e.holding);
-    s('f_mois_cloture', e.mois_cloture);        s('f_site_web', e.site_web);
-    s('f_linkedin', e.linkedin);                s('f_adresse', e.adresse);
-    s('f_cp', e.cp);                            s('f_ville', e.ville);
-    s('f_departement', e.departement);          s('f_pays', e.pays);
-    s('f_type_contact', e.type_contact);        s('f_sous_type_contact', e.sous_type_contact);
-    s('f_source_contact', e.source_contact);    s('f_reference', e.reference);
-    s('f_lien_dossier', e.lien_dossier);
-    s('f_date_premier_contact', e.date_premier_contact);
-    s('f_date_premier_rdv', e.date_premier_rdv);
-    s('f_cible_secteur', e.cible_secteur);      s('f_cible_detail', e.cible_detail);
-    s('f_cible_localisation', e.cible_localisation);
-    s('f_cible_capital_dispo', e.cible_capital_dispo);
-    s('f_commentaire', e.commentaire);          s('f_autres_notes', e.autres_notes);
-    c('f_rappel_prevoir', e.rappel_prevoir);    c('f_suivi', e.suivi);
-    c('f_teaser_recu', e.teaser_recu);          c('f_engagement_conf', e.engagement_conf);
-    c('f_dossier_envoye', e.dossier_envoye);    c('f_visite', e.visite);
+    const s = (id, v) => { document.getElementById(id).value = v ?? ''; };
+    s('f_nom', e.nom);
+    s('f_sigle', e.sigle);
+    s('f_secteur_activite', e.secteur_activite);
+    s('f_ville', e.ville);
+    s('f_ca_annuel', e.ca_annuel);
+    s('f_nb_employes', e.nb_employes);
+    s('f_statut', e.statut || 'prospect');
+    s('f_departement', e.departement);
+    s('f_commentaire', e.commentaire);
   }
 
   function getFormData() {
-    const g  = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-    const gc = id => { const el = document.getElementById(id); return el ? el.checked : false; };
-    const gn = id => { const v = g(id); return v !== '' ? parseFloat(v) : null; };
-    const gi = id => { const v = g(id); return v !== '' ? parseInt(v, 10) : null; };
+    const g = id => document.getElementById(id).value.trim();
     return {
-      nom: g('f_nom'),
-      sigle: g('f_sigle') || null,
+      nom:              g('f_nom'),
+      sigle:            g('f_sigle')            || null,
       secteur_activite: g('f_secteur_activite') || null,
-      detail_activite: g('f_detail_activite') || null,
-      naf: g('f_naf') || null,
-      statut: g('f_statut') || 'prospect',
-      ca_annuel: gn('f_ca_annuel'),
-      nb_employes: gi('f_nb_employes'),
-      actionnariat: g('f_actionnariat') || null,
-      holding: g('f_holding') || null,
-      mois_cloture: g('f_mois_cloture') || null,
-      site_web: g('f_site_web') || null,
-      linkedin: g('f_linkedin') || null,
-      adresse: g('f_adresse') || null,
-      cp: g('f_cp') || null,
-      ville: g('f_ville') || null,
-      departement: g('f_departement') || null,
-      pays: g('f_pays') || null,
-      type_contact: g('f_type_contact') || null,
-      sous_type_contact: g('f_sous_type_contact') || null,
-      source_contact: g('f_source_contact') || null,
-      reference: g('f_reference') || null,
-      lien_dossier: g('f_lien_dossier') || null,
-      date_premier_contact: g('f_date_premier_contact') || null,
-      date_premier_rdv: g('f_date_premier_rdv') || null,
-      cible_secteur: g('f_cible_secteur') || null,
-      cible_detail: g('f_cible_detail') || null,
-      cible_localisation: g('f_cible_localisation') || null,
-      cible_capital_dispo: g('f_cible_capital_dispo') || null,
-      rappel_prevoir: gc('f_rappel_prevoir'),
-      suivi: gc('f_suivi'),
-      teaser_recu: gc('f_teaser_recu'),
-      engagement_conf: gc('f_engagement_conf'),
-      dossier_envoye: gc('f_dossier_envoye'),
-      visite: gc('f_visite'),
-      commentaire: g('f_commentaire') || null,
-      autres_notes: g('f_autres_notes') || null,
-      updated_at: new Date().toISOString(),
+      ville:            g('f_ville')            || null,
+      ca_annuel:        g('f_ca_annuel')        ? parseFloat(g('f_ca_annuel'))   : null,
+      nb_employes:      g('f_nb_employes')      ? parseInt(g('f_nb_employes'),10): null,
+      statut:           g('f_statut')           || 'prospect',
+      departement:      g('f_departement')      || null,
+      commentaire:      g('f_commentaire')      || null,
+      updated_at:       new Date().toISOString(),
     };
   }
 
