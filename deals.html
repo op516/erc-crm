@@ -451,7 +451,7 @@
       sb.from('pipelines').select('id,nom,created_at').order('created_at'),
       sb.from('entreprises').select('id,nom').order('nom'),
       sb.from('contacts').select('id,prenom,nom').order('nom'),
-      sb.from('produits').select('id,nom,prix_eur,taux_tva').order('nom')
+      sb.from('produits').select('id,nom,prix_eur,taxe').order('nom')
     ]);
     allEntreprises = ents   || [];
     allContacts    = cts    || [];
@@ -743,7 +743,7 @@
     const qty = parseFloat(document.getElementById('d-quantite').value) || 1;
     document.getElementById('d-quantite').value = document.getElementById('d-quantite').value || 1;
     if (produit.prix_eur) document.getElementById('d-valeur-ht').value = (produit.prix_eur * qty).toFixed(2);
-    if (produit.taux_tva) document.getElementById('d-tva').value = produit.taux_tva;
+    if (produit.taxe)     document.getElementById('d-tva').value = produit.taxe;
     calcValeur();
   }
 
