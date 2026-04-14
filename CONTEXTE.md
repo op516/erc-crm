@@ -13,6 +13,9 @@ Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs *
 5. https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
 6. https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
 7. https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
+8. https://raw.githubusercontent.com/op516/erc-crm/main/index.html
+
+⚠️ `index.html` utilise une URL différente (`refs/heads/main` au lieu de `main`) — toujours utiliser cette URL pour ce fichier.
 
 **Règles strictes :**
 - Utiliser exclusivement les URLs `raw.githubusercontent.com`
