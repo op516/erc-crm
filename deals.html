@@ -324,11 +324,11 @@
       <div class="form-row">
         <div class="form-group">
           <label>Produit</label>
-          <select id="d-produit" onchange="onProduitChange()"></select>
+          <select id="d-produit"></select>
         </div>
         <div class="form-group">
           <label>Quantité</label>
-          <input type="number" id="d-quantite" min="0" oninput="calcValeur()" />
+          <input type="number" id="d-quantite" min="0" />
         </div>
       </div>
       <div class="form-row">
@@ -358,21 +358,21 @@
       <div class="form-row">
         <div class="form-group">
           <label>Valeur HT (€)</label>
-          <input type="number" id="d-valeur-ht" min="0" oninput="calcValeur()" />
+          <input type="number" id="d-valeur-ht" min="0" />
         </div>
         <div class="form-group">
-          <label>Remise (%)</label>
-          <input type="number" id="d-remise" min="0" max="100" oninput="calcValeur()" />
+          <label>Valeur TTC (€)</label>
+          <input type="number" id="d-valeur" min="0" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>TVA (%)</label>
-          <input type="number" id="d-tva" min="0" oninput="calcValeur()" />
+          <label>Remise (%)</label>
+          <input type="number" id="d-remise" min="0" max="100" />
         </div>
         <div class="form-group">
-          <label>Valeur TTC (€)</label>
-          <input type="number" id="d-valeur" min="0" readonly style="background:#f5f6fa;color:#6b7494" />
+          <label>TVA (%)</label>
+          <input type="number" id="d-tva" min="0" />
         </div>
       </div>
       <div class="form-row">
@@ -451,7 +451,7 @@
       sb.from('pipelines').select('id,nom,created_at').order('created_at'),
       sb.from('entreprises').select('id,nom').order('nom'),
       sb.from('contacts').select('id,prenom,nom').order('nom'),
-      sb.from('produits').select('id,nom,prix_eur,taxe').order('nom')
+      sb.from('produits').select('id,nom').order('nom')
     ]);
     allEntreprises = ents   || [];
     allContacts    = cts    || [];
@@ -736,29 +736,6 @@
     toast(`Deal transféré vers "${targetNom}" ✓`);
   }
 
-  function onProduitChange() {
-    const produitId = document.getElementById('d-produit').value;
-    const produit   = allProduits.find(p => p.id === produitId);
-    if (!produit) return;
-    const qty = parseFloat(document.getElementById('d-quantite').value) || 1;
-    document.getElementById('d-quantite').value = document.getElementById('d-quantite').value || 1;
-    if (produit.prix_eur) document.getElementById('d-valeur-ht').value = (produit.prix_eur * qty).toFixed(2);
-    if (produit.taxe)     document.getElementById('d-tva').value = produit.taxe;
-    calcValeur();
-  }
-
-  function calcValeur() {
-    const ht     = parseFloat(document.getElementById('d-valeur-ht').value) || 0;
-    const remise = parseFloat(document.getElementById('d-remise').value)    || 0;
-    const tva    = parseFloat(document.getElementById('d-tva').value)       || 0;
-    const qty    = parseFloat(document.getElementById('d-quantite').value)  || 1;
-    if (!ht) { document.getElementById('d-valeur').value = ''; return; }
-    const htNet = ht * qty * (1 - remise / 100);
-    const ttc   = htNet * (1 + tva / 100);
-    document.getElementById('d-valeur-ht').value = htNet.toFixed(2);
-    document.getElementById('d-valeur').value    = ttc.toFixed(2);
-  }
-
   // ── Drawer deal
   function openDeal(id) {
     currentDealId = id;
@@ -866,7 +843,11 @@
   }
 
   async function deleteDeal() {
-    if (!confirm('Supprimer ce deal ? Cette action est irréversible.')) return;
+    if (!confirm('Supprimer ce deal et ses activités liées ? Cette action est irréversible.')) return;
+    // Supprimer d'abord les activités liées
+    const { error: ae } = await sb.from('activites').delete().eq('deal_id', currentDealId);
+    if (ae) { toast('Erreur suppression activités : ' + ae.message, 'error'); return; }
+    // Puis supprimer le deal
     const { error } = await sb.from('deals').delete().eq('id', currentDealId);
     if (error) { toast('Erreur : ' + error.message, 'error'); return; }
     toast('Deal supprimé'); closeDeal(); await selectPipeline(currentPipeline);
