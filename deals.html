@@ -190,6 +190,7 @@
   </div>
   <div class="toolbar-spacer"></div>
   <span class="toolbar-meta" id="chip"></span>
+  <button class="btn btn-p" onclick="openDeal(null)">+ Nouveau deal</button>
   <div class="view-toggle">
     <button class="view-btn active" id="bk" title="Kanban">
       <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -324,11 +325,11 @@
       <div class="form-row">
         <div class="form-group">
           <label>Produit</label>
-          <select id="d-produit"></select>
+          <select id="d-produit" onchange="onProduitChange()"></select>
         </div>
         <div class="form-group">
           <label>Quantité</label>
-          <input type="number" id="d-quantite" min="0" />
+          <input type="number" id="d-quantite" min="0" oninput="calcValeur()" />
         </div>
       </div>
       <div class="form-row">
@@ -358,7 +359,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Valeur HT (€)</label>
-          <input type="number" id="d-valeur-ht" min="0" />
+          <input type="number" id="d-valeur-ht" min="0" oninput="calcValeur()" />
         </div>
         <div class="form-group">
           <label>Valeur TTC (€)</label>
@@ -368,11 +369,11 @@
       <div class="form-row">
         <div class="form-group">
           <label>Remise (%)</label>
-          <input type="number" id="d-remise" min="0" max="100" />
+          <input type="number" id="d-remise" min="0" max="100" oninput="calcValeur()" />
         </div>
         <div class="form-group">
           <label>TVA (%)</label>
-          <input type="number" id="d-tva" min="0" />
+          <input type="number" id="d-tva" min="0" oninput="calcValeur()" />
         </div>
       </div>
       <div class="form-row">
@@ -734,6 +735,27 @@
     allDeals = allDeals.filter(d => d.id !== dealId);
     closeXfer(); renderKanban(); renderListe(); renderSubbar(); updateMeta();
     toast(`Deal transféré vers "${targetNom}" ✓`);
+  }
+
+  function onProduitChange() {
+    const produitId = document.getElementById('d-produit').value;
+    const produit   = allProduits.find(p => p.id === produitId);
+    if (!produit || !produit.prix_eur) return;
+    const qty = parseFloat(document.getElementById('d-quantite').value) || 1;
+    document.getElementById('d-quantite').value = document.getElementById('d-quantite').value || 1;
+    document.getElementById('d-valeur-ht').value = (produit.prix_eur * qty).toFixed(2);
+    if (produit.taxe) document.getElementById('d-tva').value = produit.taxe;
+    calcValeur();
+  }
+
+  function calcValeur() {
+    const ht     = parseFloat(document.getElementById('d-valeur-ht').value) || 0;
+    const remise = parseFloat(document.getElementById('d-remise').value)    || 0;
+    const tva    = parseFloat(document.getElementById('d-tva').value)       || 0;
+    if (!ht) { document.getElementById('d-valeur').value = ''; return; }
+    const htNet = ht * (1 - remise / 100);
+    const ttc   = htNet * (1 + tva / 100);
+    document.getElementById('d-valeur').value = ttc.toFixed(2);
   }
 
   // ── Drawer deal
