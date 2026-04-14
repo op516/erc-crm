@@ -11,9 +11,6 @@
   <style>
     /* ── CSS spécifique entreprises.html ── */
 
-    .toolbar { padding: 12px 24px; }
-    .toolbar h1 { font-size: 18px; font-weight: 600; flex: 1; }
-
     /* Toggle vue */
     .view-toggle { display: flex; border: 1px solid #dde1ec; border-radius: 6px; overflow: hidden; }
     .view-btn { height: 36px; width: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: white; border: none; color: #9ba3b8; transition: background 0.15s, color 0.15s; }
@@ -22,7 +19,7 @@
 
     /* Content */
     .content { padding: 24px; }
-    .count-label { font-size: 13px; color: #9ba3b8; margin-bottom: 14px; }
+    .count-label { font-size: 13px; color: #9ba3b8; margin-left: auto; }
 
     /* Table */
     .table-wrap { background: white; border-radius: 8px; border: 1px solid #e8eaf0; overflow: hidden; }
@@ -60,15 +57,47 @@
     .overlay { position: fixed; inset: 0; background: rgba(10,20,40,0.4); z-index: 100; display: none; }
     .overlay.open { display: block; }
 
+    /* Drawer élargi */
+    .drawer { width: 560px; right: -560px; }
+    .drawer.open { right: 0; }
+
     /* Toast */
     .toast { bottom: 24px; left: auto; right: 24px; transform: translateY(80px); }
     .toast.show { transform: translateY(0); }
 
     .loader { text-align: center; padding: 60px; color: #9ba3b8; font-size: 13px; }
 
-    /* Bouton activité dans le drawer */
+    /* Bouton activité */
     .btn-act { height: 30px; padding: 0 10px; background: #f0f5ff; border: 1px solid #c5d8fc; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #0052cc; cursor: pointer; }
     .btn-act:hover { background: #dbeafe; }
+
+    /* Contacts liés dans le drawer */
+    .contact-linked {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid #e8eaf0;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      background: #f8f9fc;
+    }
+    .contact-linked-info { flex: 1; min-width: 0; }
+    .contact-linked-nom { font-size: 13px; font-weight: 600; color: #172b4d; }
+    .contact-linked-meta { font-size: 12px; color: #6b778c; margin-top: 1px; }
+    .contact-linked-unlink {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #c1c7d0;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .contact-linked-unlink:hover { color: #de350b; }
+    .link-contact-row { display: flex; gap: 8px; margin-top: 10px; }
+    .link-contact-row select { flex: 1; }
 
     /* Modal activité rapide */
     .modal-wrap { position: fixed; inset: 0; background: rgba(9,30,66,0.45); z-index: 200; display: none; align-items: center; justify-content: center; }
@@ -107,8 +136,9 @@
 
 <!-- TOOLBAR -->
 <div class="toolbar">
-  <h1>Entreprises</h1>
+  <h1 style="font-size:18px;font-weight:600;margin-right:12px">Entreprises</h1>
   <input type="text" class="search-input" id="searchInput" placeholder="Rechercher nom, ville, secteur…" />
+  <span class="count-label" id="countLabel"></span>
   <div class="view-toggle">
     <button class="view-btn active" id="btnTable" onclick="setView('table')" title="Vue liste">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" rx="1" fill="currentColor"/><rect x="1" y="7" width="14" height="2" rx="1" fill="currentColor"/><rect x="1" y="11" width="14" height="2" rx="1" fill="currentColor"/></svg>
@@ -121,7 +151,6 @@
 
 <!-- CONTENT -->
 <div class="content">
-  <div class="count-label" id="countLabel"></div>
   <div id="viewContainer"><div class="loader">Chargement…</div></div>
 </div>
 
@@ -141,6 +170,7 @@
   </div>
   <div class="drawer-body">
 
+    <!-- INFORMATIONS -->
     <div class="form-section">
       <div class="form-section-title">Informations</div>
       <div class="form-row">
@@ -191,12 +221,25 @@
       </div>
     </div>
 
+    <!-- NOTES -->
     <div class="form-section">
       <div class="form-section-title">Notes</div>
       <div class="form-row">
         <div class="form-group">
           <textarea id="f_commentaire" rows="4" placeholder="Notes libres…"></textarea>
         </div>
+      </div>
+    </div>
+
+    <!-- CONTACTS LIÉS (visible uniquement en édition) -->
+    <div class="form-section" id="sectionContacts" style="display:none">
+      <div class="form-section-title">Contacts liés</div>
+      <div id="contactsLinkedList"></div>
+      <div class="link-contact-row">
+        <select class="form-group" id="selectLinkContact" style="flex:1;border:1px solid #dde1ec;border-radius:4px;padding:8px 10px;font-size:14px;font-family:'DM Sans',sans-serif;color:#172b4d;background:#fff;">
+          <option value="">— Rattacher un contact —</option>
+        </select>
+        <button class="btn-secondary" onclick="linkContact()">Rattacher</button>
       </div>
     </div>
 
@@ -264,23 +307,25 @@
 
 <script>
   const db = window.supabase;
-  let allData = [], currentView = 'table', currentId = null;
+  let allData = [], allContacts = [], currentView = 'table', currentId = null;
 
   document.addEventListener('DOMContentLoaded', () => {
-    loadEntreprises();
+    init();
     document.getElementById('searchInput').addEventListener('input', renderCurrent);
   });
 
-  async function loadEntreprises() {
-    const { data, error } = await db
-      .from('entreprises')
-      .select('id, nom, sigle, ville, secteur_activite, ca_annuel, nb_employes, statut, departement')
-      .order('nom');
-    if (error) { showToast('Erreur chargement : ' + error.message, 'error'); document.getElementById('viewContainer').innerHTML = '<div class="empty-state"><p>Impossible de charger les données.</p></div>'; return; }
-    allData = data || [];
+  async function init() {
+    const [{ data: ents, error }, { data: cts }] = await Promise.all([
+      db.from('entreprises').select('id, nom, sigle, ville, secteur_activite, ca_annuel, nb_employes, statut, departement').order('nom'),
+      db.from('contacts').select('id, prenom, nom, fonction, email_travail, tel_mobile, entreprise_id').order('nom')
+    ]);
+    if (error) { showToast('Erreur chargement : ' + error.message, 'error'); return; }
+    allData     = ents || [];
+    allContacts = cts  || [];
     renderCurrent();
   }
 
+  // ── Filtrage ───────────────────────────────────────────────────────────────
   function getFiltered() {
     const q = document.getElementById('searchInput').value.toLowerCase().trim();
     if (!q) return allData;
@@ -299,6 +344,7 @@
     currentView === 'table' ? renderTable(data) : renderCards(data);
   }
 
+  // ── Vues ──────────────────────────────────────────────────────────────────
   function renderTable(data) {
     const c = document.getElementById('viewContainer');
     if (!data.length) { c.innerHTML = '<div class="empty-state"><p>Aucune entreprise trouvée</p></div>'; return; }
@@ -341,6 +387,8 @@
   function openDrawer(id) {
     currentId = id;
     clearForm();
+    document.getElementById('sectionContacts').style.display = 'none';
+
     if (id) {
       const e = allData.find(x => x.id === id);
       if (!e) return;
@@ -348,6 +396,8 @@
       document.getElementById('btnDelete').style.display = 'inline-block';
       document.getElementById('btnActDrawer').style.display = 'inline-block';
       fillForm(e);
+      renderLinkedContacts();
+      document.getElementById('sectionContacts').style.display = 'block';
     } else {
       document.getElementById('drawerTitle').textContent = 'Nouvelle entreprise';
       document.getElementById('btnDelete').style.display = 'none';
@@ -371,14 +421,10 @@
 
   function fillForm(e) {
     const s = (id, v) => { document.getElementById(id).value = v ?? ''; };
-    s('f_nom', e.nom);
-    s('f_sigle', e.sigle);
-    s('f_secteur_activite', e.secteur_activite);
-    s('f_ville', e.ville);
-    s('f_ca_annuel', e.ca_annuel);
-    s('f_nb_employes', e.nb_employes);
-    s('f_statut', e.statut || 'prospect');
-    s('f_departement', e.departement);
+    s('f_nom', e.nom);                           s('f_sigle', e.sigle);
+    s('f_secteur_activite', e.secteur_activite); s('f_ville', e.ville);
+    s('f_ca_annuel', e.ca_annuel);               s('f_nb_employes', e.nb_employes);
+    s('f_statut', e.statut || 'prospect');        s('f_departement', e.departement);
     s('f_commentaire', e.commentaire);
   }
 
@@ -389,8 +435,8 @@
       sigle:            g('f_sigle')            || null,
       secteur_activite: g('f_secteur_activite') || null,
       ville:            g('f_ville')            || null,
-      ca_annuel:        g('f_ca_annuel')        ? parseFloat(g('f_ca_annuel'))   : null,
-      nb_employes:      g('f_nb_employes')      ? parseInt(g('f_nb_employes'),10): null,
+      ca_annuel:        g('f_ca_annuel')        ? parseFloat(g('f_ca_annuel'))    : null,
+      nb_employes:      g('f_nb_employes')      ? parseInt(g('f_nb_employes'), 10): null,
       statut:           g('f_statut')           || 'prospect',
       departement:      g('f_departement')      || null,
       commentaire:      g('f_commentaire')      || null,
@@ -410,7 +456,7 @@
     if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
     showToast(currentId ? 'Entreprise mise à jour ✓' : 'Entreprise créée ✓', 'success');
     closeDrawer();
-    loadEntreprises();
+    init();
   }
 
   async function deleteEntreprise() {
@@ -419,7 +465,60 @@
     if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
     showToast('Entreprise supprimée');
     closeDrawer();
-    loadEntreprises();
+    init();
+  }
+
+  // ── Contacts liés ──────────────────────────────────────────────────────────
+  function renderLinkedContacts() {
+    const linked = allContacts.filter(c => c.entreprise_id === currentId);
+    const unlinked = allContacts.filter(c => !c.entreprise_id || c.entreprise_id !== currentId);
+
+    // Liste des contacts rattachés
+    const list = document.getElementById('contactsLinkedList');
+    if (!linked.length) {
+      list.innerHTML = '<p style="font-size:13px;color:#9ba3b8;margin-bottom:8px">Aucun contact rattaché.</p>';
+    } else {
+      list.innerHTML = linked.map(c => {
+        const nom = [c.prenom, c.nom].filter(Boolean).join(' ');
+        const meta = [c.fonction, c.email_travail, c.tel_mobile].filter(Boolean).join(' · ');
+        return `<div class="contact-linked">
+          <div class="contact-linked-info">
+            <div class="contact-linked-nom">${esc(nom)}</div>
+            ${meta ? `<div class="contact-linked-meta">${esc(meta)}</div>` : ''}
+          </div>
+          <button class="contact-linked-unlink" onclick="unlinkContact('${c.id}')" title="Détacher">×</button>
+        </div>`;
+      }).join('');
+    }
+
+    // Select pour rattacher un contact sans entreprise (ou déjà rattaché à une autre)
+    const sel = document.getElementById('selectLinkContact');
+    sel.innerHTML = '<option value="">— Rattacher un contact —</option>'
+      + unlinked.map(c => {
+          const nom = [c.prenom, c.nom].filter(Boolean).join(' ');
+          return `<option value="${c.id}">${esc(nom)}${c.entreprise_id ? ' (déjà lié)' : ''}</option>`;
+        }).join('');
+  }
+
+  async function linkContact() {
+    const contactId = document.getElementById('selectLinkContact').value;
+    if (!contactId) return;
+    const { error } = await db.from('contacts').update({ entreprise_id: currentId, updated_at: new Date().toISOString() }).eq('id', contactId);
+    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+    // Mettre à jour le tableau local
+    const c = allContacts.find(x => x.id === contactId);
+    if (c) c.entreprise_id = currentId;
+    renderLinkedContacts();
+    showToast('Contact rattaché ✓');
+  }
+
+  async function unlinkContact(contactId) {
+    const { error } = await db.from('contacts').update({ entreprise_id: null, updated_at: new Date().toISOString() }).eq('id', contactId);
+    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+    const c = allContacts.find(x => x.id === contactId);
+    if (c) c.entreprise_id = null;
+    renderLinkedContacts();
+    showToast('Contact détaché');
   }
 
   // ── Modal activité rapide ──────────────────────────────────────────────────
