@@ -302,6 +302,7 @@
     </div>
   </div>
   <div class="drawer-body">
+
     <div class="form-section">
       <div class="form-section-title">Affaire</div>
       <div class="form-row">
@@ -315,30 +316,25 @@
           <label>Entreprise</label>
           <select id="d-entreprise"></select>
         </div>
+        <div class="form-group">
+          <label>Contact</label>
+          <select id="d-contact"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Produit</label>
+          <select id="d-produit"></select>
+        </div>
+        <div class="form-group">
+          <label>Quantité</label>
+          <input type="number" id="d-quantite" min="0" />
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Étape</label>
           <select id="d-stage"></select>
-        </div>
-      </div>
-    </div>
-    <div class="form-section">
-      <div class="form-section-title">Financier</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Valeur (€)</label>
-          <input type="number" id="d-valeur" min="0" />
-        </div>
-        <div class="form-group">
-          <label>Probabilité (%)</label>
-          <input type="number" id="d-proba" min="0" max="100" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Closing prévu</label>
-          <input type="date" id="d-closing" />
         </div>
         <div class="form-group">
           <label>Statut</label>
@@ -349,7 +345,72 @@
           </select>
         </div>
       </div>
+      <div class="form-row" id="row-raison" style="display:none">
+        <div class="form-group">
+          <label>Raison de la perte</label>
+          <input type="text" id="d-raison" />
+        </div>
+      </div>
     </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Financier</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Valeur HT (€)</label>
+          <input type="number" id="d-valeur-ht" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Remise (%)</label>
+          <input type="number" id="d-remise" min="0" max="100" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>TVA (%)</label>
+          <input type="number" id="d-tva" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Valeur TTC (€)</label>
+          <input type="number" id="d-valeur" min="0" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Probabilité (%)</label>
+          <input type="number" id="d-proba" min="0" max="100" />
+        </div>
+        <div class="form-group">
+          <label>Probabilité de réussite (%)</label>
+          <input type="number" id="d-proba-reussite" min="0" max="100" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Dates</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Échéance prévue</label>
+          <input type="date" id="d-closing" />
+        </div>
+        <div class="form-group">
+          <label>Date de réalisation</label>
+          <input type="date" id="d-realisation" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date de gain</label>
+          <input type="date" id="d-gain" />
+        </div>
+        <div class="form-group">
+          <label>Date de perte</label>
+          <input type="date" id="d-perte" />
+        </div>
+      </div>
+    </div>
+
     <div class="form-section">
       <div class="form-section-title">Notes</div>
       <div class="form-row">
@@ -358,6 +419,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -367,7 +429,8 @@
 <script>
   const sb = window.supabase;
 
-  let allPipelines = [], currentPipeline = null, currentStages = [], allDeals = [], allEntreprises = [];
+  let allPipelines = [], currentPipeline = null, currentStages = [], allDeals = [];
+  let allEntreprises = [], allContacts = [], allProduits = [];
   let currentView = 'kanban', filtreStage = '', dragId = null;
   let xferDealId = null, activeClrBtn = null, currentDealId = null, renamePipelineId = null;
 
@@ -388,11 +451,15 @@
 
   // ── Init
   async function init() {
-    const [{ data: pips, error }, { data: ents }] = await Promise.all([
+    const [{ data: pips, error }, { data: ents }, { data: cts }, { data: prods }] = await Promise.all([
       sb.from('pipelines').select('id,nom,created_at').order('created_at'),
-      sb.from('entreprises').select('id,nom').order('nom')
+      sb.from('entreprises').select('id,nom').order('nom'),
+      sb.from('contacts').select('id,prenom,nom').order('nom'),
+      sb.from('produits').select('id,nom').order('nom')
     ]);
-    allEntreprises = ents || [];
+    allEntreprises = ents   || [];
+    allContacts    = cts    || [];
+    allProduits    = prods  || [];
     if (error || !pips?.length) {
       showSt('err');
       document.getElementById('err-msg').textContent = error?.message || 'Aucun pipeline. Exécutez le SQL de migration.';
@@ -440,7 +507,7 @@
 
     const [{ data: stages, error: se }, { data: deals, error: de }] = await Promise.all([
       sb.from('pipeline_stages').select('id,nom,couleur,ordre').eq('pipeline_id', p.id).order('ordre'),
-      sb.from('deals').select('id,titre,stage_id,statut,valeur,date_closing_prevu,entreprises(nom)').eq('pipeline_id', p.id).order('created_at', { ascending: false })
+      sb.from('deals').select('id,titre,stage_id,statut,valeur,valeur_ht,remise,taux_tva,probabilite,probabilite_reussite,date_closing_prevu,date_realisation,date_gain,date_perte,raison_perte,notes,entreprise_id,contact_id,produit_id,quantite,entreprises(nom)').eq('pipeline_id', p.id).order('created_at', { ascending: false })
     ]);
     if (se || de) { showSt('err'); document.getElementById('err-msg').textContent = (se||de).message; return; }
 
@@ -679,48 +746,99 @@
     const deal = allDeals.find(d => d.id === id);
     document.getElementById('deal-drawer-title').textContent = deal ? deal.titre : 'Nouveau deal';
     document.getElementById('deal-btn-del').style.display = deal ? 'inline-block' : 'none';
-    const selEnt = document.getElementById('d-entreprise');
-    selEnt.innerHTML = '<option value="">— Aucune —</option>';
-    allEntreprises.forEach(e => { const o = document.createElement('option'); o.value = e.id; o.textContent = e.nom; selEnt.appendChild(o); });
-    const selStage = document.getElementById('d-stage');
-    selStage.innerHTML = '';
-    currentStages.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.nom; selStage.appendChild(o); });
+
+    // Peupler selects
+    const selE = document.getElementById('d-entreprise');
+    selE.innerHTML = '<option value="">— Aucune —</option>';
+    allEntreprises.forEach(e => { const o = document.createElement('option'); o.value = e.id; o.textContent = e.nom; selE.appendChild(o); });
+
+    const selC = document.getElementById('d-contact');
+    selC.innerHTML = '<option value="">— Aucun —</option>';
+    allContacts.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = [c.prenom, c.nom].filter(Boolean).join(' '); selC.appendChild(o); });
+
+    const selP = document.getElementById('d-produit');
+    selP.innerHTML = '<option value="">— Aucun —</option>';
+    allProduits.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.nom; selP.appendChild(o); });
+
+    const selS = document.getElementById('d-stage');
+    selS.innerHTML = '';
+    currentStages.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.nom; selS.appendChild(o); });
+
+    const g = id => document.getElementById(id);
     if (deal) {
-      document.getElementById('d-titre').value   = deal.titre || '';
-      selEnt.value                                = deal.entreprise_id || '';
-      selStage.value                              = deal.stage_id || '';
-      document.getElementById('d-valeur').value  = deal.valeur || '';
-      document.getElementById('d-proba').value   = deal.probabilite || '';
-      document.getElementById('d-closing').value = deal.date_closing_prevu || '';
-      document.getElementById('d-statut').value  = deal.statut || 'ouvert';
-      document.getElementById('d-notes').value   = deal.notes || '';
+      g('d-titre').value          = deal.titre || '';
+      selE.value                  = deal.entreprise_id || '';
+      selC.value                  = deal.contact_id || '';
+      selP.value                  = deal.produit_id || '';
+      g('d-quantite').value       = deal.quantite || '';
+      selS.value                  = deal.stage_id || '';
+      g('d-statut').value         = deal.statut || 'ouvert';
+      g('d-raison').value         = deal.raison_perte || '';
+      g('d-valeur-ht').value      = deal.valeur_ht || '';
+      g('d-remise').value         = deal.remise || '';
+      g('d-tva').value            = deal.taux_tva || '';
+      g('d-valeur').value         = deal.valeur || '';
+      g('d-proba').value          = deal.probabilite || '';
+      g('d-proba-reussite').value = deal.probabilite_reussite || '';
+      g('d-closing').value        = deal.date_closing_prevu || '';
+      g('d-realisation').value    = deal.date_realisation || '';
+      g('d-gain').value           = deal.date_gain || '';
+      g('d-perte').value          = deal.date_perte || '';
+      g('d-notes').value          = deal.notes || '';
+      g('row-raison').style.display = deal.statut === 'perdu' ? 'flex' : 'none';
     } else {
-      ['d-titre','d-valeur','d-proba','d-closing','d-notes'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('d-statut').value = 'ouvert';
-      if (currentStages.length) selStage.value = currentStages[0].id;
+      ['d-titre','d-quantite','d-valeur-ht','d-remise','d-tva','d-valeur','d-proba',
+       'd-proba-reussite','d-closing','d-realisation','d-gain','d-perte','d-raison','d-notes']
+        .forEach(id => g(id).value = '');
+      g('d-statut').value = 'ouvert';
+      g('row-raison').style.display = 'none';
+      if (currentStages.length) selS.value = currentStages[0].id;
     }
+
+    // Afficher raison perte si statut change
+    g('d-statut').onchange = () => {
+      g('row-raison').style.display = g('d-statut').value === 'perdu' ? 'flex' : 'none';
+    };
+
     document.getElementById('deal-overlay').classList.add('open');
     document.getElementById('deal-drawer').classList.add('open');
   }
+
   function closeDeal() {
     document.getElementById('deal-overlay').classList.remove('open');
     document.getElementById('deal-drawer').classList.remove('open');
     currentDealId = null;
   }
+
   async function saveDeal() {
-    const titre = document.getElementById('d-titre').value.trim();
+    const g = id => document.getElementById(id).value;
+    const titre = g('d-titre').trim();
     if (!titre) { toast('Le titre est obligatoire', 'error'); return; }
-    const stageId = document.getElementById('d-stage').value;
+    const stageId = g('d-stage');
     const stage   = currentStages.find(s => s.id === stageId);
     const payload = {
-      titre, entreprise_id: document.getElementById('d-entreprise').value || null,
-      stage_id: stageId || null, pipeline_id: currentPipeline.id, etape: stage?.nom || null,
-      valeur: parseFloat(document.getElementById('d-valeur').value) || null,
-      probabilite: parseInt(document.getElementById('d-proba').value) || null,
-      date_closing_prevu: document.getElementById('d-closing').value || null,
-      statut: document.getElementById('d-statut').value,
-      notes: document.getElementById('d-notes').value.trim() || null,
-      updated_at: new Date().toISOString()
+      titre,
+      entreprise_id:        g('d-entreprise') || null,
+      contact_id:           g('d-contact') || null,
+      produit_id:           g('d-produit') || null,
+      quantite:             parseInt(g('d-quantite')) || null,
+      stage_id:             stageId || null,
+      pipeline_id:          currentPipeline.id,
+      etape:                stage?.nom || null,
+      statut:               g('d-statut'),
+      raison_perte:         g('d-raison') || null,
+      valeur_ht:            parseFloat(g('d-valeur-ht')) || null,
+      remise:               parseFloat(g('d-remise')) || null,
+      taux_tva:             parseFloat(g('d-tva')) || null,
+      valeur:               parseFloat(g('d-valeur')) || null,
+      probabilite:          parseInt(g('d-proba')) || null,
+      probabilite_reussite: parseInt(g('d-proba-reussite')) || null,
+      date_closing_prevu:   g('d-closing') || null,
+      date_realisation:     g('d-realisation') || null,
+      date_gain:            g('d-gain') || null,
+      date_perte:           g('d-perte') || null,
+      notes:                g('d-notes').trim() || null,
+      updated_at:           new Date().toISOString()
     };
     let error;
     if (currentDealId) { ({ error } = await sb.from('deals').update(payload).eq('id', currentDealId)); }
@@ -729,6 +847,7 @@
     toast(currentDealId ? 'Deal mis à jour ✓' : 'Deal créé ✓');
     closeDeal(); await selectPipeline(currentPipeline);
   }
+
   async function deleteDeal() {
     if (!confirm('Supprimer ce deal ? Cette action est irréversible.')) return;
     const { error } = await sb.from('deals').delete().eq('id', currentDealId);
