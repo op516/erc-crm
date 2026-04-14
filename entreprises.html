@@ -9,26 +9,22 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <style>
-    /* ── Toolbar spécifique ── */
+    /* ── CSS spécifique entreprises.html ── */
+
     .toolbar { padding: 12px 24px; }
     .toolbar h1 { font-size: 18px; font-weight: 600; flex: 1; }
 
-    /* ── Boutons spécifiques entreprises ── */
-    .btn { height: 36px; padding: 0 16px; border-radius: 6px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: background 0.15s; }
-    .btn-ghost { background: transparent; border: 1px solid #dde1ec; color: #555; }
-    .btn-ghost:hover { background: #f5f6fa; }
-
-    /* ── Toggle vue ── */
+    /* Toggle vue */
     .view-toggle { display: flex; border: 1px solid #dde1ec; border-radius: 6px; overflow: hidden; }
     .view-btn { height: 36px; width: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: white; border: none; color: #9ba3b8; transition: background 0.15s, color 0.15s; }
     .view-btn.active { background: #172b4d; color: white; }
     .view-btn:hover:not(.active) { background: #f5f6fa; }
 
-    /* ── Content ── */
+    /* Content */
     .content { padding: 24px; }
     .count-label { font-size: 13px; color: #9ba3b8; margin-bottom: 14px; }
 
-    /* ── Table ── */
+    /* Table */
     .table-wrap { background: white; border-radius: 8px; border: 1px solid #e8eaf0; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; }
     thead { background: #f8f9fc; border-bottom: 1px solid #e8eaf0; }
@@ -39,11 +35,10 @@
     td { padding: 12px 16px; color: #1a1a2e; font-size: 14px; }
     td.nom { font-weight: 500; }
 
-    /* ── Empty state ── */
     .empty-state { text-align: center; padding: 60px 24px; color: #9ba3b8; }
     .empty-state p { margin-top: 10px; font-size: 13px; }
 
-    /* ── Cards ── */
+    /* Cards */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
     .card { background: white; border-radius: 8px; border: 1px solid #e8eaf0; padding: 20px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
     .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: #c5cce0; }
@@ -53,69 +48,51 @@
     .card-meta span strong { color: #1a1a2e; font-weight: 600; display: block; font-size: 13px; text-transform: none; letter-spacing: 0; margin-top: 2px; }
     .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #f0f2f7; }
 
-    /* ── Badges entreprises ── */
+    /* Badges entreprises */
     .badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
     .badge-prospect { background: #e8f0fe; color: #1967d2; }
     .badge-actif    { background: #e6f4ea; color: #137333; }
     .badge-inactif  { background: #f1f3f4; color: #6b7494; }
     .badge-cible    { background: #fce8e6; color: #c5221f; }
     .badge-mandat   { background: #fef7e0; color: #b06000; }
-    .badge-flag     { background: #e6f4ea; color: #137333; }
 
-    /* ── Overlay ── */
+    /* Overlay */
     .overlay { position: fixed; inset: 0; background: rgba(10,20,40,0.4); z-index: 100; display: none; }
     .overlay.open { display: block; }
 
-    /* ── Slide-over entreprise ── */
-    .slideover { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; background: white; z-index: 101; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.25s ease; box-shadow: -4px 0 24px rgba(0,0,0,0.12); }
-    .slideover.open { transform: translateX(0); }
-    .slideover-header { padding: 20px 24px; border-bottom: 1px solid #e8eaf0; display: flex; align-items: flex-start; gap: 12px; }
-    .slideover-title { flex: 1; }
-    .slideover-title h2 { font-size: 18px; font-weight: 600; color: #1a1a2e; margin-bottom: 6px; }
-    .btn-close { background: none; border: none; cursor: pointer; color: #9ba3b8; font-size: 20px; line-height: 1; padding: 2px; }
-    .btn-close:hover { color: #1a1a2e; }
-    .slideover-body { flex: 1; overflow-y: auto; padding: 24px; }
+    /* Drawer élargi pour les nombreux champs */
+    .drawer { width: 560px; right: -560px; }
+    .drawer.open { right: 0; }
 
-    .detail-section { margin-bottom: 24px; }
-    .detail-section h3 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #9ba3b8; margin-bottom: 10px; }
-    .detail-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid #f5f6fa; font-size: 13px; gap: 12px; }
-    .detail-row:last-child { border-bottom: none; }
-    .detail-label { color: #6b7494; flex: 0 0 140px; }
-    .detail-value { color: #1a1a2e; font-weight: 500; text-align: right; flex: 1; word-break: break-word; }
-    .detail-value a { color: #0e3d5c; text-decoration: none; }
-    .detail-value a:hover { text-decoration: underline; }
+    /* Checkboxes flags */
+    .flags-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .flag-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #172b4d; cursor: pointer; padding: 6px 8px; border-radius: 4px; border: 1px solid #e8eaf0; background: #f8f9fc; }
+    .flag-item:hover { border-color: #0052cc; }
+    .flag-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #0052cc; cursor: pointer; flex-shrink: 0; }
 
-    .contact-card { border: 1px solid #e8eaf0; border-radius: 6px; padding: 12px; margin-bottom: 8px; }
-    .contact-card-nom { font-weight: 500; font-size: 13px; color: #1a1a2e; }
-    .contact-card-fonction { font-size: 12px; color: #6b7494; margin: 2px 0 8px; }
-    .contact-card-links { display: flex; gap: 14px; font-size: 12px; color: #6b7494; flex-wrap: wrap; }
-    .contact-card-links a { color: #0e3d5c; text-decoration: none; }
-
-    /* ── Modal ── */
-    .modal-wrap { position: fixed; inset: 0; background: rgba(10,20,40,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
-    .modal-wrap.open { display: flex; }
-    .modal { background: white; border-radius: 10px; width: 540px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-    .modal-header { padding: 20px 24px; border-bottom: 1px solid #e8eaf0; display: flex; align-items: center; justify-content: space-between; }
-    .modal-header h2 { font-size: 16px; font-weight: 600; }
-    .modal-body { padding: 24px; }
-    .modal-footer { padding: 16px 24px; border-top: 1px solid #e8eaf0; display: flex; justify-content: flex-end; gap: 8px; }
-
-    /* ── Form modal ── */
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .form-row.full { grid-template-columns: 1fr; }
-    .form-group { display: flex; flex-direction: column; gap: 5px; }
-    .form-group label { font-size: 12px; font-weight: 600; color: #6b7494; }
-    .form-group label .req { color: #0052cc; margin-left: 2px; }
-    .form-control { height: 36px; border: 1px solid #dde1ec; border-radius: 6px; padding: 0 12px; font-family: inherit; font-size: 14px; color: #1a1a2e; outline: none; transition: border-color 0.15s; background: white; }
-    .form-control:focus { border-color: #0052cc; }
-    textarea.form-control { height: auto; padding: 8px 12px; resize: vertical; min-height: 72px; }
-
-    /* ── Toast override position ── */
+    /* Toast */
     .toast { bottom: 24px; left: auto; right: 24px; transform: translateY(80px); }
     .toast.show { transform: translateY(0); }
 
     .loader { text-align: center; padding: 60px; color: #9ba3b8; font-size: 13px; }
-    .flags-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    /* Modal activité rapide */
+    .modal-wrap { position: fixed; inset: 0; background: rgba(9,30,66,0.45); z-index: 200; display: none; align-items: center; justify-content: center; }
+    .modal-wrap.open { display: flex; }
+    .modal { background: #fff; border-radius: 10px; width: 440px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid #e8eaf0; display: flex; align-items: center; justify-content: space-between; }
+    .modal-header span { font-size: 15px; font-weight: 600; }
+    .modal-body { padding: 18px 20px; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #e8eaf0; display: flex; justify-content: flex-end; gap: 8px; }
+    .modal-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .modal-row { margin-bottom: 10px; }
+    .form-control { height: 36px; border: 1px solid #dde1ec; border-radius: 6px; padding: 0 12px; font-family: inherit; font-size: 14px; color: #1a1a2e; outline: none; transition: border-color 0.15s; background: white; width: 100%; }
+    .form-control:focus { border-color: #0052cc; }
+    textarea.form-control { height: auto; padding: 8px 12px; resize: vertical; min-height: 60px; }
+    .btn-ghost { background: transparent; border: 1px solid #dde1ec; color: #555; border-radius: 6px; padding: 7px 14px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .btn-ghost:hover { background: #f5f6fa; }
+    .btn-act { height: 30px; padding: 0 10px; background: #f0f5ff; border: 1px solid #c5d8fc; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #0052cc; cursor: pointer; }
+    .btn-act:hover { background: #dbeafe; }
   </style>
 </head>
 <body>
@@ -125,15 +102,15 @@
   <div class="topbar-left">
     <h1>ERC CRM</h1>
     <nav class="topbar-nav">
-  <a href="index.html">Accueil</a>
-  <a href="contacts.html" >Contacts</a>
-  <a href="entreprises.html" class="active">Entreprises</a>
-  <a href="deals.html">Deals</a>
-  <a href="activites.html">Activités</a>
-  <a href="produits.html">Produits</a>
-</nav>
+      <a href="index.html">Accueil</a>
+      <a href="contacts.html">Contacts</a>
+      <a href="entreprises.html" class="active">Entreprises</a>
+      <a href="deals.html">Deals</a>
+      <a href="activites.html">Activités</a>
+      <a href="produits.html">Produits</a>
+    </nav>
   </div>
-  <button class="btn-primary" onclick="openModal()">+ Ajouter</button>
+  <button class="btn-primary" onclick="openDrawer(null)">+ Ajouter</button>
 </div>
 
 <!-- TOOLBAR -->
@@ -157,88 +134,286 @@
 </div>
 
 <!-- OVERLAY -->
-<div class="overlay" id="overlay" onclick="closeSlideOver()"></div>
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
 
-<!-- SLIDE-OVER -->
-<div class="slideover" id="slideover">
-  <div class="slideover-header">
-    <div class="slideover-title">
-      <h2 id="soNom">—</h2>
-      <span id="soBadge"></span>
+<!-- DRAWER CRUD -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawerTitle">Nouvelle entreprise</h2>
+    <div class="drawer-actions">
+      <button class="btn-act" id="btnActDrawer" onclick="openActModal()" style="display:none">+ Activité</button>
+      <button class="btn-danger" id="btnDelete" onclick="deleteEntreprise()" style="display:none">Supprimer</button>
+      <button class="btn-save" onclick="saveEntreprise()">Enregistrer</button>
+      <button class="btn-close" onclick="closeDrawer()">×</button>
     </div>
-    <button id="soActBtn" onclick="openEntActModal()" style="display:none;height:30px;padding:0 10px;background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#0052cc;cursor:pointer;flex-shrink:0">+ Activité</button>
-    <button class="btn-close" onclick="closeSlideOver()">✕</button>
   </div>
-  <div class="slideover-body" id="slideoverBody">
-    <div class="loader">Chargement…</div>
+  <div class="drawer-body">
+
+    <!-- IDENTITÉ -->
+    <div class="form-section">
+      <div class="form-section-title">Identité</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" id="f_nom" placeholder="Raison sociale" />
+        </div>
+        <div class="form-group" style="flex:0 0 140px">
+          <label>Sigle</label>
+          <input type="text" id="f_sigle" placeholder="SAS, SARL…" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 170px">
+          <label>Statut</label>
+          <select id="f_statut">
+            <option value="prospect">Prospect</option>
+            <option value="cible">Cible</option>
+            <option value="mandat">Mandat</option>
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Secteur d'activité</label>
+          <input type="text" id="f_secteur_activite" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Détail activité</label>
+          <input type="text" id="f_detail_activite" />
+        </div>
+        <div class="form-group" style="flex:0 0 120px">
+          <label>Code NAF</label>
+          <input type="text" id="f_naf" placeholder="4619A" />
+        </div>
+      </div>
+    </div>
+
+    <!-- DONNÉES FINANCIÈRES -->
+    <div class="form-section">
+      <div class="form-section-title">Données financières</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>CA annuel (€)</label>
+          <input type="number" id="f_ca_annuel" min="0" placeholder="Ex : 2500000" />
+        </div>
+        <div class="form-group">
+          <label>Effectif</label>
+          <input type="number" id="f_nb_employes" min="0" placeholder="Nb salariés" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Actionnariat</label>
+          <input type="text" id="f_actionnariat" placeholder="Ex : Familial, PE…" />
+        </div>
+        <div class="form-group">
+          <label>Holding</label>
+          <input type="text" id="f_holding" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 190px">
+          <label>Mois de clôture</label>
+          <input type="text" id="f_mois_cloture" placeholder="Ex : Décembre" />
+        </div>
+      </div>
+    </div>
+
+    <!-- COORDONNÉES -->
+    <div class="form-section">
+      <div class="form-section-title">Coordonnées</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Site web</label>
+          <input type="text" id="f_site_web" placeholder="https://…" />
+        </div>
+        <div class="form-group">
+          <label>LinkedIn</label>
+          <input type="text" id="f_linkedin" placeholder="https://linkedin.com/…" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Adresse</label>
+          <input type="text" id="f_adresse" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 100px">
+          <label>Code postal</label>
+          <input type="text" id="f_cp" maxlength="5" />
+        </div>
+        <div class="form-group">
+          <label>Ville</label>
+          <input type="text" id="f_ville" />
+        </div>
+        <div class="form-group" style="flex:0 0 100px">
+          <label>Dép.</label>
+          <input type="text" id="f_departement" placeholder="44" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 180px">
+          <label>Pays</label>
+          <input type="text" id="f_pays" placeholder="France" />
+        </div>
+      </div>
+    </div>
+
+    <!-- CRM -->
+    <div class="form-section">
+      <div class="form-section-title">CRM</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type contact</label>
+          <input type="text" id="f_type_contact" />
+        </div>
+        <div class="form-group">
+          <label>Sous-type</label>
+          <input type="text" id="f_sous_type_contact" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Source contact</label>
+          <input type="text" id="f_source_contact" placeholder="Réseau, Site web…" />
+        </div>
+        <div class="form-group">
+          <label>Référence</label>
+          <input type="text" id="f_reference" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Lien dossier</label>
+          <input type="text" id="f_lien_dossier" placeholder="https://…" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>1er contact</label>
+          <input type="date" id="f_date_premier_contact" />
+        </div>
+        <div class="form-group">
+          <label>1er RDV</label>
+          <input type="date" id="f_date_premier_rdv" />
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFIL CIBLE -->
+    <div class="form-section">
+      <div class="form-section-title">Profil cible acquéreur</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Secteur cible</label>
+          <input type="text" id="f_cible_secteur" />
+        </div>
+        <div class="form-group">
+          <label>Détail cible</label>
+          <input type="text" id="f_cible_detail" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Localisation cible</label>
+          <input type="text" id="f_cible_localisation" />
+        </div>
+        <div class="form-group">
+          <label>Capital disponible</label>
+          <input type="text" id="f_cible_capital_dispo" placeholder="Ex : 500K€" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAPES DU DOSSIER -->
+    <div class="form-section">
+      <div class="form-section-title">Étapes du dossier</div>
+      <div class="flags-form">
+        <label class="flag-item"><input type="checkbox" id="f_rappel_prevoir" /> Rappel à prévoir</label>
+        <label class="flag-item"><input type="checkbox" id="f_suivi" /> Suivi actif</label>
+        <label class="flag-item"><input type="checkbox" id="f_teaser_recu" /> Teaser reçu</label>
+        <label class="flag-item"><input type="checkbox" id="f_engagement_conf" /> Engagement conf.</label>
+        <label class="flag-item"><input type="checkbox" id="f_dossier_envoye" /> Dossier envoyé</label>
+        <label class="flag-item"><input type="checkbox" id="f_visite" /> Visite effectuée</label>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="form-section">
+      <div class="form-section-title">Notes</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Commentaire</label>
+          <textarea id="f_commentaire" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Autres notes</label>
+          <textarea id="f_autres_notes" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- MODAL AJOUTER -->
-<div class="modal-wrap" id="modalWrap">
+<!-- MODAL ACTIVITÉ RAPIDE -->
+<div class="modal-wrap" id="actModalWrap">
   <div class="modal">
     <div class="modal-header">
-      <h2>Nouvelle entreprise</h2>
-      <button class="btn-close" onclick="closeModal()">✕</button>
+      <span>Nouvelle activité</span>
+      <button class="btn-close" onclick="closeActModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group"><label>Nom <span class="req">*</span></label><input type="text" class="form-control" id="fNom" placeholder="Raison sociale" /></div>
-        <div class="form-group"><label>Sigle</label><input type="text" class="form-control" id="fSigle" placeholder="Ex: SAS, SARL…" /></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Secteur d'activité</label><input type="text" class="form-control" id="fSecteur" placeholder="Ex: Industrie, Commerce…" /></div>
-        <div class="form-group"><label>Ville</label><input type="text" class="form-control" id="fVille" placeholder="Ex: Nantes" /></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>CA annuel (€)</label><input type="number" class="form-control" id="fCa" placeholder="Ex: 2500000" min="0" /></div>
-        <div class="form-group"><label>Effectif</label><input type="number" class="form-control" id="fEffectif" placeholder="Nombre de salariés" min="0" /></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Statut</label>
-          <select class="form-control" id="fStatut">
-            <option value="prospect">Prospect</option><option value="cible">Cible</option>
-            <option value="mandat">Mandat</option><option value="actif">Actif</option><option value="inactif">Inactif</option>
+      <div id="actEntLabel" style="background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;padding:7px 12px;font-size:12px;color:#0052cc;font-weight:600;margin-bottom:14px"></div>
+      <div class="modal-grid-2">
+        <div class="form-group">
+          <label>Type *</label>
+          <select class="form-control" id="act_type">
+            <option value="">— Choisir —</option>
+            <option value="appel">📞 Appel</option>
+            <option value="rdv">🤝 RDV</option>
+            <option value="email">✉️ Email</option>
+            <option value="tache">✅ Tâche</option>
+            <option value="autre">Autre</option>
           </select>
         </div>
-        <div class="form-group"><label>Département</label><input type="text" class="form-control" id="fDept" placeholder="Ex: 44" /></div>
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" class="form-control" id="act_date" />
+        </div>
       </div>
-      <div class="form-row full">
-        <div class="form-group"><label>Commentaire</label><textarea class="form-control" id="fCommentaire" placeholder="Notes libres…"></textarea></div>
+      <div class="modal-row">
+        <div class="form-group">
+          <label>Sujet</label>
+          <input type="text" class="form-control" id="act_sujet" placeholder="Ex : Appel de suivi" />
+        </div>
+      </div>
+      <div class="modal-grid-2">
+        <div class="form-group">
+          <label>Heure</label>
+          <input type="time" class="form-control" id="act_heure" />
+        </div>
+        <div class="form-group">
+          <label>Deal associé</label>
+          <select class="form-control" id="act_deal"><option value="">— Aucun —</option></select>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="form-group">
+          <label>Note</label>
+          <textarea class="form-control" id="act_note" placeholder="Contexte…"></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
-      <button class="btn-primary" onclick="saveEntreprise()">Enregistrer</button>
+      <button class="btn-ghost" onclick="closeActModal()">Annuler</button>
+      <button class="btn-primary" onclick="saveActModal()">Créer</button>
     </div>
-  </div>
-</div>
-
-<!-- MODAL CRÉER ACTIVITÉ -->
-<div class="overlay" id="na-overlay" onclick="closeEntActModal()" style="z-index:210"></div>
-<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:440px;max-width:95vw;background:#fff;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.2);z-index:211;display:none;flex-direction:column" id="na-modal">
-  <div style="padding:16px 20px;border-bottom:1px solid #e8eaf0;display:flex;align-items:center;justify-content:space-between">
-    <span style="font-size:15px;font-weight:600">Nouvelle activité</span>
-    <button class="btn-close" onclick="closeEntActModal()">×</button>
-  </div>
-  <div style="padding:18px 20px">
-    <div id="na-ent-label" style="background:#f0f5ff;border:1px solid #c5d8fc;border-radius:6px;padding:7px 12px;font-size:12px;color:#0052cc;font-weight:600;margin-bottom:12px"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div class="form-group"><label>Type *</label>
-        <select class="form-control" id="na-type"><option value="">— Choisir —</option><option value="appel">📞 Appel</option><option value="rdv">🤝 RDV</option><option value="email">✉️ Email</option><option value="tache">✅ Tâche</option><option value="autre">Autre</option></select>
-      </div>
-      <div class="form-group"><label>Date *</label><input type="date" class="form-control" id="na-date"></div>
-    </div>
-    <div class="form-group" style="margin-bottom:10px"><label>Sujet</label><input type="text" class="form-control" id="na-sujet" placeholder="Ex : Appel de suivi"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div class="form-group"><label>Heure</label><input type="time" class="form-control" id="na-heure"></div>
-      <div class="form-group"><label>Deal associé</label><select class="form-control" id="na-deal"><option value="">— Aucun —</option></select></div>
-    </div>
-    <div class="form-group"><label>Note</label><textarea class="form-control" id="na-note" style="min-height:60px" placeholder="Contexte…"></textarea></div>
-  </div>
-  <div style="padding:12px 20px;border-top:1px solid #e8eaf0;display:flex;justify-content:flex-end;gap:8px">
-    <button class="btn btn-ghost" onclick="closeEntActModal()">Annuler</button>
-    <button class="btn-primary" onclick="saveEntActModal()">Créer</button>
   </div>
 </div>
 
@@ -247,7 +422,7 @@
 
 <script>
   const db = window.supabase;
-  let allData = [], currentView = 'table', currentEntId = null;
+  let allData = [], currentView = 'table', currentId = null;
 
   document.addEventListener('DOMContentLoaded', () => {
     loadEntreprises();
@@ -255,7 +430,8 @@
   });
 
   async function loadEntreprises() {
-    const { data, error } = await db.from('entreprises')
+    const { data, error } = await db
+      .from('entreprises')
       .select('id, nom, sigle, ville, secteur_activite, ca_annuel, nb_employes, statut, departement')
       .order('nom');
     if (error) { showToast('Erreur chargement : ' + error.message, 'error'); document.getElementById('viewContainer').innerHTML = '<div class="empty-state"><p>Impossible de charger les données.</p></div>'; return; }
@@ -282,33 +458,33 @@
   }
 
   function renderTable(data) {
-    const container = document.getElementById('viewContainer');
-    if (!data.length) { container.innerHTML = '<div class="empty-state"><p>Aucune entreprise trouvée</p></div>'; return; }
-    container.innerHTML = `<div class="table-wrap"><table>
+    const c = document.getElementById('viewContainer');
+    if (!data.length) { c.innerHTML = '<div class="empty-state"><p>Aucune entreprise trouvée</p></div>'; return; }
+    c.innerHTML = `<div class="table-wrap"><table>
       <thead><tr><th>Nom</th><th>Ville</th><th>Secteur</th><th>CA annuel</th><th>Effectif</th><th>Statut</th></tr></thead>
-      <tbody>${data.map(e => `<tr onclick="openSlideOver('${e.id}')">
+      <tbody>${data.map(e => `<tr onclick="openDrawer('${e.id}')">
         <td class="nom">${esc(e.nom)}${e.sigle ? `<span style="color:#9ba3b8;font-weight:400;font-size:12px;margin-left:6px">${esc(e.sigle)}</span>` : ''}</td>
-        <td>${esc(e.ville) || '<span style="color:#c5cce0">—</span>'}</td>
-        <td>${esc(e.secteur_activite) || '<span style="color:#c5cce0">—</span>'}</td>
-        <td>${e.ca_annuel != null ? formatCA(e.ca_annuel) : '<span style="color:#c5cce0">—</span>'}</td>
-        <td>${e.nb_employes != null ? e.nb_employes : '<span style="color:#c5cce0">—</span>'}</td>
+        <td>${esc(e.ville)||'<span style="color:#c5cce0">—</span>'}</td>
+        <td>${esc(e.secteur_activite)||'<span style="color:#c5cce0">—</span>'}</td>
+        <td>${e.ca_annuel!=null?formatCA(e.ca_annuel):'<span style="color:#c5cce0">—</span>'}</td>
+        <td>${e.nb_employes!=null?e.nb_employes:'<span style="color:#c5cce0">—</span>'}</td>
         <td>${badge(e.statut)}</td>
       </tr>`).join('')}</tbody>
     </table></div>`;
   }
 
   function renderCards(data) {
-    const container = document.getElementById('viewContainer');
-    if (!data.length) { container.innerHTML = '<div class="empty-state"><p>Aucune entreprise trouvée</p></div>'; return; }
-    container.innerHTML = `<div class="cards-grid">${data.map(e => `
-      <div class="card" onclick="openSlideOver('${e.id}')">
+    const c = document.getElementById('viewContainer');
+    if (!data.length) { c.innerHTML = '<div class="empty-state"><p>Aucune entreprise trouvée</p></div>'; return; }
+    c.innerHTML = `<div class="cards-grid">${data.map(e => `
+      <div class="card" onclick="openDrawer('${e.id}')">
         <div class="card-nom">${esc(e.nom)}</div>
-        <div class="card-sub">${[e.secteur_activite, e.ville].filter(Boolean).map(esc).join(' · ') || '—'}</div>
+        <div class="card-sub">${[e.secteur_activite,e.ville].filter(Boolean).map(esc).join(' · ')||'—'}</div>
         <div class="card-meta">
-          <span>CA<strong>${e.ca_annuel != null ? formatCA(e.ca_annuel) : '—'}</strong></span>
-          <span>Effectif<strong>${e.nb_employes != null ? e.nb_employes + ' p.' : '—'}</strong></span>
+          <span>CA<strong>${e.ca_annuel!=null?formatCA(e.ca_annuel):'—'}</strong></span>
+          <span>Effectif<strong>${e.nb_employes!=null?e.nb_employes+' p.':'—'}</strong></span>
         </div>
-        <div class="card-footer">${badge(e.statut)}<span style="font-size:11px;color:#9ba3b8">${esc(e.departement) || ''}</span></div>
+        <div class="card-footer">${badge(e.statut)}<span style="font-size:11px;color:#9ba3b8">${esc(e.departement)||''}</span></div>
       </div>`).join('')}</div>`;
   }
 
@@ -319,111 +495,207 @@
     renderCurrent();
   }
 
-  async function openSlideOver(id) {
-    currentEntId = id;
+  // ── Drawer CRUD ────────────────────────────────────────────────────────────
+  async function openDrawer(id) {
+    currentId = id;
+    clearForm();
+    if (id) {
+      document.getElementById('drawerTitle').textContent = '…';
+      document.getElementById('btnDelete').style.display = 'inline-block';
+      document.getElementById('btnActDrawer').style.display = 'inline-block';
+      const { data, error } = await db.from('entreprises').select('*').eq('id', id).single();
+      if (error || !data) { showToast('Erreur chargement', 'error'); return; }
+      document.getElementById('drawerTitle').textContent = data.nom || 'Entreprise';
+      fillForm(data);
+    } else {
+      document.getElementById('drawerTitle').textContent = 'Nouvelle entreprise';
+      document.getElementById('btnDelete').style.display = 'none';
+      document.getElementById('btnActDrawer').style.display = 'none';
+    }
     document.getElementById('overlay').classList.add('open');
-    document.getElementById('slideover').classList.add('open');
-    document.getElementById('slideoverBody').innerHTML = '<div class="loader">Chargement…</div>';
-    document.getElementById('soNom').textContent = '…';
-    document.getElementById('soBadge').innerHTML = '';
-    document.getElementById('soActBtn').style.display = 'none';
-    const { data: e, error } = await db.from('entreprises').select('*').eq('id', id).single();
-    if (error || !e) { document.getElementById('slideoverBody').innerHTML = '<p style="color:#c5221f;padding:24px;font-size:13px">Erreur de chargement.</p>'; return; }
-    document.getElementById('soNom').textContent = e.nom;
-    document.getElementById('soBadge').innerHTML = badge(e.statut);
-    document.getElementById('soActBtn').style.display = 'inline-block';
-    const { data: contacts } = await db.from('contacts').select('id, prenom, nom, fonction, email_travail, tel_mobile').eq('entreprise_id', id).order('nom');
-    document.getElementById('slideoverBody').innerHTML = buildSlideOverHTML(e, contacts || []);
+    document.getElementById('drawer').classList.add('open');
   }
 
-  function buildSlideOverHTML(e, contacts) {
-    const row = (label, val, href) => {
-      if (val === null || val === undefined || val === '') return '';
-      const display = href ? `<a href="${href}" target="_blank" rel="noopener">${esc(String(val))}</a>` : esc(String(val));
-      return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${display}</span></div>`;
+  function closeDrawer() {
+    document.getElementById('overlay').classList.remove('open');
+    document.getElementById('drawer').classList.remove('open');
+    currentId = null;
+  }
+
+  function clearForm() {
+    ['f_nom','f_sigle','f_secteur_activite','f_detail_activite','f_naf',
+     'f_ca_annuel','f_nb_employes','f_actionnariat','f_holding','f_mois_cloture',
+     'f_site_web','f_linkedin','f_adresse','f_cp','f_ville','f_departement','f_pays',
+     'f_type_contact','f_sous_type_contact','f_source_contact','f_reference','f_lien_dossier',
+     'f_date_premier_contact','f_date_premier_rdv',
+     'f_cible_secteur','f_cible_detail','f_cible_localisation','f_cible_capital_dispo',
+     'f_commentaire','f_autres_notes']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('f_statut').value = 'prospect';
+    ['f_rappel_prevoir','f_suivi','f_teaser_recu','f_engagement_conf','f_dossier_envoye','f_visite']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+  }
+
+  function fillForm(e) {
+    const s = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+    const c = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
+    s('f_nom', e.nom);                          s('f_sigle', e.sigle);
+    s('f_secteur_activite', e.secteur_activite); s('f_detail_activite', e.detail_activite);
+    s('f_naf', e.naf);                          s('f_statut', e.statut || 'prospect');
+    s('f_ca_annuel', e.ca_annuel);              s('f_nb_employes', e.nb_employes);
+    s('f_actionnariat', e.actionnariat);        s('f_holding', e.holding);
+    s('f_mois_cloture', e.mois_cloture);        s('f_site_web', e.site_web);
+    s('f_linkedin', e.linkedin);                s('f_adresse', e.adresse);
+    s('f_cp', e.cp);                            s('f_ville', e.ville);
+    s('f_departement', e.departement);          s('f_pays', e.pays);
+    s('f_type_contact', e.type_contact);        s('f_sous_type_contact', e.sous_type_contact);
+    s('f_source_contact', e.source_contact);    s('f_reference', e.reference);
+    s('f_lien_dossier', e.lien_dossier);
+    s('f_date_premier_contact', e.date_premier_contact);
+    s('f_date_premier_rdv', e.date_premier_rdv);
+    s('f_cible_secteur', e.cible_secteur);      s('f_cible_detail', e.cible_detail);
+    s('f_cible_localisation', e.cible_localisation);
+    s('f_cible_capital_dispo', e.cible_capital_dispo);
+    s('f_commentaire', e.commentaire);          s('f_autres_notes', e.autres_notes);
+    c('f_rappel_prevoir', e.rappel_prevoir);    c('f_suivi', e.suivi);
+    c('f_teaser_recu', e.teaser_recu);          c('f_engagement_conf', e.engagement_conf);
+    c('f_dossier_envoye', e.dossier_envoye);    c('f_visite', e.visite);
+  }
+
+  function getFormData() {
+    const g  = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    const gc = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+    const gn = id => { const v = g(id); return v !== '' ? parseFloat(v) : null; };
+    const gi = id => { const v = g(id); return v !== '' ? parseInt(v, 10) : null; };
+    return {
+      nom: g('f_nom'),
+      sigle: g('f_sigle') || null,
+      secteur_activite: g('f_secteur_activite') || null,
+      detail_activite: g('f_detail_activite') || null,
+      naf: g('f_naf') || null,
+      statut: g('f_statut') || 'prospect',
+      ca_annuel: gn('f_ca_annuel'),
+      nb_employes: gi('f_nb_employes'),
+      actionnariat: g('f_actionnariat') || null,
+      holding: g('f_holding') || null,
+      mois_cloture: g('f_mois_cloture') || null,
+      site_web: g('f_site_web') || null,
+      linkedin: g('f_linkedin') || null,
+      adresse: g('f_adresse') || null,
+      cp: g('f_cp') || null,
+      ville: g('f_ville') || null,
+      departement: g('f_departement') || null,
+      pays: g('f_pays') || null,
+      type_contact: g('f_type_contact') || null,
+      sous_type_contact: g('f_sous_type_contact') || null,
+      source_contact: g('f_source_contact') || null,
+      reference: g('f_reference') || null,
+      lien_dossier: g('f_lien_dossier') || null,
+      date_premier_contact: g('f_date_premier_contact') || null,
+      date_premier_rdv: g('f_date_premier_rdv') || null,
+      cible_secteur: g('f_cible_secteur') || null,
+      cible_detail: g('f_cible_detail') || null,
+      cible_localisation: g('f_cible_localisation') || null,
+      cible_capital_dispo: g('f_cible_capital_dispo') || null,
+      rappel_prevoir: gc('f_rappel_prevoir'),
+      suivi: gc('f_suivi'),
+      teaser_recu: gc('f_teaser_recu'),
+      engagement_conf: gc('f_engagement_conf'),
+      dossier_envoye: gc('f_dossier_envoye'),
+      visite: gc('f_visite'),
+      commentaire: g('f_commentaire') || null,
+      autres_notes: g('f_autres_notes') || null,
+      updated_at: new Date().toISOString(),
     };
-    const infos = [row('Sigle',e.sigle),row('Secteur',e.secteur_activite),row('Détail activité',e.detail_activite),row('Code NAF',e.naf),row('CA annuel',e.ca_annuel!=null?formatCA(e.ca_annuel):null),row('Effectif',e.nb_employes!=null?e.nb_employes+' personnes':null),row('Actionnariat',e.actionnariat),row('Holding',e.holding),row('Mois de clôture',e.mois_cloture)].filter(Boolean).join('');
-    const coords = [row('Adresse',e.adresse),row('CP / Ville',[e.cp,e.ville].filter(Boolean).join(' ')),row('Département',e.departement),row('Pays',e.pays),row('Site web',e.site_web?e.site_web.replace(/^https?:\/\//,''):null,e.site_web),row('LinkedIn',e.linkedin?'Voir profil':null,e.linkedin)].filter(Boolean).join('');
-    const crm = [row('Type contact',e.type_contact),row('Sous-type',e.sous_type_contact),row('Source',e.source_contact),row('1er contact',fmtDate(e.date_premier_contact)),row('1er RDV',fmtDate(e.date_premier_rdv)),row('Référence',e.reference),row('Lien dossier',e.lien_dossier?'Ouvrir':null,e.lien_dossier)].filter(Boolean).join('');
-    const flags = [[e.rappel_prevoir,'Rappel à prévoir'],[e.suivi,'Suivi actif'],[e.teaser_recu,'Teaser reçu'],[e.engagement_conf,'Engagement conf.'],[e.dossier_envoye,'Dossier envoyé'],[e.visite,'Visite effectuée']].filter(([v])=>v).map(([,l])=>`<span class="badge badge-flag">${l}</span>`).join('');
-    const contactsHTML = contacts.length
-      ? contacts.map(c=>`<div class="contact-card"><div class="contact-card-nom">${esc([c.prenom,c.nom].filter(Boolean).join(' '))}</div><div class="contact-card-fonction">${esc(c.fonction)||'—'}</div><div class="contact-card-links">${c.email_travail?`<a href="mailto:${esc(c.email_travail)}">${esc(c.email_travail)}</a>`:''} ${c.tel_mobile?`<span>${esc(c.tel_mobile)}</span>`:''}</div></div>`).join('')
-      : '<p style="font-size:13px;color:#9ba3b8">Aucun contact associé</p>';
-    return `${infos?`<div class="detail-section"><h3>Informations</h3>${infos}</div>`:''}${coords?`<div class="detail-section"><h3>Coordonnées</h3>${coords}</div>`:''}${crm?`<div class="detail-section"><h3>CRM</h3>${crm}</div>`:''}${flags?`<div class="detail-section"><h3>Étapes</h3><div class="flags-wrap">${flags}</div></div>`:''}${e.commentaire||e.autres_notes?`<div class="detail-section"><h3>Notes</h3><p style="font-size:13px;color:#333;line-height:1.65">${esc(e.commentaire||e.autres_notes||'')}</p></div>`:''}<div class="detail-section"><h3>Contacts (${contacts.length})</h3>${contactsHTML}</div>`;
-  }
-
-  function closeSlideOver() { document.getElementById('overlay').classList.remove('open'); document.getElementById('slideover').classList.remove('open'); }
-
-  function openModal() { document.getElementById('modalWrap').classList.add('open'); setTimeout(() => document.getElementById('fNom').focus(), 50); }
-
-  function closeModal() {
-    document.getElementById('modalWrap').classList.remove('open');
-    ['fNom','fSigle','fSecteur','fVille','fCa','fEffectif','fDept','fCommentaire'].forEach(id => { document.getElementById(id).value = ''; });
-    document.getElementById('fStatut').value = 'prospect';
   }
 
   async function saveEntreprise() {
-    const nom = document.getElementById('fNom').value.trim();
-    if (!nom) { document.getElementById('fNom').focus(); showToast('Le nom est obligatoire', 'error'); return; }
-    const payload = { nom, sigle: val('fSigle'), secteur_activite: val('fSecteur'), ville: val('fVille'), ca_annuel: val('fCa') ? parseFloat(val('fCa')) : null, nb_employes: val('fEffectif') ? parseInt(val('fEffectif')) : null, statut: document.getElementById('fStatut').value, departement: val('fDept'), commentaire: val('fCommentaire') };
-    const { data, error } = await db.from('entreprises').insert([payload]).select('id, nom, sigle, ville, secteur_activite, ca_annuel, nb_employes, statut, departement');
+    const data = getFormData();
+    if (!data.nom) { showToast('Le nom est obligatoire', 'error'); return; }
+    let error;
+    if (currentId) {
+      ({ error } = await db.from('entreprises').update(data).eq('id', currentId));
+    } else {
+      ({ error } = await db.from('entreprises').insert(data));
+    }
     if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
-    allData = [data[0], ...allData].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
-    renderCurrent(); closeModal(); showToast('Entreprise ajoutée ✓', 'success');
+    showToast(currentId ? 'Entreprise mise à jour ✓' : 'Entreprise créée ✓', 'success');
+    closeDrawer();
+    loadEntreprises();
   }
 
-  function val(id) { const v = document.getElementById(id).value.trim(); return v || null; }
-  function esc(str) { if (str == null) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function formatCA(n) { if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.0','') + ' M€'; if (n >= 1_000) return Math.round(n/1_000) + ' K€'; return n + ' €'; }
-  function fmtDate(d) { if (!d) return null; return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+  async function deleteEntreprise() {
+    if (!confirm('Supprimer cette entreprise ? Cette action est irréversible.')) return;
+    const { error } = await db.from('entreprises').delete().eq('id', currentId);
+    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+    showToast('Entreprise supprimée');
+    closeDrawer();
+    loadEntreprises();
+  }
+
+  // ── Modal activité rapide ──────────────────────────────────────────────────
+  async function openActModal() {
+    document.getElementById('actEntLabel').textContent = '🏢 ' + document.getElementById('drawerTitle').textContent;
+    document.getElementById('act_type').value  = '';
+    document.getElementById('act_date').value  = new Date().toISOString().split('T')[0];
+    document.getElementById('act_sujet').value = '';
+    document.getElementById('act_heure').value = '';
+    document.getElementById('act_note').value  = '';
+    const { data: deals } = await db.from('deals').select('id, titre').eq('statut', 'ouvert').order('titre');
+    document.getElementById('act_deal').innerHTML = '<option value="">— Aucun —</option>'
+      + (deals || []).map(d => `<option value="${d.id}">${esc(d.titre)}</option>`).join('');
+    document.getElementById('actModalWrap').classList.add('open');
+  }
+
+  function closeActModal() { document.getElementById('actModalWrap').classList.remove('open'); }
+
+  async function saveActModal() {
+    const type = document.getElementById('act_type').value;
+    const date = document.getElementById('act_date').value;
+    if (!type || !date) { showToast('Type et date sont requis', 'error'); return; }
+    const payload = {
+      type, date_echeance: date,
+      sujet:          document.getElementById('act_sujet').value.trim() || null,
+      heure_echeance: document.getElementById('act_heure').value        || null,
+      deal_id:        document.getElementById('act_deal').value         || null,
+      entreprise_id:  currentId || null,
+      faite: false,
+    };
+    const { data, error } = await db.from('activites').insert([payload]).select('id');
+    if (error) { showToast('Erreur : ' + error.message, 'error'); return; }
+    const note = document.getElementById('act_note').value.trim();
+    if (note && data?.[0]) {
+      await db.from('notes').insert([{ contenu: note, entreprise_id: currentId || null, deal_id: payload.deal_id || null }]);
+    }
+    closeActModal();
+    showToast('Activité créée ✓', 'success');
+  }
+
+  document.getElementById('actModalWrap').addEventListener('click', e => {
+    if (e.target === document.getElementById('actModalWrap')) closeActModal();
+  });
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function esc(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function formatCA(n) {
+    if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.0','') + ' M€';
+    if (n >= 1_000) return Math.round(n/1_000) + ' K€';
+    return n + ' €';
+  }
   function badge(statut) {
     const map = { prospect:['badge-prospect','Prospect'], actif:['badge-actif','Actif'], inactif:['badge-inactif','Inactif'], cible:['badge-cible','Cible'], mandat:['badge-mandat','Mandat'] };
     const [cls, label] = map[statut] || ['badge-inactif', statut || '—'];
     return `<span class="badge ${cls}">${label}</span>`;
   }
-  async function openEntActModal(){
-    const nom = document.getElementById('soNom').textContent;
-    document.getElementById('na-ent-label').textContent = '🏢 Entreprise : ' + nom;
-    document.getElementById('na-type').value = '';
-    document.getElementById('na-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('na-sujet').value = '';
-    document.getElementById('na-heure').value = '';
-    document.getElementById('na-note').value = '';
-    const {data:deals} = await db.from('deals').select('id,titre').eq('statut','ouvert').order('titre');
-    document.getElementById('na-deal').innerHTML = '<option value="">— Aucun —</option>'
-      + (deals||[]).map(d=>`<option value="${d.id}">${esc(d.titre)}</option>`).join('');
-    document.getElementById('na-overlay').classList.add('open');
-    document.getElementById('na-modal').style.display = 'flex';
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast toast-${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
   }
-
-  function closeEntActModal(){
-    document.getElementById('na-modal').style.display = 'none';
-    document.getElementById('na-overlay').classList.remove('open');
-  }
-
-  async function saveEntActModal(){
-    const type = document.getElementById('na-type').value;
-    const date = document.getElementById('na-date').value;
-    if(!type||!date){ showToast('Type et date sont requis', 'error'); return; }
-    const payload = {
-      type, date_echeance: date,
-      sujet:          document.getElementById('na-sujet').value.trim()||null,
-      heure_echeance: document.getElementById('na-heure').value||null,
-      deal_id:        document.getElementById('na-deal').value||null,
-      entreprise_id:  currentEntId||null,
-      faite: false,
-    };
-    const noteContenu = document.getElementById('na-note').value.trim();
-    const {data, error} = await db.from('activites').insert([payload]).select('id');
-    if(error){ showToast('Erreur : '+error.message, 'error'); return; }
-    if(noteContenu && data?.[0]){
-      await db.from('notes').insert([{contenu:noteContenu, entreprise_id:currentEntId||null, deal_id:payload.deal_id||null}]);
-    }
-    closeEntActModal();
-    showToast('Activité créée ✓', 'success');
-  }
-
-  function showToast(msg, type = 'success') { const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast toast-${type} show`; setTimeout(() => t.classList.remove('show'), 3000); }
 </script>
 </body>
 </html>
