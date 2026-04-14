@@ -83,7 +83,7 @@
   </select>
   <select class="filter-select" id="filterActif" onchange="applyFilters()">
     <option value="">Tous statuts</option>
-    <option value="true">Actifs</option>
+    <option value="true" selected>Actifs</option>
     <option value="false">Inactifs</option>
   </select>
   <button class="btn-reset" onclick="resetFilters()">Réinitialiser</button>
@@ -394,33 +394,8 @@
     init();
   }
 
-  // ── Delete (avec vérification FK deals) ──
+  // ── Delete ──
   async function deleteProduit() {
-    // Vérifier si des deals utilisent ce produit
-    const { data: linkedDeals, error: checkError } = await supabase
-      .from('deals')
-      .select('id')
-      .eq('produit_id', currentId)
-      .limit(1);
-
-    if (checkError) { showToast('Erreur : ' + checkError.message, true); return; }
-
-    if (linkedDeals && linkedDeals.length > 0) {
-      // Produit utilisé → proposer désactivation
-      if (confirm('Ce produit est lié à un ou plusieurs deals et ne peut pas être supprimé.\n\nVoulez-vous le désactiver à la place ?')) {
-        const { error } = await supabase
-          .from('produits')
-          .update({ actif: false, updated_at: new Date().toISOString() })
-          .eq('id', currentId);
-        if (error) { showToast('Erreur : ' + error.message, true); return; }
-        showToast('Produit désactivé');
-        closeDrawer();
-        init();
-      }
-      return;
-    }
-
-    // Aucun deal lié → suppression directe
     if (!confirm('Supprimer ce produit ? Cette action est irréversible.')) return;
     const { error } = await supabase.from('produits').delete().eq('id', currentId);
     if (error) { showToast('Erreur : ' + error.message, true); return; }
