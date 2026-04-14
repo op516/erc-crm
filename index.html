@@ -1,489 +1,171 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tableau de bord — ERC CRM</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-client.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+# CONTEXTE PROJET — CRM ERC Conseil
 
-  <style>
-    /* ── Dashboard layout ── */
-    .dash-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
+*Dernière mise à jour : avril 2026*
 
-    /* ── KPI cards ── */
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
-    .kpi-card {
-      background: #fff;
-      border: 1px solid #e0e6f0;
-      border-radius: 8px;
-      padding: 20px 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      text-decoration: none;
-      transition: box-shadow 0.15s, border-color 0.15s;
-    }
-    .kpi-card:hover {
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-      border-color: #c5cce0;
-    }
-    .kpi-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #6b778c;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .kpi-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #172b4d;
-      line-height: 1.1;
-    }
-    .kpi-sub {
-      font-size: 12px;
-      color: #6b778c;
-      margin-top: 2px;
-    }
-    .kpi-icon {
-      font-size: 20px;
-      margin-bottom: 4px;
-    }
-    .kpi-card.alert .kpi-value { color: #de350b; }
-    .kpi-card.success .kpi-value { color: #2e7d32; }
+## 0. LECTURE OBLIGATOIRE EN DÉBUT DE SESSION
 
-    /* ── Sections ── */
-    .dash-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .dash-card {
-      background: #fff;
-      border: 1px solid #e0e6f0;
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: box-shadow 0.15s, border-color 0.15s;
-      text-decoration: none;
-      color: inherit;
-      display: block;
-    }
-    .dash-card:hover {
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-      border-color: #c5cce0;
-    }
-    .dash-card-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid #f0f0f0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .dash-card-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #172b4d;
-    }
-    .dash-card-link {
-      font-size: 12px;
-      color: #0052cc;
-      text-decoration: none;
-    }
-    .dash-card-link:hover { text-decoration: underline; }
-    .dash-card-body { padding: 16px 20px; }
+Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs **raw** :
 
-    /* ── Pipeline ── */
-    .pipeline-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 9px 0;
-      border-bottom: 1px solid #f4f5f7;
-    }
-    .pipeline-row:last-child { border-bottom: none; }
-    .pipeline-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .pipeline-label {
-      font-size: 13px;
-      color: #172b4d;
-      width: 110px;
-      flex-shrink: 0;
-    }
-    .pipeline-bar-wrap {
-      flex: 1;
-      height: 6px;
-      background: #f0f0f0;
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .pipeline-bar {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.4s ease;
-    }
-    .pipeline-count {
-      font-size: 12px;
-      color: #6b778c;
-      width: 24px;
-      text-align: right;
-      flex-shrink: 0;
-    }
-    .pipeline-val {
-      font-size: 12px;
-      font-weight: 600;
-      color: #172b4d;
-      width: 80px;
-      text-align: right;
-      flex-shrink: 0;
-    }
+1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
+2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
+3. https://raw.githubusercontent.com/op516/erc-crm/main/style.css
+4. https://raw.githubusercontent.com/op516/erc-crm/main/deals.html
+5. https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
+6. https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
+7. https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
 
-    /* ── Activités ── */
-    .act-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid #f4f5f7;
-    }
-    .act-item:last-child { border-bottom: none; }
-    .act-pill-sm {
-      flex-shrink: 0;
-      border-radius: 4px;
-      padding: 2px 7px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .pill-appel { background: #deebff; color: #0052cc; }
-    .pill-rdv   { background: #e3fcef; color: #006644; }
-    .pill-email { background: #fffae6; color: #974f0c; }
-    .pill-tache { background: #eae6ff; color: #403294; }
-    .pill-autre { background: #f4f5f7; color: #6b778c; }
-    .act-sujet-sm {
-      flex: 1;
-      font-size: 13px;
-      color: #172b4d;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .act-date-sm {
-      font-size: 11px;
-      color: #6b778c;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .act-date-sm.late { color: #de350b; font-weight: 600; }
+**Règles strictes :**
+- Utiliser exclusivement les URLs `raw.githubusercontent.com`
+- Si un fichier échoue → réessayer une fois avant de signaler
+- Ne jamais conclure qu'un fichier est absent sans avoir tenté l'URL raw
+- Confirmer la lecture de chaque fichier avant de commencer le travail
+- Si Olivier colle un fichier directement dans le chat → c'est la version de référence, prioritaire sur GitHub
 
-    /* ── Deals récents ── */
-    .deal-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid #f4f5f7;
-    }
-    .deal-item:last-child { border-bottom: none; }
-    .deal-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-    .deal-info { flex: 1; min-width: 0; }
-    .deal-titre-sm {
-      font-size: 13px;
-      font-weight: 500;
-      color: #172b4d;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .deal-co-sm { font-size: 11px; color: #6b778c; }
-    .deal-val-sm {
-      font-size: 12px;
-      font-weight: 600;
-      color: #172b4d;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+## 0bis. PROTOCOLE DE FIN DE SESSION
 
-    /* ── Empty ── */
-    .dash-empty {
-      padding: 24px;
-      text-align: center;
-      font-size: 13px;
-      color: #6b778c;
-    }
+Quand Olivier signale qu'il quitte la conversation, Claude doit systématiquement produire :
 
-    /* ── Skeleton loader ── */
-    .skel {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: skel 1.2s infinite;
-      border-radius: 4px;
-      height: 14px;
-      margin-bottom: 8px;
-    }
-    @keyframes skel { to { background-position: -200% 0; } }
+1. **Synthèse** de ce qui a été fait dans la session
+2. **CONTEXTE.md mis à jour** — refléter l'état réel du projet (fichiers créés, décisions prises, points en suspens)
+3. **Prompt prêt à coller** pour la prochaine conversation
+4. **Rappel** des fichiers à commiter dans GitHub si nécessaire
 
-    /* ── Bouton déconnexion ── */
-    .btn-logout {
-      background: none;
-      border: 1px solid rgba(255,255,255,0.3);
-      color: rgba(255,255,255,0.8);
-      border-radius: 4px;
-      padding: 6px 12px;
-      font-size: 13px;
-      font-family: 'DM Sans', sans-serif;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .btn-logout:hover { background: rgba(255,255,255,0.1); color: #fff; }
+## 0ter. RÈGLES DE MISE À JOUR DU CONTEXTE
 
-    /* ── Responsive ── */
-    @media (max-width: 900px) {
-      .kpi-row { grid-template-columns: repeat(2, 1fr); }
-      .dash-row { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
+- Ne jamais noter une page comme "non migrée" ou "à faire" sans avoir vérifié le fichier réel
+- Si un doute existe sur l'état d'un fichier → le refetcher depuis GitHub avant de conclure
+- Le CSS local dans un fichier HTML n'est PAS une erreur : chaque page a son propre `<style>` pour le CSS spécifique (kanban, slide-over, cards…). Ce n'est pas une migration incomplète.
+- La migration vers style.css signifie : `<link rel="stylesheet" href="style.css" />` présent + topbar standard `<div class="topbar">` utilisée
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <div class="topbar-left">
-    <h1>ERC CRM</h1>
-    <nav class="topbar-nav">
-      <a href="index.html" class="active">Accueil</a>
-      <a href="contacts.html">Contacts</a>
-      <a href="entreprises.html">Entreprises</a>
-      <a href="deals.html">Deals</a>
-      <a href="activites.html">Activités</a>
-      <a href="produits.html">Produits</a>
-    </nav>
-  </div>
-  <button class="btn-logout" onclick="logout()">Déconnexion</button>
-</div>
+## 1. QUI ET POURQUOI
 
-<!-- DASHBOARD -->
-<div class="dash-body">
+Olivier Pichon, cabinet ERC Conseil, transmission d'entreprise.
+Objectif : apprendre à coder en construisant des vrais outils utiles.
+Stack identique à ComptaFlow — réutilisation directe.
 
-  <!-- KPIs -->
-  <div class="kpi-row" id="kpiRow">
-    <div class="kpi-card"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:28px"></div></div>
-    <div class="kpi-card"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:28px"></div></div>
-    <div class="kpi-card"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:28px"></div></div>
-    <div class="kpi-card"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:28px"></div></div>
-  </div>
+## 2. STACK FIXE — NE PAS CHANGER
 
-  <!-- Pipeline + Activités -->
-  <div class="dash-row">
-    <a class="dash-card" href="deals.html">
-      <div class="dash-card-header">
-        <span class="dash-card-title">Pipeline deals</span>
-      </div>
-      <div class="dash-card-body" id="pipelineBody">
-        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-      </div>
-    </a>
+* Base de données : Supabase (PostgreSQL)
+* Hébergement : Vercel
+* Versionning : GitHub (https://github.com/op516/erc-crm)
+* Frontend : HTML / CSS / JS vanilla
+* PAS de framework, PAS de librairie externe, PAS de nouveau service
 
-    <a class="dash-card" href="activites.html">
-      <div class="dash-card-header">
-        <span class="dash-card-title">Activités en retard &amp; aujourd'hui</span>
-      </div>
-      <div class="dash-card-body" id="activitesBody">
-        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-      </div>
-    </a>
-  </div>
+## 3. ARCHITECTURE DÉCIDÉE
 
-  <!-- Deals récents -->
-  <a class="dash-card" href="deals.html">
-    <div class="dash-card-header">
-      <span class="dash-card-title">Deals récents</span>
-    </div>
-    <div class="dash-card-body" id="dealsBody">
-      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-    </div>
-  </a>
+* Un fichier HTML par page
+* Un seul `supabase-client.js` partagé
+* Un seul `style.css` partagé — toutes les pages doivent l'appeler
+* Chaque page peut avoir un bloc `<style>` local pour son CSS spécifique — c'est normal et intentionnel
+* `index.html` = tableau de bord (dashboard)
+* Pas de router, pas de bundler, pas de build
 
-</div>
+## 4. RÈGLES QUE CLAUDE DOIT RESPECTER
 
-<script>
-  const STAGES = [
-    { key: 'qualification', label: 'Qualification', color: '#3b82f6' },
-    { key: 'diagnostic',    label: 'Diagnostic',    color: '#8b5cf6' },
-    { key: 'valorisation',  label: 'Valorisation',  color: '#ec4899' },
-    { key: 'recherche',     label: 'Recherche',     color: '#f97316' },
-    { key: 'negociation',   label: 'Négociation',   color: '#eab308' },
-    { key: 'closing',       label: 'Closing',       color: '#22c55e' },
-  ];
+* Spec de 3 lignes MAX avant chaque fonctionnalité
+* Coder uniquement ce qui est dans la spec, rien de plus
+* Un seul fichier par session de travail
+* Si Olivier dit "hors sujet" → arrêt immédiat, retour au cadre
+* Pas de nouveaux services sans demande explicite
+* Fin de session → produire la mise à jour de CONTEXTE.md
 
-  const TYPE_LBL = { appel:'📞 Appel', rdv:'🤝 RDV', email:'✉️ Email', tache:'✅ Tâche', autre:'Autre' };
-  const TYPE_CLS = { appel:'pill-appel', rdv:'pill-rdv', email:'pill-email', tache:'pill-tache' };
+## 5. ÉTAT ACTUEL DU PROJET
 
-  function fmtEur(n) {
-    if (n == null || isNaN(n)) return '—';
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0','') + ' M€';
-    if (n >= 1_000)     return Math.round(n / 1_000) + ' k€';
-    return n + ' €';
-  }
+### Fichiers en place — TOUS MIGRÉS vers style.css ✓
 
-  function todayStr() { return new Date().toISOString().split('T')[0]; }
+* `SCHEMA.sql` — schéma défini et exécuté dans Supabase ✓
+* `style.css` — charte graphique partagée ✓
+* `supabase-client.js` — client Supabase partagé ✓
+* `login.html` — page d'authentification Supabase, gère la redirection si déjà connecté ✓
+* `index.html` — tableau de bord (dashboard) ✓ — voir section 6
+* `contacts.html` — liste + filtres + drawer CRUD ✓
+* `entreprises.html` — liste + cards + slide-over lecture + modal création + modal activité ✓
+* `deals.html` — Kanban + liste + slide-over édition complète + modal nouveau deal + modal activité ✓
+* `activites.html` — agenda + filtres période/type + vue tableau + drawer exécution ✓
+* `produits.html` — liste + filtres + drawer CRUD + toggle actif/inactif ✓
 
-  function fmtDateShort(s) {
-    if (!s) return '';
-    return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
-  }
+### Pages décidées comme non nécessaires
+* `leads.html` — décision de ne pas utiliser les leads
 
-  function esc(s) {
-    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+### Passe finale à prévoir
+* Migrer `entreprises.html` vers une édition complète (actuellement : lecture seule dans le slide-over, création via modal simplifiée)
 
-  async function loadDashboard() {
-    const today = todayStr();
+## 6. NAVIGATION — ÉTAT FINAL
 
-    const [
-      { data: deals },
-      { data: activites },
-      { data: contacts },
-      { data: entreprises },
-    ] = await Promise.all([
-      supabase.from('deals').select('id,titre,etape,statut,valeur,probabilite,created_at,entreprises(nom)').eq('statut','ouvert').order('created_at', { ascending: false }),
-      supabase.from('activites').select('id,type,sujet,date_echeance,faite,deals(titre),entreprises(nom)').eq('faite', false).order('date_echeance', { ascending: true }),
-      supabase.from('contacts').select('id', { count: 'exact', head: true }),
-      supabase.from('entreprises').select('id', { count: 'exact', head: true }),
-    ]);
+Toutes les pages ont la même topbar avec la nav complète dans cet ordre :
 
-    const allDeals     = deals      || [];
-    const allActivites = activites  || [];
+```
+Accueil · Contacts · Entreprises · Deals · Activités · Produits
+```
 
-    // ── KPIs ──
-    const pipeline = allDeals.filter(d => d.etape !== 'perdu');
-    const valeurPonderee = pipeline.reduce((s, d) => {
-      const v = parseFloat(d.valeur) || 0;
-      const p = parseFloat(d.probabilite) || 0;
-      return s + (v * p / 100);
-    }, 0);
-    const enRetard = allActivites.filter(a => a.date_echeance && a.date_echeance < today).length;
-    const nbContacts = contacts?.length ?? '—';
+Chaque page a `class="active"` sur son propre lien.
+`index.html` a `class="active"` sur Accueil.
+Le bouton Déconnexion est présent uniquement sur `index.html` (topbar droite).
 
-    document.getElementById('kpiRow').innerHTML = `
-      <a class="kpi-card" href="deals.html">
-        <div class="kpi-label">Deals ouverts</div>
-        <div class="kpi-value">${pipeline.length}</div>
-        <div class="kpi-sub">dossiers en cours</div>
-      </a>
-      <a class="kpi-card success" href="deals.html">
-        <div class="kpi-label">Valeur pondérée</div>
-        <div class="kpi-value">${fmtEur(valeurPonderee)}</div>
-        <div class="kpi-sub">valeur × probabilité</div>
-      </a>
-      <a class="kpi-card ${enRetard > 0 ? 'alert' : ''}" href="activites.html">
-        <div class="kpi-label">Activités en retard</div>
-        <div class="kpi-value">${enRetard}</div>
-        <div class="kpi-sub">${enRetard > 0 ? 'à traiter en priorité' : 'rien en retard 👌'}</div>
-      </a>
-      <a class="kpi-card" href="contacts.html">
-        <div class="kpi-label">Contacts</div>
-        <div class="kpi-value">${nbContacts}</div>
-        <div class="kpi-sub">dans la base</div>
-      </a>
-    `;
+## 7. DASHBOARD index.html
 
-    // ── Pipeline ──
-    const maxCount = Math.max(...STAGES.map(s => allDeals.filter(d => d.etape === s.key).length), 1);
-    document.getElementById('pipelineBody').innerHTML = STAGES.map(s => {
-      const stageDeals = allDeals.filter(d => d.etape === s.key);
-      const count = stageDeals.length;
-      const valPonderee = stageDeals.reduce((sum, d) => {
-        const v = parseFloat(d.valeur) || 0;
-        const p = parseFloat(d.probabilite) || 0;
-        return sum + (v * p / 100);
-      }, 0);
-      const pct = Math.round((count / maxCount) * 100);
-      return `
-        <div class="pipeline-row">
-          <div class="pipeline-dot" style="background:${s.color}"></div>
-          <div class="pipeline-label">${s.label}</div>
-          <div class="pipeline-bar-wrap">
-            <div class="pipeline-bar" style="width:${pct}%;background:${s.color};opacity:0.7"></div>
-          </div>
-          <div class="pipeline-count">${count}</div>
-          <div class="pipeline-val">${valPonderee > 0 ? fmtEur(valPonderee) : ''}</div>
-        </div>`;
-    }).join('');
+Construit avec 4 zones :
 
-    // ── Activités ──
-    const actToShow = allActivites
-      .filter(a => a.date_echeance <= today)
-      .slice(0, 7);
+**KPI cards (cliquables)** :
+- Deals ouverts → liens vers deals.html
+- Valeur pondérée (valeur × probabilité / 100 — 0 si non renseigné) → deals.html
+- Activités en retard (rouge si > 0) → activites.html
+- Contacts → contacts.html
 
-    if (!actToShow.length) {
-      document.getElementById('activitesBody').innerHTML =
-        '<div class="dash-empty">Aucune activité en retard ni aujourd\'hui 👌</div>';
-    } else {
-      document.getElementById('activitesBody').innerHTML = actToShow.map(a => {
-        const late = a.date_echeance < today;
-        const lien = a.deals?.titre || a.entreprises?.nom || '';
-        return `
-          <div class="act-item">
-            <span class="act-pill-sm ${TYPE_CLS[a.type]||'pill-autre'}">${TYPE_LBL[a.type]||'Autre'}</span>
-            <div class="act-sujet-sm" title="${esc(a.sujet||'')}">
-              ${esc(a.sujet || '(sans sujet)')}
-              ${lien ? `<span style="color:#6b778c;font-weight:400;"> · ${esc(lien)}</span>` : ''}
-            </div>
-            <div class="act-date-sm ${late ? 'late' : ''}">${fmtDateShort(a.date_echeance)}</div>
-          </div>`;
-      }).join('');
-    }
+**Pipeline deals** (cliquable → deals.html) :
+- Barre horizontale par étape avec couleurs du Kanban
+- Valeur pondérée par étape
+- Exclut l'étape "perdu"
 
-    // ── Deals récents ──
-    const recentDeals = allDeals.slice(0, 8);
-    if (!recentDeals.length) {
-      document.getElementById('dealsBody').innerHTML =
-        '<div class="dash-empty">Aucun deal ouvert pour le moment.</div>';
-    } else {
-      const stageMap = Object.fromEntries(STAGES.map(s => [s.key, s]));
-      document.getElementById('dealsBody').innerHTML =
-        `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px;">` +
-        recentDeals.map(d => {
-          const stage = stageMap[d.etape] || { color: '#dfe1e6' };
-          const co    = d.entreprises?.nom || '';
-          return `
-            <div class="deal-item">
-              <div class="deal-dot" style="background:${stage.color}"></div>
-              <div class="deal-info">
-                <div class="deal-titre-sm">${esc(d.titre)}</div>
-                ${co ? `<div class="deal-co-sm">${esc(co)}</div>` : ''}
-              </div>
-              <div class="deal-val-sm">${fmtEur(parseFloat(d.valeur))}</div>
-            </div>`;
-        }).join('') +
-        `</div>`;
-    }
-  }
+**Activités urgentes** (cliquable → activites.html) :
+- En retard + aujourd'hui, max 7
+- Date en rouge si retard
 
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = 'login.html';
-  }
+**Deals récents** (cliquable → deals.html) :
+- 8 derniers deals ouverts sur 2 colonnes
 
-  loadDashboard();
-</script>
-</body>
-</html>
+## 8. AUTHENTIFICATION — À ACTIVER EN PROD
+
+`login.html` est créée et fonctionnelle. Pour activer en prod :
+
+1. Créer l'utilisateur dans Supabase : Authentication → Users → Invite user
+2. Ajouter ce guard silencieux en haut du `<script>` de chaque page (index, contacts, entreprises, deals, activites, produits) :
+
+```js
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) window.location.href = 'login.html';
+})();
+```
+
+`login.html` gère déjà la redirection automatique si déjà connecté.
+
+## 9. PIPELINE ERC
+
+qualification → diagnostic → valorisation →
+recherche → négociation → closing → perdu
+
+## 10. CHARTE GRAPHIQUE — style.css
+
+Toutes les pages incluent dans leur `<head>` :
+```html
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+```
+
+### Tokens principaux
+* Fond topbar : `#172b4d`
+* Bleu action : `#0052cc`
+* Fond page : `#f4f5f7`
+* Texte principal : `#172b4d`
+* Texte secondaire : `#6b778c`
+* Police : DM Sans 400/500/600
+
+## 11. CE QU'ON NE FAIT PAS
+
+* Pas de reporting complexe
+* Pas de téléphonie
+* Pas de marketplace
+* Pas de clone Pipedrive complet
+* Pas d'architecture multi-fichiers .js complexe
+* Pas de leads (décision prise)
