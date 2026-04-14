@@ -2,9 +2,11 @@
 
 *Dernière mise à jour : avril 2026*
 
+---
+
 ## 0. LECTURE OBLIGATOIRE EN DÉBUT DE SESSION
 
-Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs **raw** :
+Avant tout travail, lire ces fichiers dans l'ordre via `web_fetch` (URLs raw uniquement) :
 
 1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
 2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
@@ -15,168 +17,207 @@ Avant tout travail, Claude doit lire ces fichiers via `web_fetch` sur les URLs *
 7. https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
 8. https://raw.githubusercontent.com/op516/erc-crm/main/index.html
 
-**Règles strictes :**
-- Utiliser exclusivement les URLs `raw.githubusercontent.com`
-- Si un fichier échoue → réessayer une fois avant de signaler
-- Ne jamais conclure qu'un fichier est absent sans avoir tenté l'URL raw
-- Confirmer la lecture de chaque fichier avant de commencer le travail
-- Si Olivier colle un fichier directement dans le chat → c'est la version de référence, prioritaire sur GitHub
+Confirmer la lecture de chaque fichier avant de commencer. Ne jamais supposer l'état d'un fichier sans l'avoir lu.
+
+---
 
 ## 0bis. PROTOCOLE DE FIN DE SESSION
 
-Quand Olivier signale qu'il quitte la conversation, Claude doit systématiquement produire :
+Quand Olivier signale qu'il quitte, produire :
+1. Synthèse de ce qui a été fait
+2. CONTEXTE.md mis à jour (refléter l'état réel)
+3. Prompt prêt à coller pour la prochaine session
+4. Rappel des fichiers à commiter dans GitHub
 
-1. **Synthèse** de ce qui a été fait dans la session
-2. **CONTEXTE.md mis à jour** — refléter l'état réel du projet (fichiers créés, décisions prises, points en suspens)
-3. **Prompt prêt à coller** pour la prochaine conversation
-4. **Rappel** des fichiers à commiter dans GitHub si nécessaire
-
-## 0ter. RÈGLES DE MISE À JOUR DU CONTEXTE
-
-- Ne jamais noter une page comme "non migrée" ou "à faire" sans avoir vérifié le fichier réel
-- Si un doute existe sur l'état d'un fichier → le refetcher depuis GitHub avant de conclure
-- Le CSS local dans un fichier HTML n'est PAS une erreur : chaque page a son propre `<style>` pour le CSS spécifique (kanban, slide-over, cards…). Ce n'est pas une migration incomplète.
-- La migration vers style.css signifie : `<link rel="stylesheet" href="style.css" />` présent + topbar standard `<div class="topbar">` utilisée
+---
 
 ## 1. QUI ET POURQUOI
 
 Olivier Pichon, cabinet ERC Conseil, transmission d'entreprise.
-Objectif : apprendre à coder en construisant des vrais outils utiles.
-Stack identique à ComptaFlow — réutilisation directe.
+Objectif : apprendre à coder en construisant des outils réels.
+
+---
 
 ## 2. STACK FIXE — NE PAS CHANGER
 
-* Base de données : Supabase (PostgreSQL)
-* Hébergement : Vercel
-* Versionning : GitHub (https://github.com/op516/erc-crm)
-* Frontend : HTML / CSS / JS vanilla
-* PAS de framework, PAS de librairie externe, PAS de nouveau service
+- Base de données : Supabase (PostgreSQL)
+- Hébergement : Vercel
+- Versionning : GitHub — https://github.com/op516/erc-crm (repo public)
+- Frontend : HTML / CSS / JS vanilla
+- PAS de framework, PAS de librairie externe, PAS de nouveau service
 
-## 3. ARCHITECTURE DÉCIDÉE
+---
 
-* Un fichier HTML par page
-* Un seul `supabase-client.js` partagé
-* Un seul `style.css` partagé — toutes les pages doivent l'appeler
-* Chaque page peut avoir un bloc `<style>` local pour son CSS spécifique — c'est normal et intentionnel
-* `index.html` = tableau de bord (dashboard)
-* Pas de router, pas de bundler, pas de build
+## 3. ARCHITECTURE
 
-## 4. RÈGLES QUE CLAUDE DOIT RESPECTER
+- Un fichier HTML par page
+- Un seul `supabase-client.js` partagé
+- Un seul `style.css` partagé — toutes les pages l'appellent
+- `index.html` = tableau de bord
+- Pas de router, pas de bundler, pas de build
 
-* Spec de 3 lignes MAX avant chaque fonctionnalité
-* Coder uniquement ce qui est dans la spec, rien de plus
-* Un seul fichier par session de travail
-* Si Olivier dit "hors sujet" → arrêt immédiat, retour au cadre
-* Pas de nouveaux services sans demande explicite
-* Fin de session → produire la mise à jour de CONTEXTE.md
+---
 
-## 5. ÉTAT ACTUEL DU PROJET
+## 4. RÈGLES STRICTES
 
-### Fichiers en place — TOUS MIGRÉS vers style.css ✓
+- Spec 3 lignes MAX avant chaque fonctionnalité
+- Coder uniquement ce qui est dans la spec
+- Un seul fichier par session
+- Ne jamais simplifier une fonctionnalité sans accord explicite d'Olivier
+- Fin de session → produire CONTEXTE.md à jour
 
-* `SCHEMA.sql` — schéma défini et exécuté dans Supabase ✓
-* `style.css` — charte graphique partagée ✓
-* `supabase-client.js` — client Supabase partagé ✓
-* `login.html` — page d'authentification Supabase, gère la redirection si déjà connecté ✓
-* `index.html` — tableau de bord (dashboard) ✓ — voir section 8
-* `contacts.html` — liste + filtres + drawer CRUD ✓
-* `entreprises.html` — liste (table + cards) + drawer CRUD complet + contacts liés + modal activité rapide ✓
-* `deals.html` — Kanban + liste + slide-over édition complète + modal nouveau deal + modal activité ✓
-* `activites.html` — agenda + filtres période/type + vue tableau + drawer exécution ✓
-* `produits.html` — liste + filtres + drawer CRUD + toggle actif/inactif ✓
+---
 
-### Pages décidées comme non nécessaires
-* `leads.html` — décision de ne pas utiliser les leads
+## 5. NAVIGATION — RÉFÉRENCE ABSOLUE
 
-## 6. CE QUI A CHANGÉ DANS ENTREPRISES.HTML (cette session)
+Structure identique sur toutes les pages :
 
-L'ancien slide-over lecture seule + la modal de création simplifiée (7 champs) ont été **remplacés** par un **drawer CRUD unique** sur le modèle de `contacts.html` :
-
-- Clic sur une ligne → `openDrawer(id)` : formulaire pré-rempli
-- Bouton "+ Ajouter" → `openDrawer(null)` : formulaire vide
-- **Champs** : Nom*, Sigle, Secteur, Ville, CA annuel, Effectif, Statut, Département, Commentaire (= les 9 champs de l'ancienne modal, pas plus)
-- **Header drawer** : titre dynamique + bouton "+ Activité" (masqué en création) + Supprimer (masqué en création) + Enregistrer + ×
-- **Section "Contacts liés"** (visible uniquement en édition) : affiche les contacts avec `entreprise_id = currentId`, bouton × pour détacher, select + bouton "Rattacher" pour lier un contact existant
-- **Modal activité rapide** : conservée à l'identique
-- **Toolbar** : `h1` conservé, search ramené à gauche (suppression du `flex:1` sur h1)
-- `allContacts` chargé au `init()` en parallèle des entreprises pour alimenter la section contacts liés sans requête supplémentaire à l'ouverture du drawer
-
-## 7. NAVIGATION — ÉTAT FINAL
-
-Toutes les pages ont la même topbar avec la nav complète dans cet ordre :
-
-```
-Accueil · Contacts · Entreprises · Deals · Activités · Produits
+```html
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>ERC CRM</h1>
+    <nav class="topbar-nav">
+      <a href="index.html">Accueil</a>
+      <a href="contacts.html">Contacts</a>
+      <a href="entreprises.html">Entreprises</a>
+      <a href="deals.html">Deals / Pipelines</a>
+      <a href="activites.html">Activités</a>
+      <a href="produits.html">Produits</a>
+    </nav>
+  </div>
+  <button class="btn-primary" onclick="...">+ Action</button>
+</div>
 ```
 
-Chaque page a `class="active"` sur son propre lien.
-`index.html` a `class="active"` sur Accueil.
-Le bouton Déconnexion est présent uniquement sur `index.html` (topbar droite).
+- L'onglet actif prend la classe `active`
+- Ne jamais omettre un onglet
+- Ne jamais utiliser d'autre structure de nav
 
-## 8. DASHBOARD index.html
+---
 
-Construit avec 4 zones :
+## 6. CHARTE CSS — RÈGLES ABSOLUES
 
-**KPI cards (cliquables)** :
-- Deals ouverts → liens vers deals.html
-- Valeur pondérée (valeur × probabilité / 100 — 0 si non renseigné) → deals.html
-- Activités en retard (rouge si > 0) → activites.html
-- Contacts → contacts.html
+### Palette (style.css — utiliser ces valeurs partout)
+- Fond topbar / texte principal : `#172b4d`
+- Texte secondaire : `#6b778c`
+- Bleu action : `#0052cc`
+- Fond page : `#f4f5f7`
+- Bordures : `#dfe1e6`
+- Rouge danger : `#de350b`
+- Police : DM Sans 400/500/600
 
-**Pipeline deals** (cliquable → deals.html) :
-- Barre horizontale par étape avec couleurs du Kanban
-- Valeur pondérée par étape
-- Exclut l'étape "perdu"
+### Fourni par style.css — NE JAMAIS redéfinir dans une page
+`body`, reset `*`, `.topbar`, `.topbar-nav`, `.btn-primary`, `.btn-secondary`, `.btn-danger`, `.btn-save`, `.btn-close`, `.btn-reset`, `.toolbar`, `.search-input`, `.filter-select`, `.count-label`, `.table-wrap`, `table`, `thead`, `th`, `tbody tr`, `td`, `.empty-state`, `.avatar`, `.badge`, `.overlay`, `.drawer` et variantes, `.form-section`, `.form-row`, `.form-group`, `input/select/textarea`, `.toast`
 
-**Activités urgentes** (cliquable → activites.html) :
-- En retard + aujourd'hui, max 7
-- Date en rouge si retard
+### CSS inline autorisé (strict spécifique à la page)
+Ce qui n'existe PAS dans style.css : kanban, pipeline selector, subbar, cards grid, view-toggle, badges couleur spécifiques, modals, éditeur d'étapes, color picker, etc.
 
-**Deals récents** (cliquable → deals.html) :
-- 8 derniers deals ouverts sur 2 colonnes
+### Toutes les pages sont migrées — aucune exception
 
-## 9. AUTHENTIFICATION — À ACTIVER EN PROD
+---
 
-`login.html` est créée et fonctionnelle. Pour activer en prod :
+## 7. ÉTAT DES FICHIERS
 
-1. Créer l'utilisateur dans Supabase : Authentication → Users → Invite user
-2. Ajouter ce guard silencieux en haut du `<script>` de chaque page (index, contacts, entreprises, deals, activites, produits) :
+| Fichier | État | Notes |
+|---|---|---|
+| `style.css` | ✓ Référence partagée | Ne pas modifier sans raison globale |
+| `contacts.html` | ✓ Référence CSS | Zéro CSS inline |
+| `activites.html` | ✓ Migré | CSS inline minimal |
+| `deals.html` | ✓ Migré avril 2026 | CSS inline minimal |
+| `entreprises.html` | ✓ Migré avril 2026 | CSS inline minimal |
+| `index.html` | ✓ Dashboard | |
+| `login.html` | ✓ Auth | |
+| `leads.html` | ❌ À créer | |
+| `produits.html` | ❌ À créer | Déjà dans la nav |
 
-```js
+---
+
+## 8. DEALS.HTML — DÉTAIL COMPLET
+
+### Tables Supabase créées (migration avril 2026)
+```sql
+pipelines (id UUID PK, nom TEXT, created_at)
+pipeline_stages (id UUID PK, pipeline_id FK, nom TEXT, couleur TEXT, ordre INT)
+deals : ajout pipeline_id UUID FK, stage_id UUID FK
+```
+
+### Pipeline par défaut
+Nom : "ERC Transmission"
+Étapes : Qualification → Diagnostic → Valorisation → Recherche → Négociation → Closing → Perdu
+
+### Fonctionnalités
+- Dropdown pipeline dans toolbar : liste + ✏️ renommage + "＋ Nouveau pipeline"
+- Créer pipeline : modal nom + éditeur d'étapes (nom + couleur)
+- Vue Kanban (défaut) + vue liste, toggle
+- Subbar onglets par étape (vue liste)
+- Drag & drop kanban avec sauvegarde Supabase + rollback
+- Clic carte/ligne → drawer édition
+- ↗ sur carte/ligne → transfert pipeline (reset étape 1)
+- Recherche texte toolbar (titre + entreprise)
+- Bouton "+ Nouveau deal" dans le topbar
+
+### Drawer deal — champs complets
+- Affaire : titre*, entreprise, contact, produit, quantité, étape, statut, raison perte (si perdu)
+- Financier : valeur HT (auto : prix unitaire × qté × (1-remise%)), remise%, TVA% (hérité produit), valeur TTC (auto)
+- Dates : échéance prévue (`date_closing_prevu`), réalisation, gain, perte
+- Notes
+
+### Calcul prix automatique
+- Sélection produit → `unitPrice` = `prix_eur` du produit, TVA = champ `taxe` du produit
+- Modification quantité/remise/TVA → recalcul HT et TTC
+- `unitPrice` rechargé si deal existant avec produit
+
+### Important pour index.html
+- `valeur` (TTC) × `probabilite` / 100 = valeur pondérée pipeline
+
+---
+
+## 9. ENTREPRISES.HTML — FONCTIONNALITÉS
+
+- Vue tableau + cards (toggle)
+- Recherche (nom, ville, secteur)
+- Drawer CRUD : nom, sigle, secteur, ville, CA, effectif, statut, département, commentaire
+- Section contacts liés : rattacher/détacher
+- Bouton "+ Activité" → modal rapide (type, date, sujet, heure, deal, note)
+
+---
+
+## 10. SCHÉMA — POINTS D'ATTENTION
+
+### Table `produits`
+⚠️ Le champ TVA s'appelle `taxe` (pas `taux_tva`)
+Champs clés : `id, nom, prix_eur, taxe, actif`
+
+### Table `deals` — colonnes complètes
+`id, titre, entreprise_id, contact_id, etape, statut, raison_perte, valeur, probabilite, date_closing_prevu, date_gain, date_perte, notes, produit_id, quantite, remise, taux_tva, valeur_ht, date_realisation, pipeline_id, stage_id`
+
+---
+
+## 11. AUTH (à activer en prod)
+
+Guard silencieux en haut du `<script>` de chaque page :
+```javascript
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) window.location.href = 'login.html';
 })();
 ```
+`login.html` existe et gère la redirection si déjà connecté.
+Bouton déconnexion dans `index.html` : `supabase.auth.signOut()`.
 
-`login.html` gère déjà la redirection automatique si déjà connecté.
+---
 
-## 10. PIPELINE ERC
+## 12. PROMPT DE DÉBUT DE SESSION (à copier-coller)
 
-qualification → diagnostic → valorisation →
-recherche → négociation → closing → perdu
-
-## 11. CHARTE GRAPHIQUE — style.css
-
-Toutes les pages incluent dans leur `<head>` :
-```html
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
 ```
+Lis ces fichiers dans cet ordre via web_fetch, confirme chaque lecture, puis attends ma prochaine instruction :
 
-### Tokens principaux
-* Fond topbar : `#172b4d`
-* Bleu action : `#0052cc`
-* Fond page : `#f4f5f7`
-* Texte principal : `#172b4d`
-* Texte secondaire : `#6b778c`
-* Police : DM Sans 400/500/600
-
-## 12. CE QU'ON NE FAIT PAS
-
-* Pas de reporting complexe
-* Pas de téléphonie
-* Pas de marketplace
-* Pas de clone Pipedrive complet
-* Pas d'architecture multi-fichiers .js complexe
-* Pas de leads (décision prise)
+1. https://raw.githubusercontent.com/op516/erc-crm/main/CONTEXTE.md
+2. https://raw.githubusercontent.com/op516/erc-crm/main/SCHEMA.sql
+3. https://raw.githubusercontent.com/op516/erc-crm/main/style.css
+4. https://raw.githubusercontent.com/op516/erc-crm/main/deals.html
+5. https://raw.githubusercontent.com/op516/erc-crm/main/contacts.html
+6. https://raw.githubusercontent.com/op516/erc-crm/main/entreprises.html
+7. https://raw.githubusercontent.com/op516/erc-crm/main/activites.html
+8. https://raw.githubusercontent.com/op516/erc-crm/main/index.html
+```
