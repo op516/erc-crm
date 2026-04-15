@@ -907,7 +907,11 @@
   document.getElementById('m-xfer').addEventListener('click',   e => { if(e.target===document.getElementById('m-xfer'))closeXfer(); });
   document.getElementById('m-rename').addEventListener('click', e => { if(e.target===document.getElementById('m-rename'))closeRename(); });
 
-  init();
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    init();
+  })();
 </script>
 </body>
 </html>
