@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
+    body { visibility: hidden; }
     .dash-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
     .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .kpi-card { background: #fff; border: 1px solid #e0e6f0; border-radius: 8px; padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; transition: box-shadow 0.15s, border-color 0.15s; }
@@ -127,34 +128,17 @@
       supabase.from('activites').select('id,type,sujet,date_echeance,faite,deals(titre),entreprises(nom)').eq('faite', false).order('date_echeance', { ascending: true }),
       supabase.from('contacts').select('id', { count: 'exact', head: true }),
     ]);
-    const allDeals     = deals      || [];
-    const allActivites = activites  || [];
+    const allDeals = deals || [], allActivites = activites || [];
     const pipeline = allDeals.filter(d => d.etape !== 'perdu');
     const valeurPonderee = pipeline.reduce((s, d) => s + ((parseFloat(d.valeur)||0) * (parseFloat(d.probabilite)||0) / 100), 0);
     const enRetard = allActivites.filter(a => a.date_echeance && a.date_echeance < today).length;
     const nbContacts = contacts?.length ?? '—';
 
     document.getElementById('kpiRow').innerHTML = `
-      <a class="kpi-card" href="deals.html">
-        <div class="kpi-label">Deals ouverts</div>
-        <div class="kpi-value">${pipeline.length}</div>
-        <div class="kpi-sub">dossiers en cours</div>
-      </a>
-      <a class="kpi-card success" href="deals.html">
-        <div class="kpi-label">Valeur pondérée</div>
-        <div class="kpi-value">${fmtEur(valeurPonderee)}</div>
-        <div class="kpi-sub">valeur × probabilité</div>
-      </a>
-      <a class="kpi-card ${enRetard > 0 ? 'alert' : ''}" href="activites.html">
-        <div class="kpi-label">Activités en retard</div>
-        <div class="kpi-value">${enRetard}</div>
-        <div class="kpi-sub">${enRetard > 0 ? 'à traiter en priorité' : 'rien en retard 👌'}</div>
-      </a>
-      <a class="kpi-card" href="contacts.html">
-        <div class="kpi-label">Contacts</div>
-        <div class="kpi-value">${nbContacts}</div>
-        <div class="kpi-sub">dans la base</div>
-      </a>`;
+      <a class="kpi-card" href="deals.html"><div class="kpi-label">Deals ouverts</div><div class="kpi-value">${pipeline.length}</div><div class="kpi-sub">dossiers en cours</div></a>
+      <a class="kpi-card success" href="deals.html"><div class="kpi-label">Valeur pondérée</div><div class="kpi-value">${fmtEur(valeurPonderee)}</div><div class="kpi-sub">valeur × probabilité</div></a>
+      <a class="kpi-card ${enRetard > 0 ? 'alert' : ''}" href="activites.html"><div class="kpi-label">Activités en retard</div><div class="kpi-value">${enRetard}</div><div class="kpi-sub">${enRetard > 0 ? 'à traiter en priorité' : 'rien en retard 👌'}</div></a>
+      <a class="kpi-card" href="contacts.html"><div class="kpi-label">Contacts</div><div class="kpi-value">${nbContacts}</div><div class="kpi-sub">dans la base</div></a>`;
 
     const maxCount = Math.max(...STAGES.map(s => allDeals.filter(d => d.etape === s.key).length), 1);
     document.getElementById('pipelineBody').innerHTML = STAGES.map(s => {
@@ -180,8 +164,8 @@
         const lien = a.deals?.titre || a.entreprises?.nom || '';
         return `<div class="act-item">
           <span class="act-pill-sm ${TYPE_CLS[a.type]||'pill-autre'}">${TYPE_LBL[a.type]||'Autre'}</span>
-          <div class="act-sujet-sm">${esc(a.sujet || '(sans sujet)')}${lien ? ` <span style="color:#6b778c;font-weight:400;"> · ${esc(lien)}</span>` : ''}</div>
-          <div class="act-date-sm ${late ? 'late' : ''}">${fmtDateShort(a.date_echeance)}</div>
+          <div class="act-sujet-sm">${esc(a.sujet||'(sans sujet)')}${lien?` <span style="color:#6b778c;font-weight:400;"> · ${esc(lien)}</span>`:''}</div>
+          <div class="act-date-sm ${late?'late':''}">${fmtDateShort(a.date_echeance)}</div>
         </div>`;
       }).join('');
     }
@@ -195,13 +179,10 @@
         `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px;">` +
         recentDeals.map(d => {
           const stage = stageMap[d.etape] || { color: '#dfe1e6' };
-          const co    = d.entreprises?.nom || '';
+          const co = d.entreprises?.nom || '';
           return `<div class="deal-item">
             <div class="deal-dot" style="background:${stage.color}"></div>
-            <div class="deal-info">
-              <div class="deal-titre-sm">${esc(d.titre)}</div>
-              ${co ? `<div class="deal-co-sm">${esc(co)}</div>` : ''}
-            </div>
+            <div class="deal-info"><div class="deal-titre-sm">${esc(d.titre)}</div>${co?`<div class="deal-co-sm">${esc(co)}</div>`:''}</div>
             <div class="deal-val-sm">${fmtEur(parseFloat(d.valeur))}</div>
           </div>`;
         }).join('') + `</div>`;
@@ -216,6 +197,7 @@
   (async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = 'login.html'; return; }
+    document.body.style.visibility = 'visible';
     loadDashboard();
   })();
 </script>
