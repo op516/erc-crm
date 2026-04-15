@@ -486,7 +486,7 @@
 
     const [{ data: stages, error: se }, { data: deals, error: de }] = await Promise.all([
       sb.from('pipeline_stages').select('id,nom,couleur,ordre').eq('pipeline_id', p.id).order('ordre'),
-      sb.from('deals').select('id,titre,stage_id,statut,valeur,valeur_ht,remise,taux_tva,probabilite,probabilite_reussite,date_closing_prevu,date_realisation,date_gain,date_perte,raison_perte,notes,entreprise_id,contact_id,produit_id,quantite,entreprises(nom)').eq('pipeline_id', p.id).order('created_at', { ascending: false })
+      sb.from('deals').select('id,titre,stage_id,statut,valeur,valeur_ht,remise,taux_tva,probabilite,date_closing_prevu,date_realisation,date_gain,date_perte,raison_perte,notes,entreprise_id,contact_id,produit_id,quantite,entreprises(nom)').eq('pipeline_id', p.id).order('created_at', { ascending: false })
     ]);
     if (se || de) { showSt('err'); document.getElementById('err-msg').textContent = (se||de).message; return; }
 
