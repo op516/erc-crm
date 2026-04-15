@@ -8,26 +8,29 @@
   <script src="supabase-client.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    body { visibility: hidden; }
+    .field-hint { font-size: 11px; color: #de350b; margin-top: 3px; display: none; }
+    .field-hint.show { display: block; }
+  </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-left">
     <h1>ERC CRM</h1>
-   <nav class="topbar-nav">
-  <a href="index.html">Accueil</a>
-  <a href="contacts.html" class="active">Contacts</a>
-  <a href="entreprises.html">Entreprises</a>
-  <a href="deals.html">Deals / Pipelines</a>
-  <a href="activites.html">Activités</a>
-  <a href="produits.html">Produits</a>
-</nav>
+    <nav class="topbar-nav">
+      <a href="index.html">Accueil</a>
+      <a href="contacts.html" class="active">Contacts</a>
+      <a href="entreprises.html">Entreprises</a>
+      <a href="deals.html">Deals / Pipelines</a>
+      <a href="activites.html">Activités</a>
+      <a href="produits.html">Produits</a>
+    </nav>
   </div>
   <button class="btn-primary" onclick="openDrawer(null)">+ Nouveau contact</button>
 </div>
 
-<!-- TOOLBAR -->
 <div class="toolbar">
   <h1 style="font-size:18px;font-weight:600;color:#172b4d;white-space:nowrap;margin-right:4px">Contacts</h1>
   <input class="search-input" type="text" id="searchInput" placeholder="Rechercher par nom…" oninput="applyFilters()" />
@@ -45,7 +48,6 @@
   <span class="count-label" id="countLabel"></span>
 </div>
 
-<!-- TABLE -->
 <div class="table-wrap">
   <table>
     <thead>
@@ -60,10 +62,8 @@
   </table>
 </div>
 
-<!-- OVERLAY -->
 <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
 
-<!-- DRAWER -->
 <div class="drawer" id="drawer">
   <div class="drawer-header">
     <h2 id="drawerTitle">Nouveau contact</h2>
@@ -75,7 +75,6 @@
     </div>
   </div>
   <div class="drawer-body">
-
     <div class="form-section">
       <div class="form-section-title">Identité</div>
       <div class="form-row">
@@ -107,7 +106,6 @@
         </div>
       </div>
     </div>
-
     <div class="form-section">
       <div class="form-section-title">Entreprise</div>
       <div class="form-row">
@@ -117,7 +115,6 @@
         </div>
       </div>
     </div>
-
     <div class="form-section">
       <div class="form-section-title">Coordonnées</div>
       <div class="form-row">
@@ -143,7 +140,6 @@
         </div>
       </div>
     </div>
-
     <div class="form-section">
       <div class="form-section-title">Adresse</div>
       <div class="form-row">
@@ -156,18 +152,15 @@
         <div class="form-group"><label>Ville</label><input type="text" id="f_ville_perso" /></div>
       </div>
     </div>
-
     <div class="form-section">
       <div class="form-section-title">Notes</div>
       <div class="form-row">
         <div class="form-group"><textarea id="f_notes" rows="4"></textarea></div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- MODAL CRÉER ACTIVITÉ -->
 <div class="overlay" id="na-overlay" onclick="closeContactActModal()" style="z-index:150"></div>
 <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:440px;max-width:95vw;background:#fff;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.2);z-index:151;display:none;flex-direction:column" id="na-modal">
   <div style="padding:16px 20px;border-bottom:1px solid #e8eaf0;display:flex;align-items:center;justify-content:space-between">
@@ -206,13 +199,10 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-  let allContacts = [];
-  let entreprises  = [];
-  let currentId    = null;
+  let allContacts = [], entreprises = [], currentId = null;
 
   async function init() {
     const [{ data: contacts, error }, { data: ents }] = await Promise.all([
@@ -221,30 +211,24 @@
     ]);
     if (error) { showToast('Erreur chargement contacts', true); return; }
     allContacts = contacts || [];
-    entreprises  = ents    || [];
+    entreprises = ents || [];
     applyFilters();
     populateEntreprises();
   }
 
   function renderTable(contacts) {
     const tbody = document.getElementById('contactsBody');
-    document.getElementById('countLabel').textContent =
-      contacts.length + ' contact' + (contacts.length > 1 ? 's' : '');
-    if (!contacts.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun contact trouvé.</td></tr>';
-      return;
-    }
+    document.getElementById('countLabel').textContent = contacts.length + ' contact' + (contacts.length > 1 ? 's' : '');
+    if (!contacts.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun contact trouvé.</td></tr>'; return; }
     tbody.innerHTML = contacts.map(c => {
-      const initiales  = ((c.prenom?.[0] || '') + (c.nom?.[0] || '')).toUpperCase() || '?';
+      const initiales = ((c.prenom?.[0] || '') + (c.nom?.[0] || '')).toUpperCase() || '?';
       const nomComplet = [c.prenom, c.nom].filter(Boolean).join(' ');
-      const ent        = c.entreprises?.nom || '';
+      const ent = c.entreprises?.nom || '';
       const badgeClass = { 'Cédant':'cedant','Acquéreur':'acquereur','Prescripteur':'prescripteur','Partenaire':'partenaire' }[c.classification] || '';
       return `<tr onclick="openDrawer('${c.id}')">
         <td><div class="nom-wrap"><div class="avatar">${initiales}</div>${nomComplet}</div></td>
-        <td class="muted">${ent}</td>
-        <td class="muted">${c.fonction || ''}</td>
-        <td class="muted">${c.email_travail || ''}</td>
-        <td class="muted">${c.tel_mobile || ''}</td>
+        <td class="muted">${ent}</td><td class="muted">${c.fonction || ''}</td>
+        <td class="muted">${c.email_travail || ''}</td><td class="muted">${c.tel_mobile || ''}</td>
         <td>${c.classification ? `<span class="badge ${badgeClass}">${c.classification}</span>` : ''}</td>
         <td class="muted">${c.origine_contact || ''}</td>
       </tr>`;
@@ -252,8 +236,8 @@
   }
 
   function applyFilters() {
-    const q    = document.getElementById('searchInput').value.toLowerCase();
-    const cat  = document.getElementById('filterCategorie').value;
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const cat = document.getElementById('filterCategorie').value;
     const orig = document.getElementById('filterOrigine').value;
     const filtered = allContacts.filter(c => {
       const nom = ((c.prenom || '') + ' ' + (c.nom || '')).toLowerCase();
@@ -263,30 +247,23 @@
   }
 
   function resetFilters() {
-    document.getElementById('searchInput').value     = '';
+    document.getElementById('searchInput').value = '';
     document.getElementById('filterCategorie').value = '';
-    document.getElementById('filterOrigine').value   = '';
+    document.getElementById('filterOrigine').value = '';
     applyFilters();
   }
 
   function populateEntreprises() {
     const sel = document.getElementById('f_entreprise_id');
     sel.innerHTML = '<option value="">— Aucune —</option>';
-    entreprises.forEach(e => {
-      const opt = document.createElement('option');
-      opt.value = e.id; opt.textContent = e.nom;
-      sel.appendChild(opt);
-    });
+    entreprises.forEach(e => { const opt = document.createElement('option'); opt.value = e.id; opt.textContent = e.nom; sel.appendChild(opt); });
   }
 
   function validateEmail(input, hintId) {
-    const val  = input.value.trim();
+    const val = input.value.trim();
     const hint = document.getElementById(hintId);
-    if (val && !val.includes('@')) {
-      input.classList.add('invalid'); hint.classList.add('show');
-    } else {
-      input.classList.remove('invalid'); hint.classList.remove('show');
-    }
+    if (val && !val.includes('@')) { input.classList.add('invalid'); hint.classList.add('show'); }
+    else { input.classList.remove('invalid'); hint.classList.remove('show'); }
   }
 
   function formatTel(input) {
@@ -295,11 +272,9 @@
   }
 
   function openDrawer(id) {
-    currentId = id;
-    clearForm();
+    currentId = id; clearForm();
     if (id) {
-      const c = allContacts.find(x => x.id === id);
-      if (!c) return;
+      const c = allContacts.find(x => x.id === id); if (!c) return;
       document.getElementById('drawerTitle').textContent = [c.prenom, c.nom].filter(Boolean).join(' ') || 'Contact';
       document.getElementById('btnDelete').style.display = 'inline-block';
       document.getElementById('btnNewAct').style.display = 'inline-block';
@@ -322,8 +297,7 @@
   function clearForm() {
     ['f_civilite','f_prenom','f_nom','f_fonction','f_classification','f_origine_contact',
      'f_entreprise_id','f_email_travail','f_email_perso','f_tel_mobile','f_tel_travail',
-     'f_adresse_perso','f_cp_perso','f_ville_perso','f_notes']
-      .forEach(id => { document.getElementById(id).value = ''; });
+     'f_adresse_perso','f_cp_perso','f_ville_perso','f_notes'].forEach(id => { document.getElementById(id).value = ''; });
     ['hint_email_travail','hint_email_perso'].forEach(id => document.getElementById(id).classList.remove('show'));
     ['f_email_travail','f_email_perso'].forEach(id => document.getElementById(id).classList.remove('invalid'));
   }
@@ -342,14 +316,14 @@
   function getFormData() {
     const g = id => document.getElementById(id).value.trim();
     return {
-      civilite: g('f_civilite') || null, prenom: g('f_prenom') || null,
-      nom: g('f_nom'), fonction: g('f_fonction') || null,
-      classification: g('f_classification') || null, origine_contact: g('f_origine_contact') || null,
-      entreprise_id: g('f_entreprise_id') || null, email_travail: g('f_email_travail') || null,
-      email_perso: g('f_email_perso') || null, tel_mobile: g('f_tel_mobile') || null,
-      tel_travail: g('f_tel_travail') || null, adresse_perso: g('f_adresse_perso') || null,
-      cp_perso: g('f_cp_perso') || null, ville_perso: g('f_ville_perso') || null,
-      notes: g('f_notes') || null, updated_at: new Date().toISOString()
+      civilite: g('f_civilite') || null, prenom: g('f_prenom') || null, nom: g('f_nom'),
+      fonction: g('f_fonction') || null, classification: g('f_classification') || null,
+      origine_contact: g('f_origine_contact') || null, entreprise_id: g('f_entreprise_id') || null,
+      email_travail: g('f_email_travail') || null, email_perso: g('f_email_perso') || null,
+      tel_mobile: g('f_tel_mobile') || null, tel_travail: g('f_tel_travail') || null,
+      adresse_perso: g('f_adresse_perso') || null, cp_perso: g('f_cp_perso') || null,
+      ville_perso: g('f_ville_perso') || null, notes: g('f_notes') || null,
+      updated_at: new Date().toISOString()
     };
   }
 
@@ -357,11 +331,8 @@
     const data = getFormData();
     if (!data.nom) { showToast('Le nom est obligatoire', true); return; }
     let error;
-    if (currentId) {
-      ({ error } = await supabase.from('contacts').update(data).eq('id', currentId));
-    } else {
-      ({ error } = await supabase.from('contacts').insert(data));
-    }
+    if (currentId) { ({ error } = await supabase.from('contacts').update(data).eq('id', currentId)); }
+    else           { ({ error } = await supabase.from('contacts').insert(data)); }
     if (error) { showToast('Erreur : ' + error.message, true); return; }
     showToast(currentId ? 'Contact mis à jour' : 'Contact créé');
     closeDrawer(); init();
@@ -371,8 +342,7 @@
     if (!confirm('Supprimer ce contact ? Cette action est irréversible.')) return;
     const { error } = await supabase.from('contacts').delete().eq('id', currentId);
     if (error) { showToast('Erreur : ' + error.message, true); return; }
-    showToast('Contact supprimé');
-    closeDrawer(); init();
+    showToast('Contact supprimé'); closeDrawer(); init();
   }
 
   async function openContactActModal() {
@@ -403,11 +373,11 @@
     const c = allContacts.find(x => x.id === currentId);
     const payload = {
       type, date_echeance: date,
-      sujet:          document.getElementById('na-sujet').value.trim() || null,
+      sujet: document.getElementById('na-sujet').value.trim() || null,
       heure_echeance: document.getElementById('na-heure').value || null,
-      deal_id:        document.getElementById('na-deal').value || null,
-      contact_id:     currentId || null,
-      entreprise_id:  c?.entreprise_id || null,
+      deal_id: document.getElementById('na-deal').value || null,
+      contact_id: currentId || null,
+      entreprise_id: c?.entreprise_id || null,
       faite: false,
     };
     const noteContenu = document.getElementById('na-note').value.trim();
@@ -416,25 +386,20 @@
     if (noteContenu && data?.[0]) {
       await supabase.from('notes').insert([{ contenu: noteContenu, contact_id: currentId || null, deal_id: payload.deal_id || null, entreprise_id: payload.entreprise_id || null }]);
     }
-    closeContactActModal();
-    showToast('Activité créée ✓');
+    closeContactActModal(); showToast('Activité créée ✓');
   }
 
-  function esc(s) {
-    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
+  function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function showToast(msg, isError = false) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast' + (isError ? ' error' : '');
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
+    t.textContent = msg; t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
   }
 
   (async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = 'login.html'; return; }
+    document.body.style.visibility = 'visible';
     init();
   })();
 </script>
