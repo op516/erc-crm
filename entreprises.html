@@ -9,18 +9,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <style>
-    /* ── CSS spécifique entreprises.html ── */
-
-    /* Toggle vue */
     .view-toggle { display: flex; border: 1px solid #dfe1e6; border-radius: 4px; overflow: hidden; }
     .view-btn { height: 36px; width: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: white; border: none; color: #6b778c; transition: background 0.15s, color 0.15s; }
     .view-btn.active { background: #172b4d; color: white; }
     .view-btn:hover:not(.active) { background: #f4f5f7; }
-
-    /* Content */
     .content { padding: 24px; }
-
-    /* Table spécifique (non couverte par style.css table-wrap qui a flex) */
     .ent-table-wrap { background: white; border-radius: 6px; border: 1px solid #dfe1e6; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
     .ent-table-wrap table { width: 100%; border-collapse: collapse; }
     .ent-table-wrap thead tr { background: #f8f9fa; border-bottom: 2px solid #e0e0e0; }
@@ -30,8 +23,6 @@
     .ent-table-wrap tbody tr:hover { background: #f4f5f7; }
     .ent-table-wrap td { padding: 12px 16px; font-size: 14px; color: #172b4d; }
     .ent-table-wrap td.nom { font-weight: 500; }
-
-    /* Cards */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
     .card { background: white; border-radius: 8px; border: 1px solid #dfe1e6; padding: 20px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
     .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: #c1c7d0; }
@@ -40,27 +31,17 @@
     .card-meta { display: flex; gap: 20px; font-size: 11px; color: #6b778c; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 14px; }
     .card-meta span strong { color: #172b4d; font-weight: 600; display: block; font-size: 13px; text-transform: none; letter-spacing: 0; margin-top: 2px; }
     .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #f0f0f0; }
-
-    /* Badges entreprises */
     .badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 500; }
     .badge-prospect { background: #e3ecfa; color: #0052cc; }
     .badge-actif    { background: #e8f5e9; color: #2e7d32; }
     .badge-inactif  { background: #f4f5f7; color: #6b778c; }
     .badge-cible    { background: #fce8e6; color: #de350b; }
     .badge-mandat   { background: #fff3e0; color: #b45309; }
-
-    /* Drawer élargi (override width) */
     .drawer { width: 560px; right: -560px; }
     .drawer.open { right: 0; }
-
-    /* Loader */
     .loader { text-align: center; padding: 60px; color: #6b778c; font-size: 13px; }
-
-    /* Bouton activité rapide */
     .btn-act { height: 30px; padding: 0 10px; background: #e3ecfa; border: 1px solid #c5d8fc; border-radius: 4px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #0052cc; cursor: pointer; }
     .btn-act:hover { background: #dbeafe; }
-
-    /* Contacts liés dans drawer */
     .contact-linked { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid #dfe1e6; border-radius: 6px; margin-bottom: 6px; background: #f8f9fa; }
     .contact-linked-info { flex: 1; min-width: 0; }
     .contact-linked-nom { font-size: 13px; font-weight: 600; color: #172b4d; }
@@ -69,8 +50,6 @@
     .contact-linked-unlink:hover { color: #de350b; }
     .link-contact-row { display: flex; gap: 8px; margin-top: 10px; }
     .link-contact-row select { flex: 1; }
-
-    /* Modal activité rapide */
     .modal-wrap { position: fixed; inset: 0; background: rgba(9,30,66,0.45); z-index: 200; display: none; align-items: center; justify-content: center; }
     .modal-wrap.open { display: flex; }
     .modal { background: #fff; border-radius: 8px; width: 440px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
@@ -89,7 +68,6 @@
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-left">
     <h1>ERC CRM</h1>
@@ -105,7 +83,6 @@
   <button class="btn-primary" onclick="openDrawer(null)">+ Ajouter</button>
 </div>
 
-<!-- TOOLBAR -->
 <div class="toolbar">
   <input type="text" class="search-input" id="searchInput" placeholder="Rechercher nom, ville, secteur…" />
   <span class="count-label" id="countLabel"></span>
@@ -119,15 +96,12 @@
   </div>
 </div>
 
-<!-- CONTENT -->
 <div class="content">
   <div id="viewContainer"><div class="loader">Chargement…</div></div>
 </div>
 
-<!-- OVERLAY (depuis style.css) -->
 <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
 
-<!-- DRAWER CRUD -->
 <div class="drawer" id="drawer">
   <div class="drawer-header">
     <h2 id="drawerTitle">Nouvelle entreprise</h2>
@@ -139,7 +113,6 @@
     </div>
   </div>
   <div class="drawer-body">
-
     <div class="form-section">
       <div class="form-section-title">Informations</div>
       <div class="form-row">
@@ -153,24 +126,12 @@
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Secteur d'activité</label>
-          <input type="text" id="f_secteur_activite" />
-        </div>
-        <div class="form-group">
-          <label>Ville</label>
-          <input type="text" id="f_ville" />
-        </div>
+        <div class="form-group"><label>Secteur d'activité</label><input type="text" id="f_secteur_activite" /></div>
+        <div class="form-group"><label>Ville</label><input type="text" id="f_ville" /></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>CA annuel (€)</label>
-          <input type="number" id="f_ca_annuel" min="0" />
-        </div>
-        <div class="form-group">
-          <label>Effectif</label>
-          <input type="number" id="f_nb_employes" min="0" />
-        </div>
+        <div class="form-group"><label>CA annuel (€)</label><input type="number" id="f_ca_annuel" min="0" /></div>
+        <div class="form-group"><label>Effectif</label><input type="number" id="f_nb_employes" min="0" /></div>
       </div>
       <div class="form-row">
         <div class="form-group" style="flex:0 0 180px">
@@ -189,16 +150,12 @@
         </div>
       </div>
     </div>
-
     <div class="form-section">
       <div class="form-section-title">Notes</div>
       <div class="form-row">
-        <div class="form-group">
-          <textarea id="f_commentaire" rows="4" placeholder="Notes libres…"></textarea>
-        </div>
+        <div class="form-group"><textarea id="f_commentaire" rows="4" placeholder="Notes libres…"></textarea></div>
       </div>
     </div>
-
     <div class="form-section" id="sectionContacts" style="display:none">
       <div class="form-section-title">Contacts liés</div>
       <div id="contactsLinkedList"></div>
@@ -209,11 +166,9 @@
         <button class="btn-secondary" onclick="linkContact()">Rattacher</button>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- MODAL ACTIVITÉ RAPIDE -->
 <div class="modal-wrap" id="actModalWrap">
   <div class="modal">
     <div class="modal-header">
@@ -234,32 +189,17 @@
             <option value="autre">Autre</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Date *</label>
-          <input type="date" class="form-control" id="act_date" />
-        </div>
+        <div class="form-group"><label>Date *</label><input type="date" class="form-control" id="act_date" /></div>
       </div>
       <div class="modal-row">
-        <div class="form-group">
-          <label>Sujet</label>
-          <input type="text" class="form-control" id="act_sujet" placeholder="Ex : Appel de suivi" />
-        </div>
+        <div class="form-group"><label>Sujet</label><input type="text" class="form-control" id="act_sujet" placeholder="Ex : Appel de suivi" /></div>
       </div>
       <div class="modal-grid-2">
-        <div class="form-group">
-          <label>Heure</label>
-          <input type="time" class="form-control" id="act_heure" />
-        </div>
-        <div class="form-group">
-          <label>Deal associé</label>
-          <select class="form-control" id="act_deal"><option value="">— Aucun —</option></select>
-        </div>
+        <div class="form-group"><label>Heure</label><input type="time" class="form-control" id="act_heure" /></div>
+        <div class="form-group"><label>Deal associé</label><select class="form-control" id="act_deal"><option value="">— Aucun —</option></select></div>
       </div>
       <div class="modal-row">
-        <div class="form-group">
-          <label>Note</label>
-          <textarea class="form-control" id="act_note" placeholder="Contexte…"></textarea>
-        </div>
+        <div class="form-group"><label>Note</label><textarea class="form-control" id="act_note" placeholder="Contexte…"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -269,17 +209,11 @@
   </div>
 </div>
 
-<!-- TOAST (depuis style.css) -->
 <div class="toast" id="toast"></div>
 
 <script>
   const db = window.supabase;
   let allData = [], allContacts = [], currentView = 'table', currentId = null;
-
-  document.addEventListener('DOMContentLoaded', () => {
-    init();
-    document.getElementById('searchInput').addEventListener('input', renderCurrent);
-  });
 
   async function init() {
     const [{ data: ents, error }, { data: cts }] = await Promise.all([
@@ -509,6 +443,8 @@
     if (e.target === document.getElementById('actModalWrap')) closeActModal();
   });
 
+  document.getElementById('searchInput').addEventListener('input', renderCurrent);
+
   function esc(str) {
     if (str == null) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -530,6 +466,12 @@
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
   }
+
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    init();
+  })();
 </script>
 </body>
 </html>
