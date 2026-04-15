@@ -10,6 +10,7 @@
   <script src="supabase-client.js"></script>
   <link rel="stylesheet" href="style.css" />
   <style>
+    body { visibility: hidden; }
     /* ── TOOLBAR (override : height + padding spécifiques deals) ── */
     .toolbar { height: 52px; padding: 0 24px; }
     .toolbar-spacer { flex: 1; }
@@ -909,7 +910,8 @@
 
   (async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
+     if (!session) { window.location.href = 'login.html'; return; }
+    document.body.style.visibility = 'visible';
     init();
   })();
 </script>
