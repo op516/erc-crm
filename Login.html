@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion — ERC CRM</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f4f5f7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 40px 36px;
+      width: 380px;
+      max-width: 95vw;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #172b4d;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #6b778c;
+      margin-bottom: 28px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b778c;
+    }
+    input {
+      border: 1px solid #dfe1e6;
+      border-radius: 4px;
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: #172b4d;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: #0052cc; }
+    .btn {
+      width: 100%;
+      background: #0052cc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #0047b3; }
+    .btn:disabled { background: #c1c7d0; cursor: not-allowed; }
+    .msg {
+      margin-top: 14px;
+      font-size: 13px;
+      text-align: center;
+      color: #de350b;
+      min-height: 20px;
+    }
+    .msg.ok { color: #2e7d32; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">ERC CRM</div>
+  <div class="subtitle" id="subtitle">Connectez-vous à votre espace</div>
+
+  <div class="form-group" id="emailGroup">
+    <label>Email</label>
+    <input type="email" id="email" placeholder="votre@email.com" />
+  </div>
+
+  <div class="form-group">
+    <label id="pwdLabel">Mot de passe</label>
+    <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleSubmit()" />
+  </div>
+
+  <div class="form-group" id="confirmGroup" style="display:none">
+    <label>Confirmer le mot de passe</label>
+    <input type="password" id="confirmPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleSubmit()" />
+  </div>
+
+  <button class="btn" id="submitBtn" onclick="handleSubmit()">Se connecter</button>
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+  let mode = 'login'; // 'login' ou 'set-password'
+
+  // Détecter si on arrive depuis un lien d'invitation (token dans l'URL)
+  async function init() {
+    const hash = window.location.hash;
+
+    // Laisser Supabase parser le hash (access_token, type=invite etc.)
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    // Si déjà connecté et pas en mode set-password → aller au dashboard
+    if (session && !hash.includes('type=invite') && !hash.includes('type=recovery')) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // Si lien d'invitation ou reset password
+    if (hash.includes('type=invite') || hash.includes('type=recovery')) {
+      mode = 'set-password';
+      document.getElementById('subtitle').textContent = 'Définissez votre mot de passe';
+      document.getElementById('emailGroup').style.display = 'none';
+      document.getElementById('pwdLabel').textContent = 'Nouveau mot de passe';
+      document.getElementById('confirmGroup').style.display = 'flex';
+      document.getElementById('submitBtn').textContent = 'Définir le mot de passe';
+    }
+  }
+
+  async function handleSubmit() {
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('msg');
+    msg.textContent = '';
+    msg.className = 'msg';
+    btn.disabled = true;
+
+    if (mode === 'set-password') {
+      const pwd     = document.getElementById('password').value;
+      const confirm = document.getElementById('confirmPassword').value;
+      if (!pwd || pwd.length < 6) {
+        msg.textContent = 'Mot de passe trop court (6 caractères min)';
+        btn.disabled = false; return;
+      }
+      if (pwd !== confirm) {
+        msg.textContent = 'Les mots de passe ne correspondent pas';
+        btn.disabled = false; return;
+      }
+      const { error } = await supabase.auth.updateUser({ password: pwd });
+      if (error) {
+        msg.textContent = 'Erreur : ' + error.message;
+        btn.disabled = false; return;
+      }
+      msg.className = 'msg ok';
+      msg.textContent = 'Mot de passe défini ✓ Redirection…';
+      setTimeout(() => window.location.href = 'index.html', 1500);
+
+    } else {
+      const email = document.getElementById('email').value.trim();
+      const pwd   = document.getElementById('password').value;
+      if (!email || !pwd) {
+        msg.textContent = 'Email et mot de passe requis';
+        btn.disabled = false; return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+      if (error) {
+        msg.textContent = 'Identifiants incorrects';
+        btn.disabled = false; return;
+      }
+      window.location.href = 'index.html';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
