@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
+    body { visibility: hidden; }
     .badge-actif   { background: #e8f5e9; color: #2e7d32; }
     .badge-inactif { background: #f4f5f7; color: #6b778c; }
     .toggle-wrap { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
@@ -90,17 +91,11 @@
         <div class="form-group" style="flex:0 0 140px;"><label>Code produit</label><input type="text" id="f_code_produit" /></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Catégorie</label>
-          <select id="f_categorie">
-            <option value="">—</option><option>Cession</option><option>Acquisition</option>
-            <option>Conseil</option><option>Diagnostic</option><option>Valorisation</option><option>Autre</option>
-          </select>
+        <div class="form-group"><label>Catégorie</label>
+          <select id="f_categorie"><option value="">—</option><option>Cession</option><option>Acquisition</option><option>Conseil</option><option>Diagnostic</option><option>Valorisation</option><option>Autre</option></select>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>Description</label><textarea id="f_description" rows="3"></textarea></div>
-      </div>
+      <div class="form-row"><div class="form-group"><label>Description</label><textarea id="f_description" rows="3"></textarea></div></div>
     </div>
     <div class="form-section">
       <div class="form-section-title">Tarification</div>
@@ -110,23 +105,15 @@
       </div>
       <div class="form-row">
         <div class="form-group"><label>Unité</label><input type="text" id="f_unite" placeholder="Ex : mission, heure, forfait" /></div>
-        <div class="form-group">
-          <label>Fréquence facturation</label>
-          <select id="f_frequence_facturation">
-            <option value="">—</option><option>Une fois</option><option>Mensuel</option>
-            <option>Trimestriel</option><option>Annuel</option><option>Au résultat</option>
-          </select>
+        <div class="form-group"><label>Fréquence facturation</label>
+          <select id="f_frequence_facturation"><option value="">—</option><option>Une fois</option><option>Mensuel</option><option>Trimestriel</option><option>Annuel</option><option>Au résultat</option></select>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group" style="flex:0 0 180px;"><label>Cycles de facturation</label><input type="number" id="f_cycles_facturation" min="1" step="1" placeholder="Ex : 3" /></div>
-      </div>
+      <div class="form-row"><div class="form-group" style="flex:0 0 180px;"><label>Cycles de facturation</label><input type="number" id="f_cycles_facturation" min="1" step="1" placeholder="Ex : 3" /></div></div>
     </div>
     <div class="form-section">
       <div class="form-section-title">Références externes</div>
-      <div class="form-row">
-        <div class="form-group"><label>Réf. interne</label><input type="text" id="f_ref_interne" /></div>
-      </div>
+      <div class="form-row"><div class="form-group"><label>Réf. interne</label><input type="text" id="f_ref_interne" /></div></div>
       <div class="form-row">
         <div class="form-group"><label>Réf. Fuscaq</label><input type="text" id="f_ref_fuscaq" /></div>
         <div class="form-group"><label>Réf. Cession PME</label><input type="text" id="f_ref_cession_pme" /></div>
@@ -135,10 +122,7 @@
     <div class="form-section">
       <div class="form-section-title">Statut</div>
       <div class="toggle-wrap">
-        <label class="toggle">
-          <input type="checkbox" id="f_actif" checked />
-          <span class="toggle-slider"></span>
-        </label>
+        <label class="toggle"><input type="checkbox" id="f_actif" checked /><span class="toggle-slider"></span></label>
         <span class="toggle-label" id="toggleLabel">Produit actif</span>
       </div>
     </div>
@@ -148,8 +132,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let allProduits = [];
-  let currentId   = null;
+  let allProduits = [], currentId = null;
 
   async function init() {
     const { data, error } = await supabase.from('produits').select('*').order('nom', { ascending: true });
@@ -163,48 +146,37 @@
     document.getElementById('countLabel').textContent = produits.length + ' produit' + (produits.length > 1 ? 's' : '');
     if (!produits.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Aucun produit trouvé.</td></tr>'; return; }
     tbody.innerHTML = produits.map(p => {
-      const prixFmt = p.prix_eur != null
-        ? Number(p.prix_eur).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
-        : '<span class="muted">—</span>';
+      const prixFmt = p.prix_eur != null ? Number(p.prix_eur).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }) : '<span class="muted">—</span>';
       const taxeFmt = p.taxe != null ? p.taxe + ' %' : '<span class="muted">—</span>';
       const statutBadge = p.actif ? '<span class="badge badge-actif">Actif</span>' : '<span class="badge badge-inactif">Inactif</span>';
       return `<tr onclick="openDrawer('${p.id}')">
-        <td style="font-weight:500">${esc(p.nom)}</td>
-        <td class="muted">${esc(p.categorie) || ''}</td>
-        <td class="muted">${esc(p.code_produit) || ''}</td>
-        <td class="prix">${prixFmt}</td>
-        <td class="muted">${esc(p.unite) || ''}</td>
-        <td class="muted">${taxeFmt}</td>
-        <td class="muted">${esc(p.frequence_facturation) || ''}</td>
-        <td>${statutBadge}</td>
+        <td style="font-weight:500">${esc(p.nom)}</td><td class="muted">${esc(p.categorie)||''}</td>
+        <td class="muted">${esc(p.code_produit)||''}</td><td class="prix">${prixFmt}</td>
+        <td class="muted">${esc(p.unite)||''}</td><td class="muted">${taxeFmt}</td>
+        <td class="muted">${esc(p.frequence_facturation)||''}</td><td>${statutBadge}</td>
       </tr>`;
     }).join('');
   }
 
   function applyFilters() {
-    const q   = document.getElementById('searchInput').value.toLowerCase();
+    const q = document.getElementById('searchInput').value.toLowerCase();
     const cat = document.getElementById('filterCategorie').value;
     const act = document.getElementById('filterActif').value;
-    const filtered = allProduits.filter(p => {
-      const nom = (p.nom || '').toLowerCase();
-      return (!q || nom.includes(q)) && (!cat || p.categorie === cat) && (act === '' || String(p.actif) === act);
-    });
+    const filtered = allProduits.filter(p => (!q || (p.nom||'').toLowerCase().includes(q)) && (!cat || p.categorie === cat) && (act === '' || String(p.actif) === act));
     renderTable(filtered);
   }
 
   function resetFilters() {
-    document.getElementById('searchInput').value     = '';
+    document.getElementById('searchInput').value = '';
     document.getElementById('filterCategorie').value = '';
-    document.getElementById('filterActif').value     = '';
+    document.getElementById('filterActif').value = '';
     applyFilters();
   }
 
   function openDrawer(id) {
-    currentId = id;
-    clearForm();
+    currentId = id; clearForm();
     if (id) {
-      const p = allProduits.find(x => x.id === id);
-      if (!p) return;
+      const p = allProduits.find(x => x.id === id); if (!p) return;
       document.getElementById('drawerTitle').textContent = p.nom || 'Produit';
       document.getElementById('btnDelete').style.display = 'inline-block';
       fillForm(p);
@@ -223,9 +195,8 @@
   }
 
   function clearForm() {
-    ['f_nom','f_code_produit','f_categorie','f_description','f_prix_eur',
-     'f_taxe','f_unite','f_frequence_facturation','f_cycles_facturation',
-     'f_ref_interne','f_ref_fuscaq','f_ref_cession_pme']
+    ['f_nom','f_code_produit','f_categorie','f_description','f_prix_eur','f_taxe','f_unite',
+     'f_frequence_facturation','f_cycles_facturation','f_ref_interne','f_ref_fuscaq','f_ref_cession_pme']
       .forEach(id => { document.getElementById(id).value = ''; });
     document.getElementById('f_actif').checked = true;
     updateToggleLabel(true);
@@ -243,19 +214,16 @@
   }
 
   function getFormData() {
-    const g  = id => document.getElementById(id).value.trim();
+    const g = id => document.getElementById(id).value.trim();
     const gN = id => { const v = g(id); return v !== '' ? parseFloat(v) : null; };
     const gI = id => { const v = g(id); return v !== '' ? parseInt(v, 10) : null; };
     return {
-      nom: g('f_nom'), code_produit: g('f_code_produit') || null,
-      categorie: g('f_categorie') || null, description: g('f_description') || null,
-      prix_eur: gN('f_prix_eur'), taxe: gN('f_taxe'), unite: g('f_unite') || null,
-      frequence_facturation: g('f_frequence_facturation') || null,
-      cycles_facturation: gI('f_cycles_facturation'),
-      ref_interne: g('f_ref_interne') || null, ref_fuscaq: g('f_ref_fuscaq') || null,
-      ref_cession_pme: g('f_ref_cession_pme') || null,
-      actif: document.getElementById('f_actif').checked,
-      updated_at: new Date().toISOString(),
+      nom: g('f_nom'), code_produit: g('f_code_produit') || null, categorie: g('f_categorie') || null,
+      description: g('f_description') || null, prix_eur: gN('f_prix_eur'), taxe: gN('f_taxe'),
+      unite: g('f_unite') || null, frequence_facturation: g('f_frequence_facturation') || null,
+      cycles_facturation: gI('f_cycles_facturation'), ref_interne: g('f_ref_interne') || null,
+      ref_fuscaq: g('f_ref_fuscaq') || null, ref_cession_pme: g('f_ref_cession_pme') || null,
+      actif: document.getElementById('f_actif').checked, updated_at: new Date().toISOString(),
     };
   }
 
@@ -277,9 +245,7 @@
     showToast('Produit supprimé'); closeDrawer(); init();
   }
 
-  function updateToggleLabel(checked) {
-    document.getElementById('toggleLabel').textContent = checked ? 'Produit actif' : 'Produit inactif';
-  }
+  function updateToggleLabel(checked) { document.getElementById('toggleLabel').textContent = checked ? 'Produit actif' : 'Produit inactif'; }
   document.getElementById('f_actif').addEventListener('change', function() { updateToggleLabel(this.checked); });
 
   function showToast(msg, isError = false) {
@@ -292,6 +258,7 @@
   (async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = 'login.html'; return; }
+    document.body.style.visibility = 'visible';
     init();
   })();
 </script>
