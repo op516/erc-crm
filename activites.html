@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
+    body { visibility: hidden; }
     .period-tabs { display:flex;gap:2px;padding:0 24px;border-bottom:1px solid #e0e6f0;background:#fff; }
     .ptab { padding:10px 16px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#6b778c;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:6px; }
     .ptab:hover { color:#172b4d; }
@@ -115,16 +116,10 @@
   <div style="flex:1"></div>
   <div class="view-toggle">
     <button class="view-btn" id="btn-cards" onclick="setView('cards')" title="Vue cartes">
-      <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="1" y="1" width="5" height="5" rx=".6"/><rect x="8" y="1" width="5" height="5" rx=".6"/>
-        <rect x="1" y="8" width="5" height="5" rx=".6"/><rect x="8" y="8" width="5" height="5" rx=".6"/>
-      </svg>
+      <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="5" height="5" rx=".6"/><rect x="8" y="1" width="5" height="5" rx=".6"/><rect x="1" y="8" width="5" height="5" rx=".6"/><rect x="8" y="8" width="5" height="5" rx=".6"/></svg>
     </button>
     <button class="view-btn active" id="btn-table" onclick="setView('table')" title="Vue tableau">
-      <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
-        <line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/>
-        <line x1="1" y1="10.5" x2="13" y2="10.5"/>
-      </svg>
+      <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="1" y1="3.5" x2="13" y2="3.5"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="10.5" x2="13" y2="10.5"/></svg>
     </button>
   </div>
 </div>
@@ -172,55 +167,23 @@
     </div>
     <div class="modal-body">
       <div class="form-row-2">
-        <div class="form-group">
-          <label>Type <span style="color:#de350b">*</span></label>
-          <select id="f-type">
-            <option value="">— Choisir —</option>
-            <option value="appel">📞 Appel</option>
-            <option value="rdv">🤝 RDV</option>
-            <option value="email">✉️ Email</option>
-            <option value="tache">✅ Tâche</option>
-            <option value="autre">Autre</option>
-          </select>
+        <div class="form-group"><label>Type <span style="color:#de350b">*</span></label>
+          <select id="f-type"><option value="">— Choisir —</option><option value="appel">📞 Appel</option><option value="rdv">🤝 RDV</option><option value="email">✉️ Email</option><option value="tache">✅ Tâche</option><option value="autre">Autre</option></select>
         </div>
-        <div class="form-group">
-          <label>Date <span style="color:#de350b">*</span></label>
-          <input type="date" id="f-date" />
-        </div>
+        <div class="form-group"><label>Date <span style="color:#de350b">*</span></label><input type="date" id="f-date" /></div>
       </div>
-      <div class="form-row-1">
-        <div class="form-group">
-          <label>Sujet</label>
-          <input type="text" id="f-sujet" placeholder="Ex : Appel de qualification Dupont" />
-        </div>
-      </div>
+      <div class="form-row-1"><div class="form-group"><label>Sujet</label><input type="text" id="f-sujet" placeholder="Ex : Appel de qualification Dupont" /></div></div>
       <div class="form-row-2">
         <div class="form-group"><label>Heure</label><input type="time" id="f-heure" /></div>
         <div class="form-group"><label>Lieu / Durée</label><input type="text" id="f-lieu" placeholder="Ex : Visio, 1h" /></div>
       </div>
-      <div class="form-row-1">
-        <div class="form-group"><label>Deal associé</label><select id="f-deal"><option value="">— Aucun —</option></select></div>
-      </div>
-      <div class="form-row-1">
-        <div class="form-group"><label>Entreprise associée</label><select id="f-entreprise"><option value="">— Aucune —</option></select></div>
-      </div>
-      <div class="form-row-1">
-        <div class="form-group"><label>Contact associé</label><select id="f-contact"><option value="">— Aucun —</option></select></div>
-      </div>
+      <div class="form-row-1"><div class="form-group"><label>Deal associé</label><select id="f-deal"><option value="">— Aucun —</option></select></div></div>
+      <div class="form-row-1"><div class="form-group"><label>Entreprise associée</label><select id="f-entreprise"><option value="">— Aucune —</option></select></div></div>
+      <div class="form-row-1"><div class="form-group"><label>Contact associé</label><select id="f-contact"><option value="">— Aucun —</option></select></div></div>
       <div id="faite-section" style="display:none">
-        <div class="faite-row">
-          <label for="f-faite">
-            <input type="checkbox" id="f-faite" />
-            Activité réalisée
-          </label>
-        </div>
+        <div class="faite-row"><label for="f-faite"><input type="checkbox" id="f-faite" />Activité réalisée</label></div>
       </div>
-      <div class="form-row-1">
-        <div class="form-group">
-          <label>Note / Compte-rendu</label>
-          <textarea id="f-note" placeholder="Contexte, points abordés, décisions…"></textarea>
-        </div>
-      </div>
+      <div class="form-row-1"><div class="form-group"><label>Note / Compte-rendu</label><textarea id="f-note" placeholder="Contexte, points abordés, décisions…"></textarea></div></div>
       <div id="notes-history-section" style="display:none">
         <div class="section-sep">Historique des notes</div>
         <div id="notes-history-list"></div>
@@ -249,9 +212,7 @@
   function fmtDateHeure(iso) { if(!iso)return'';const dt=new Date(iso);return dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})+' '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
 
   async function load() {
-    const {data,error}=await supabase.from('activites')
-      .select('*,deals(id,titre),entreprises(id,nom),contacts(id,prenom,nom)')
-      .order('date_echeance',{ascending:true});
+    const {data,error}=await supabase.from('activites').select('*,deals(id,titre),entreprises(id,nom),contacts(id,prenom,nom)').order('date_echeance',{ascending:true});
     if(error){showToast('Erreur chargement : '+error.message,true);return;}
     allActivites=data||[]; refreshBadge(); render();
   }
@@ -270,13 +231,7 @@
       if(currentPeriod==='retard')return !a.faite&&a.date_echeance&&a.date_echeance<t;
       if(currentPeriod==='today')return a.date_echeance===t;
       if(currentPeriod==='week')return a.date_echeance>=sow&&a.date_echeance<=eow;
-      if(q){
-        const sujet=(a.sujet||'').toLowerCase();
-        const deal=(a.deals?.titre||'').toLowerCase();
-        const ct=([a.contacts?.prenom,a.contacts?.nom].filter(Boolean).join(' ')).toLowerCase();
-        const ent=(a.entreprises?.nom||'').toLowerCase();
-        return sujet.includes(q)||deal.includes(q)||ct.includes(q)||ent.includes(q);
-      }
+      if(q){const sujet=(a.sujet||'').toLowerCase();const deal=(a.deals?.titre||'').toLowerCase();const ct=([a.contacts?.prenom,a.contacts?.nom].filter(Boolean).join(' ')).toLowerCase();const ent=(a.entreprises?.nom||'').toLowerCase();return sujet.includes(q)||deal.includes(q)||ct.includes(q)||ent.includes(q);}
       return true;
     });
   }
@@ -294,10 +249,7 @@
     if(currentPeriod==='all'||currentPeriod==='week'){
       const groups={};
       list.forEach(a=>{const k=a.date_echeance||'Sans date';(groups[k]=groups[k]||[]).push(a);});
-      area.innerHTML=Object.entries(groups).map(([date,items])=>{
-        const late=date!=='Sans date'&&date<todayStr();
-        return'<div class="group-label '+(late?'late':'')+'">'+( date==='Sans date'?'Sans date':fmtDate(date))+(late?' — En retard':'')+'</div>'+items.map(cardHTML).join('');
-      }).join('');
+      area.innerHTML=Object.entries(groups).map(([date,items])=>{const late=date!=='Sans date'&&date<todayStr();return'<div class="group-label '+(late?'late':'')+'">'+( date==='Sans date'?'Sans date':fmtDate(date))+(late?' — En retard':'')+'</div>'+items.map(cardHTML).join('');}).join('');
     } else { area.innerHTML=list.map(cardHTML).join(''); }
   }
 
@@ -322,8 +274,7 @@
     const {error}=await supabase.from('activites').update({faite:checked,date_fait:checked?new Date().toISOString():null}).eq('id',id);
     if(error){showToast('Erreur : '+error.message,true);return;}
     const idx=allActivites.findIndex(a=>a.id===id);if(idx!==-1)allActivites[idx].faite=checked;
-    refreshBadge();
-    if(currentPeriod==='retard'&&checked)setTimeout(()=>render(),600);
+    refreshBadge();if(currentPeriod==='retard'&&checked)setTimeout(()=>render(),600);
     showToast(checked?'Activité faite ✓':'Activité réouverte');
   }
 
@@ -348,11 +299,7 @@
 
   function sortBy(col) {
     if(sortCol===col){sortAsc=!sortAsc;}else{sortCol=col;sortAsc=true;}
-    ['type','sujet','lien','date','heure','faite'].forEach(c=>{
-      const el=document.getElementById('arr-'+c);if(!el)return;
-      el.classList.toggle('active',c===sortCol);
-      el.textContent=c===sortCol?(sortAsc?'↑':'↓'):'↕';
-    });
+    ['type','sujet','lien','date','heure','faite'].forEach(c=>{const el=document.getElementById('arr-'+c);if(!el)return;el.classList.toggle('active',c===sortCol);el.textContent=c===sortCol?(sortAsc?'↑':'↓'):'↕';});
     renderTable();
   }
 
@@ -392,10 +339,9 @@
     }).join('');
   }
 
-  async function openModal(prefill={}, evtOrNull=null, actId=null) {
-    modalMode = actId ? 'edit' : 'create';
-    editingId = actId;
-    const [{data:deals},{data:ents},{data:cts}] = await Promise.all([
+  async function openModal(prefill={},evtOrNull=null,actId=null) {
+    modalMode=actId?'edit':'create'; editingId=actId;
+    const [{data:deals},{data:ents},{data:cts}]=await Promise.all([
       supabase.from('deals').select('id,titre').eq('statut','ouvert').order('titre'),
       supabase.from('entreprises').select('id,nom').order('nom'),
       supabase.from('contacts').select('id,prenom,nom').order('nom')
@@ -404,40 +350,30 @@
     document.getElementById('f-entreprise').innerHTML='<option value="">— Aucune —</option>'+(ents||[]).map(e=>`<option value="${e.id}">${esc(e.nom)}</option>`).join('');
     document.getElementById('f-contact').innerHTML='<option value="">— Aucun —</option>'+(cts||[]).map(c=>`<option value="${c.id}">${esc([c.prenom,c.nom].filter(Boolean).join(' '))}</option>`).join('');
     if(actId) {
-      const a = allActivites.find(x=>x.id===actId);
-      if(!a) return;
-      document.getElementById('modal-title').textContent = 'Modifier l\'activité';
-      document.getElementById('btn-save-act').textContent = 'Enregistrer';
-      document.getElementById('btn-delete-act').style.display = 'inline-block';
-      document.getElementById('faite-section').style.display = 'block';
-      document.getElementById('f-type').value = a.type||'';
-      document.getElementById('f-date').value = a.date_echeance||'';
-      document.getElementById('f-sujet').value = a.sujet||'';
-      document.getElementById('f-heure').value = a.heure_echeance||'';
-      document.getElementById('f-lieu').value = a.lieu||'';
-      document.getElementById('f-deal').value = a.deal_id||'';
-      document.getElementById('f-entreprise').value = a.entreprise_id||'';
-      document.getElementById('f-contact').value = a.contact_id||'';
-      document.getElementById('f-note').value = '';
-      document.getElementById('f-faite').checked = a.faite||false;
-      document.getElementById('notes-history-section').style.display = 'block';
-      document.getElementById('notes-history-list').innerHTML = '<span style="font-size:13px;color:#9ba3b8">Chargement…</span>';
+      const a=allActivites.find(x=>x.id===actId); if(!a)return;
+      document.getElementById('modal-title').textContent='Modifier l\'activité';
+      document.getElementById('btn-save-act').textContent='Enregistrer';
+      document.getElementById('btn-delete-act').style.display='inline-block';
+      document.getElementById('faite-section').style.display='block';
+      document.getElementById('f-type').value=a.type||''; document.getElementById('f-date').value=a.date_echeance||'';
+      document.getElementById('f-sujet').value=a.sujet||''; document.getElementById('f-heure').value=a.heure_echeance||'';
+      document.getElementById('f-lieu').value=a.lieu||''; document.getElementById('f-deal').value=a.deal_id||'';
+      document.getElementById('f-entreprise').value=a.entreprise_id||''; document.getElementById('f-contact').value=a.contact_id||'';
+      document.getElementById('f-note').value=''; document.getElementById('f-faite').checked=a.faite||false;
+      document.getElementById('notes-history-section').style.display='block';
+      document.getElementById('notes-history-list').innerHTML='<span style="font-size:13px;color:#9ba3b8">Chargement…</span>';
       loadNotesHistory(a);
     } else {
-      document.getElementById('modal-title').textContent = 'Nouvelle activité';
-      document.getElementById('btn-save-act').textContent = 'Créer l\'activité';
-      document.getElementById('btn-delete-act').style.display = 'none';
-      document.getElementById('faite-section').style.display = 'none';
-      document.getElementById('notes-history-section').style.display = 'none';
-      document.getElementById('f-type').value = prefill.type||'';
-      document.getElementById('f-date').value = prefill.date||todayStr();
-      document.getElementById('f-sujet').value = '';
-      document.getElementById('f-heure').value = '';
-      document.getElementById('f-lieu').value = '';
-      document.getElementById('f-deal').value = prefill.deal_id||'';
-      document.getElementById('f-entreprise').value = prefill.entreprise_id||'';
-      document.getElementById('f-contact').value = prefill.contact_id||'';
-      document.getElementById('f-note').value = '';
+      document.getElementById('modal-title').textContent='Nouvelle activité';
+      document.getElementById('btn-save-act').textContent='Créer l\'activité';
+      document.getElementById('btn-delete-act').style.display='none';
+      document.getElementById('faite-section').style.display='none';
+      document.getElementById('notes-history-section').style.display='none';
+      document.getElementById('f-type').value=prefill.type||''; document.getElementById('f-date').value=prefill.date||todayStr();
+      document.getElementById('f-sujet').value=''; document.getElementById('f-heure').value='';
+      document.getElementById('f-lieu').value=''; document.getElementById('f-deal').value=prefill.deal_id||'';
+      document.getElementById('f-entreprise').value=prefill.entreprise_id||''; document.getElementById('f-contact').value=prefill.contact_id||'';
+      document.getElementById('f-note').value='';
     }
     document.getElementById('modalWrap').classList.add('open');
   }
@@ -448,75 +384,37 @@
     if(a.contact_id)filters.push(`contact_id.eq.${a.contact_id}`);
     if(a.entreprise_id)filters.push(`entreprise_id.eq.${a.entreprise_id}`);
     let notes=[];
-    if(filters.length){
-      const {data}=await supabase.from('notes').select('*').or(filters.join(',')).order('created_at',{ascending:false}).limit(10);
-      notes=data||[];
-    }
+    if(filters.length){const {data}=await supabase.from('notes').select('*').or(filters.join(',')).order('created_at',{ascending:false}).limit(10);notes=data||[];}
     const el=document.getElementById('notes-history-list');
     if(!notes.length){el.innerHTML='<div class="notes-empty">Aucune note pour ce dossier.</div>';return;}
     el.innerHTML=notes.map(n=>`<div class="note-item-m"><div class="note-d-m">${fmtDateHeure(n.created_at)}</div><div class="note-c-m">${esc(n.contenu||'')}</div></div>`).join('');
   }
 
-  function closeModal() {
-    document.getElementById('modalWrap').classList.remove('open');
-    modalMode='create'; editingId=null;
-  }
-
-  function handleModalOutside(e) {
-    if(e.target===document.getElementById('modalWrap')) closeModal();
-  }
+  function closeModal(){document.getElementById('modalWrap').classList.remove('open');modalMode='create';editingId=null;}
+  function handleModalOutside(e){if(e.target===document.getElementById('modalWrap'))closeModal();}
 
   async function saveModal() {
-    const type=document.getElementById('f-type').value;
-    const date=document.getElementById('f-date').value;
+    const type=document.getElementById('f-type').value;const date=document.getElementById('f-date').value;
     if(!type||!date){showToast('Type et date sont requis',true);return;}
-    const payload={
-      type,
-      sujet:         document.getElementById('f-sujet').value.trim()||null,
-      date_echeance: date,
-      heure_echeance:document.getElementById('f-heure').value||null,
-      lieu:          document.getElementById('f-lieu').value.trim()||null,
-      deal_id:       document.getElementById('f-deal').value||null,
-      entreprise_id: document.getElementById('f-entreprise').value||null,
-      contact_id:    document.getElementById('f-contact').value||null,
-      updated_at:    new Date().toISOString(),
-    };
-    const noteContenu = document.getElementById('f-note').value.trim();
-    if(modalMode==='edit') {
-      payload.faite = document.getElementById('f-faite').checked;
-      if(payload.faite && !allActivites.find(a=>a.id===editingId)?.faite) {
-        payload.date_fait = new Date().toISOString();
-      }
+    const payload={type,sujet:document.getElementById('f-sujet').value.trim()||null,date_echeance:date,heure_echeance:document.getElementById('f-heure').value||null,lieu:document.getElementById('f-lieu').value.trim()||null,deal_id:document.getElementById('f-deal').value||null,entreprise_id:document.getElementById('f-entreprise').value||null,contact_id:document.getElementById('f-contact').value||null,updated_at:new Date().toISOString()};
+    const noteContenu=document.getElementById('f-note').value.trim();
+    if(modalMode==='edit'){
+      payload.faite=document.getElementById('f-faite').checked;
+      if(payload.faite&&!allActivites.find(a=>a.id===editingId)?.faite)payload.date_fait=new Date().toISOString();
       const {error}=await supabase.from('activites').update(payload).eq('id',editingId);
       if(error){showToast('Erreur : '+error.message,true);return;}
-      if(noteContenu) {
-        const a=allActivites.find(x=>x.id===editingId);
-        await supabase.from('notes').insert([{contenu:noteContenu,deal_id:a?.deal_id||payload.deal_id||null,contact_id:a?.contact_id||payload.contact_id||null,entreprise_id:a?.entreprise_id||payload.entreprise_id||null}]);
-      }
+      if(noteContenu){const a=allActivites.find(x=>x.id===editingId);await supabase.from('notes').insert([{contenu:noteContenu,deal_id:a?.deal_id||payload.deal_id||null,contact_id:a?.contact_id||payload.contact_id||null,entreprise_id:a?.entreprise_id||payload.entreprise_id||null}]);}
       const idx=allActivites.findIndex(a=>a.id===editingId);
-      if(idx!==-1){
-        const refreshed={...allActivites[idx],...payload};
-        if(payload.deal_id!==allActivites[idx].deal_id||payload.entreprise_id!==allActivites[idx].entreprise_id||payload.contact_id!==allActivites[idx].contact_id){
-          const {data}=await supabase.from('activites').select('*,deals(id,titre),entreprises(id,nom),contacts(id,prenom,nom)').eq('id',editingId).single();
-          if(data)allActivites[idx]=data;
-        } else {
-          allActivites[idx]=refreshed;
-        }
-      }
+      if(idx!==-1){if(payload.deal_id!==allActivites[idx].deal_id||payload.entreprise_id!==allActivites[idx].entreprise_id||payload.contact_id!==allActivites[idx].contact_id){const {data}=await supabase.from('activites').select('*,deals(id,titre),entreprises(id,nom),contacts(id,prenom,nom)').eq('id',editingId).single();if(data)allActivites[idx]=data;}else{allActivites[idx]={...allActivites[idx],...payload};}}
       showToast('Activité mise à jour ✓');
     } else {
-      const {data,error}=await supabase.from('activites')
-        .insert([{...payload,faite:false}])
-        .select('*,deals(id,titre),entreprises(id,nom),contacts(id,prenom,nom)');
+      const {data,error}=await supabase.from('activites').insert([{...payload,faite:false}]).select('*,deals(id,titre),entreprises(id,nom),contacts(id,prenom,nom)');
       if(error){showToast('Erreur : '+error.message,true);return;}
-      if(noteContenu&&data[0]) {
-        await supabase.from('notes').insert([{contenu:noteContenu,deal_id:data[0].deal_id||null,contact_id:data[0].contact_id||null,entreprise_id:data[0].entreprise_id||null}]);
-      }
-      allActivites.push(data[0]);
-      allActivites.sort((a,b)=>(a.date_echeance||'').localeCompare(b.date_echeance||''));
+      if(noteContenu&&data[0])await supabase.from('notes').insert([{contenu:noteContenu,deal_id:data[0].deal_id||null,contact_id:data[0].contact_id||null,entreprise_id:data[0].entreprise_id||null}]);
+      allActivites.push(data[0]);allActivites.sort((a,b)=>(a.date_echeance||'').localeCompare(b.date_echeance||''));
       showToast('Activité créée ✓');
     }
-    closeModal(); refreshBadge(); render();
+    closeModal();refreshBadge();render();
   }
 
   async function deleteFromModal() {
@@ -524,7 +422,7 @@
     const {error}=await supabase.from('activites').delete().eq('id',editingId);
     if(error){showToast('Erreur : '+error.message,true);return;}
     allActivites=allActivites.filter(a=>a.id!==editingId);
-    closeModal(); refreshBadge(); render(); showToast('Activité supprimée');
+    closeModal();refreshBadge();render();showToast('Activité supprimée');
   }
 
   function showToast(msg,isError=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(isError?' error':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
@@ -533,6 +431,7 @@
   (async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = 'login.html'; return; }
+    document.body.style.visibility = 'visible';
     load();
   })();
 </script>
