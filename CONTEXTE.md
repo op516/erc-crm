@@ -91,7 +91,6 @@ Structure identique sur toutes les pages :
 
 - L'onglet actif prend la classe `active`
 - Ne jamais omettre un onglet
-- Ne jamais utiliser d'autre structure de nav
 - Le lien Deals s'appelle **"Deals / Pipelines"** — conforme dans tous les fichiers
 
 ---
@@ -110,11 +109,7 @@ Structure identique sur toutes les pages :
 ### Fourni par style.css — NE JAMAIS redéfinir dans une page
 `body`, reset `*`, `.topbar`, `.topbar-nav`, `.btn-primary`, `.btn-secondary`, `.btn-danger`, `.btn-save`, `.btn-close`, `.btn-reset`, `.toolbar`, `.search-input`, `.filter-select`, `.count-label`, `.table-wrap`, `table`, `thead`, `th`, `tbody tr`, `td`, `.empty-state`, `.avatar`, `.nom-wrap`, `.badge` (+ variantes), `.overlay`, `.drawer` + variantes, `.form-section`, `.form-row`, `.form-group`, `input/select/textarea`, `.field-hint`, `.toast`
 
-### CSS inline autorisé (strict spécifique à la page)
-Ce qui n'existe PAS dans style.css : kanban, pipeline selector, subbar, cards grid, view-toggle, badges couleur spécifiques, modals, éditeur d'étapes, color picker, period-tabs, type-filters, act-card, act-table, dashboard layout (kpi-row, dash-row, dash-card, pipeline-row, skel), toggle, etc.
-
 ### Convention toolbar
-Toutes les pages affichent un `<h1>` avec le nom de la page à gauche de la barre de recherche :
 ```html
 <h1 style="font-size:18px;font-weight:600;color:#172b4d;white-space:nowrap;margin-right:4px">Nom page</h1>
 ```
@@ -126,38 +121,61 @@ Toutes les pages affichent un `<h1>` avec le nom de la page à gauche de la barr
 | Fichier | État | Notes |
 |---|---|---|
 | `style.css` | ✓ Référence partagée | Ne pas modifier sans raison globale |
-| `contacts.html` | ✓ Livré | Drawer CRUD, modal activité rapide, nav corrigée |
-| `activites.html` | ✓ Livré | Vue tableau par défaut, modal unifié, nav corrigée |
-| `deals.html` | ✓ Livré | Kanban par défaut, full pipeline system, SELECT nettoyé |
-| `entreprises.html` | ✓ Livré | Vue table+cards, contacts liés, modal activité rapide |
-| `index.html` | ✓ Livré | Dashboard KPIs, nav corrigée |
-| `produits.html` | ✓ Livré | Filtre statut "Actifs" par défaut |
-| `login.html` | ✓ Livré | Auth Supabase |
+| `contacts.html` | ✓ Livré | Auth guard ✓ |
+| `activites.html` | ✓ Livré | Auth guard ✓, vue tableau par défaut |
+| `deals.html` | ✓ Livré | Auth guard ✓, full pipeline system |
+| `entreprises.html` | ✓ Livré | Auth guard ✓ |
+| `index.html` | ✓ Livré | Auth guard ✓, bouton déconnexion |
+| `produits.html` | ✓ Livré | Auth guard ✓, filtre "Actifs" par défaut |
+| `login.html` | ✓ Livré | Gère connexion + définition mot de passe invitation |
 | `leads.html` | ❌ À créer | |
 
 ---
 
-## 8. AUTH (à activer en prod)
+## 8. AUTH — ÉTAT RÉEL
 
-Guard silencieux en haut du `<script>` de chaque page :
+- Utilisateur Supabase créé (email Olivier)
+- `login.html` opérationnel : connexion + invitation
+- Guard auth sur toutes les pages (6) :
 ```javascript
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) window.location.href = 'login.html';
+  if (!session) { window.location.href = 'login.html'; return; }
+  document.body.style.visibility = 'visible';
+  init(); // ou load() ou loadDashboard()
 })();
 ```
+- Supabase URL Configuration : Site URL et Redirect URLs pointent sur `https://crm.erc-conseil.fr/login.html`
 
-**État réel** : aucune page n'a ce guard pour le moment. `index.html` a uniquement un bouton "Déconnexion" qui appelle `supabase.auth.signOut()`.
+### ⚠️ Point en suspens — Sécurité anti-flash
+Les pages sont visibles ~500ms avant la vérification auth (flash). Solution propre = middleware Vercel (non implémenté). Décision reportée à l'usage réel. `body { visibility: hidden; }` a été testé et retiré car ralentissait trop la navigation.
 
 ---
 
-## 9. DEALS.HTML — DÉTAIL COMPLET
+## 9. SÉCURITÉ SUPABASE — ÉTAT RÉEL
+
+### RLS activé (avril 2026)
+Row Level Security activé sur toutes les tables avec policy `auth_only` :
+- Accès uniquement aux utilisateurs authentifiés (`TO authenticated`)
+- Tables protégées : `entreprises`, `contacts`, `produits`, `leads`, `deals`, `activites`, `notes`, `documents`, `pipelines`, `pipeline_stages`
+
+### GitHub
+- Repo toujours **public** — ne contient pas de données sensibles
+- Clé Supabase `anon` dans `supabase-client.js` (normal — protégée par RLS)
+- `.env` ignoré par `.gitignore`
+
+### À faire
+- Passer le repo GitHub en **privé** (décision reportée)
+
+---
+
+## 10. DEALS.HTML — DÉTAIL COMPLET
 
 ### Tables Supabase (migration avril 2026)
 ```sql
-pipelines (id UUID PK, nom TEXT, created_at)
-pipeline_stages (id UUID PK, pipeline_id FK, nom TEXT, couleur TEXT, ordre INT)
-deals : pipeline_id UUID FK, stage_id UUID FK (en plus des champs existants)
+pipelines (id UUID PK, nom TEXT, created_at TIMESTAMP)
+pipeline_stages (id UUID PK, pipeline_id UUID FK, nom TEXT, couleur TEXT, ordre INT)
+deals : pipeline_id UUID FK, stage_id UUID FK
 ```
 
 ### Pipeline par défaut
@@ -165,134 +183,97 @@ Nom : "ERC Transmission"
 Étapes : Qualification → Diagnostic → Valorisation → Recherche → Négociation → Closing → Perdu
 
 ### Fonctionnalités réelles
-- Dropdown pipeline dans toolbar : liste + ✏️ renommage + "＋ Nouveau pipeline"
-- Créer pipeline : modal nom + éditeur d'étapes (nom + couleur via color picker)
+- Dropdown pipeline : liste + renommage + nouveau pipeline
+- Créer pipeline : modal nom + éditeur étapes (nom + couleur)
 - Vue Kanban (défaut) + vue liste, toggle
-- Subbar onglets par étape (vue liste uniquement)
-- Drag & drop kanban avec UPDATE Supabase + rollback optimiste
+- Subbar onglets par étape (vue liste)
+- Drag & drop kanban avec UPDATE Supabase + rollback
 - Clic carte/ligne → drawer édition deal
-- ↗ sur carte/ligne → modal transfert pipeline (reset étape 1 du pipeline cible)
-- Recherche texte toolbar (titre + entreprise)
-- Bouton "+ Nouveau deal" dans le topbar
-- Suppression deal : supprime d'abord les activités liées, puis le deal
+- ↗ transfert pipeline (reset étape 1 du pipeline cible)
+- Recherche texte (titre + entreprise)
+- Suppression deal : supprime d'abord activités liées
 
-### Drawer deal — champs réels
-- Affaire : titre*, entreprise, contact, produit, quantité, étape (stage), statut, raison perte (si perdu)
+### Drawer deal — champs
+- Affaire : titre*, entreprise, contact, produit, quantité, étape, statut, raison perte
 - Financier : valeur HT (auto), remise%, TVA%, valeur TTC (auto), probabilité%
 - Dates : date_closing_prevu, date_realisation, date_gain, date_perte
 - Notes
 
-### Calcul prix automatique
-- Sélection produit → `unitPrice` = `prix_eur`, TVA = `taxe` du produit
-- Modification quantité/remise/TVA → recalcul HT et TTC
-- `unitPrice` rechargé si deal existant avec produit
-
-### Champs Supabase réels utilisés dans le SELECT
+### Champs SELECT Supabase
 `id, titre, stage_id, statut, valeur, valeur_ht, remise, taux_tva, probabilite, date_closing_prevu, date_realisation, date_gain, date_perte, raison_perte, notes, entreprise_id, contact_id, produit_id, quantite, entreprises(nom)`
 
-### Champs écrits au INSERT/UPDATE
-`titre, entreprise_id, contact_id, produit_id, quantite, stage_id, pipeline_id, etape, statut, raison_perte, valeur_ht, remise, taux_tva, valeur, probabilite, date_closing_prevu, date_realisation, date_gain, date_perte, notes, updated_at`
-
 ---
 
-## 10. INDEX.HTML (DASHBOARD) — ÉTAT RÉEL
+## 11. INDEX.HTML (DASHBOARD) — ÉTAT RÉEL
 
-### KPIs affichés
-- Deals ouverts (count, statut = 'ouvert')
-- Valeur pondérée = somme(valeur × probabilite / 100)
-- Activités en retard (faite=false, date_echeance < today)
-- Contacts (count)
+### KPIs
+- Deals ouverts, valeur pondérée (valeur × probabilite / 100), activités en retard, contacts
 
 ### Section Pipeline
-⚠️ **Hardcodé** : utilise un tableau STAGES fixe avec les clés texte du champ `etape` (qualification, diagnostic, valorisation, recherche, negociation, closing). Ne lit PAS les tables `pipelines` ni `pipeline_stages`. À refactoriser si nécessaire.
-
-### Deals récents
-Les 8 derniers deals ouverts, grille 2 colonnes.
+⚠️ Hardcodé avec tableau STAGES fixe (clés texte `etape`). Ne lit pas `pipelines`/`pipeline_stages`.
 
 ### Activités
-Activités non faites avec date ≤ aujourd'hui (retard + aujourd'hui), limite 7.
+Non faites avec date ≤ aujourd'hui, limite 7.
+
+### Deals récents
+8 derniers deals ouverts, grille 2 colonnes.
 
 ---
 
-## 11. ACTIVITES.HTML — DÉTAIL COMPLET
+## 12. ACTIVITES.HTML — DÉTAIL COMPLET
 
-### Fonctionnalités réelles
-- Vue **tableau par défaut** (pas cartes)
-- Toggle vue : cartes / tableau
-- Tabs période : En retard | Aujourd'hui | Cette semaine | Toutes (défaut)
+- Vue tableau par défaut
+- Toggle cartes / tableau
+- Tabs : En retard | Aujourd'hui | Cette semaine | Toutes (défaut)
 - Filtres type : Tous | Appel | RDV | Email | Tâche
-- Badge rouge sur onglet "En retard" (compte automatique)
-- Tri colonnes en vue tableau (type, sujet, lié à, date, heure, fait)
-- Checkbox "fait" inline → UPDATE Supabase immédiat
-- Suppression inline (bouton ✕)
-- Modal unifié création + édition :
-  - Création : type*, date*, sujet, heure, lieu, deal, entreprise, contact, note
-  - Édition : + checkbox "Activité réalisée" + historique notes (table `notes`)
-  - Note saisie → insérée dans table `notes` avec les FKs deal/contact/entreprise
-
-### SELECT Supabase
-`activites` jointure `deals(id,titre)`, `entreprises(id,nom)`, `contacts(id,prenom,nom)`
+- Badge rouge onglet "En retard"
+- Tri colonnes en vue tableau
+- Checkbox "fait" inline → UPDATE immédiat
+- Modal unifié création + édition (avec historique notes)
+- Note saisie → insérée dans table `notes`
 
 ---
 
-## 12. CONTACTS.HTML — DÉTAIL COMPLET
+## 13. CONTACTS.HTML — DÉTAIL COMPLET
 
-### Fonctionnalités réelles
-- Vue tableau (unique)
+- Vue tableau unique
 - Recherche nom, filtres catégorie + origine
-- Drawer CRUD : identité, entreprise liée, coordonnées (email avec validation, tel avec formatage), adresse, notes
-- Bouton "+ Activité" dans drawer (modal rapide) : type, date, sujet, heure, deal, note → insère dans `activites` + `notes`
+- Drawer CRUD : identité, entreprise, coordonnées, adresse, notes
+- Bouton "+ Activité" dans drawer (modal rapide)
+- Validation email, formatage téléphone
 
 ---
 
-## 13. ENTREPRISES.HTML — DÉTAIL COMPLET
+## 14. ENTREPRISES.HTML — DÉTAIL COMPLET
 
-### Fonctionnalités réelles
 - Vue table + cards (toggle)
 - Recherche (nom, ville, secteur)
 - Drawer CRUD : nom, sigle, secteur, ville, CA, effectif, statut, département, commentaire
-- Section contacts liés (visible en édition) : rattacher/détacher contacts via UPDATE entreprise_id
-- Bouton "+ Activité" → modal rapide (type, date, sujet, heure, deal, note)
-- Drawer plus large : 560px (override style.css)
+- Contacts liés : rattacher/détacher
+- Bouton "+ Activité" → modal rapide
+- Drawer 560px
 
-### Statuts entreprise
-prospect / cible / mandat / actif / inactif
+### Statuts : prospect / cible / mandat / actif / inactif
 
 ---
 
-## 14. PRODUITS.HTML — DÉTAIL COMPLET
+## 15. PRODUITS.HTML — DÉTAIL COMPLET
 
-### Fonctionnalités réelles
 - Vue tableau
-- Recherche par nom
-- Filtre catégorie : Cession, Acquisition, Conseil, Diagnostic, Valorisation, Autre
-- Filtre statut : **"Actifs" sélectionné par défaut**
-- Drawer CRUD : Identification, Tarification, Références externes, Statut (toggle actif/inactif)
-- Suppression directe (confirm simple)
-
-### Points d'attention schema
-- Le champ TVA s'appelle `taxe` (pas `taux_tva`)
-- Champs clés : `id, nom, prix_eur, taxe, actif`
+- Recherche par nom, filtre catégorie, filtre statut ("Actifs" par défaut)
+- Drawer CRUD : Identification, Tarification, Références externes, Statut (toggle)
+- ⚠️ Champ TVA = `taxe` (pas `taux_tva`)
 
 ---
 
-## 15. SCHÉMA — POINTS D'ATTENTION
+## 16. SCHÉMA — POINTS D'ATTENTION
 
-### Table `produits`
-⚠️ Le champ TVA s'appelle `taxe` (pas `taux_tva`)
-
-### Table `deals` — champs réels utilisés
-`id, titre, entreprise_id, contact_id, etape, statut, raison_perte, valeur, valeur_ht, remise, taux_tva, probabilite, date_closing_prevu, date_realisation, date_gain, date_perte, notes, produit_id, quantite, pipeline_id, stage_id, updated_at`
-
-### Tables pipeline (migration avril 2026)
-```sql
-pipelines (id UUID PK, nom TEXT, created_at TIMESTAMP)
-pipeline_stages (id UUID PK, pipeline_id UUID FK, nom TEXT, couleur TEXT, ordre INT)
-```
+- Champ TVA produits : `taxe` (pas `taux_tva`)
+- Deals : `id, titre, entreprise_id, contact_id, etape, statut, raison_perte, valeur, valeur_ht, remise, taux_tva, probabilite, date_closing_prevu, date_realisation, date_gain, date_perte, notes, produit_id, quantite, pipeline_id, stage_id, updated_at`
 
 ---
 
-## 16. PROMPT DE DÉBUT DE SESSION
+## 17. PROMPT DE DÉBUT DE SESSION
 
 ```
 Lis ces fichiers dans cet ordre via web_fetch, confirme chaque lecture,
