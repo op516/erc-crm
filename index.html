@@ -8,262 +8,58 @@
   <script src="supabase-client.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-
   <style>
-    /* ── Dashboard layout ── */
-    .dash-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    /* ── KPI cards ── */
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
-    .kpi-card {
-      background: #fff;
-      border: 1px solid #e0e6f0;
-      border-radius: 8px;
-      padding: 20px 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      text-decoration: none;
-      transition: box-shadow 0.15s, border-color 0.15s;
-    }
-    .kpi-card:hover {
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-      border-color: #c5cce0;
-    }
-    .kpi-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #6b778c;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .kpi-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #172b4d;
-      line-height: 1.1;
-    }
-    .kpi-sub {
-      font-size: 12px;
-      color: #6b778c;
-      margin-top: 2px;
-    }
-    .kpi-icon {
-      font-size: 20px;
-      margin-bottom: 4px;
-    }
+    .dash-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .kpi-card { background: #fff; border: 1px solid #e0e6f0; border-radius: 8px; padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; transition: box-shadow 0.15s, border-color 0.15s; }
+    .kpi-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); border-color: #c5cce0; }
+    .kpi-label { font-size: 11px; font-weight: 600; color: #6b778c; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-value { font-size: 28px; font-weight: 700; color: #172b4d; line-height: 1.1; }
+    .kpi-sub { font-size: 12px; color: #6b778c; margin-top: 2px; }
     .kpi-card.alert .kpi-value { color: #de350b; }
     .kpi-card.success .kpi-value { color: #2e7d32; }
-
-    /* ── Sections ── */
-    .dash-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .dash-card {
-      background: #fff;
-      border: 1px solid #e0e6f0;
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: box-shadow 0.15s, border-color 0.15s;
-      text-decoration: none;
-      color: inherit;
-      display: block;
-    }
-    .dash-card:hover {
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-      border-color: #c5cce0;
-    }
-    .dash-card-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid #f0f0f0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .dash-card-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #172b4d;
-    }
-    .dash-card-link {
-      font-size: 12px;
-      color: #0052cc;
-      text-decoration: none;
-    }
-    .dash-card-link:hover { text-decoration: underline; }
+    .dash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .dash-card { background: #fff; border: 1px solid #e0e6f0; border-radius: 8px; overflow: hidden; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; text-decoration: none; color: inherit; display: block; }
+    .dash-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); border-color: #c5cce0; }
+    .dash-card-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+    .dash-card-title { font-size: 13px; font-weight: 600; color: #172b4d; }
     .dash-card-body { padding: 16px 20px; }
-
-    /* ── Pipeline ── */
-    .pipeline-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 9px 0;
-      border-bottom: 1px solid #f4f5f7;
-    }
+    .pipeline-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f4f5f7; }
     .pipeline-row:last-child { border-bottom: none; }
-    .pipeline-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .pipeline-label {
-      font-size: 13px;
-      color: #172b4d;
-      width: 110px;
-      flex-shrink: 0;
-    }
-    .pipeline-bar-wrap {
-      flex: 1;
-      height: 6px;
-      background: #f0f0f0;
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .pipeline-bar {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.4s ease;
-    }
-    .pipeline-count {
-      font-size: 12px;
-      color: #6b778c;
-      width: 24px;
-      text-align: right;
-      flex-shrink: 0;
-    }
-    .pipeline-val {
-      font-size: 12px;
-      font-weight: 600;
-      color: #172b4d;
-      width: 80px;
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    /* ── Activités ── */
-    .act-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid #f4f5f7;
-    }
+    .pipeline-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .pipeline-label { font-size: 13px; color: #172b4d; width: 110px; flex-shrink: 0; }
+    .pipeline-bar-wrap { flex: 1; height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
+    .pipeline-bar { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+    .pipeline-count { font-size: 12px; color: #6b778c; width: 24px; text-align: right; flex-shrink: 0; }
+    .pipeline-val { font-size: 12px; font-weight: 600; color: #172b4d; width: 80px; text-align: right; flex-shrink: 0; }
+    .act-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f5f7; }
     .act-item:last-child { border-bottom: none; }
-    .act-pill-sm {
-      flex-shrink: 0;
-      border-radius: 4px;
-      padding: 2px 7px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
+    .act-pill-sm { flex-shrink: 0; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
     .pill-appel { background: #deebff; color: #0052cc; }
     .pill-rdv   { background: #e3fcef; color: #006644; }
     .pill-email { background: #fffae6; color: #974f0c; }
     .pill-tache { background: #eae6ff; color: #403294; }
     .pill-autre { background: #f4f5f7; color: #6b778c; }
-    .act-sujet-sm {
-      flex: 1;
-      font-size: 13px;
-      color: #172b4d;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .act-date-sm {
-      font-size: 11px;
-      color: #6b778c;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+    .act-sujet-sm { flex: 1; font-size: 13px; color: #172b4d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .act-date-sm { font-size: 11px; color: #6b778c; white-space: nowrap; flex-shrink: 0; }
     .act-date-sm.late { color: #de350b; font-weight: 600; }
-
-    /* ── Deals récents ── */
-    .deal-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid #f4f5f7;
-    }
+    .deal-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f5f7; }
     .deal-item:last-child { border-bottom: none; }
     .deal-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .deal-info { flex: 1; min-width: 0; }
-    .deal-titre-sm {
-      font-size: 13px;
-      font-weight: 500;
-      color: #172b4d;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .deal-titre-sm { font-size: 13px; font-weight: 500; color: #172b4d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .deal-co-sm { font-size: 11px; color: #6b778c; }
-    .deal-val-sm {
-      font-size: 12px;
-      font-weight: 600;
-      color: #172b4d;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    /* ── Empty ── */
-    .dash-empty {
-      padding: 24px;
-      text-align: center;
-      font-size: 13px;
-      color: #6b778c;
-    }
-
-    /* ── Skeleton loader ── */
-    .skel {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: skel 1.2s infinite;
-      border-radius: 4px;
-      height: 14px;
-      margin-bottom: 8px;
-    }
+    .deal-val-sm { font-size: 12px; font-weight: 600; color: #172b4d; white-space: nowrap; flex-shrink: 0; }
+    .dash-empty { padding: 24px; text-align: center; font-size: 13px; color: #6b778c; }
+    .skel { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skel 1.2s infinite; border-radius: 4px; height: 14px; margin-bottom: 8px; }
     @keyframes skel { to { background-position: -200% 0; } }
-
-    /* ── Bouton déconnexion ── */
-    .btn-logout {
-      background: none;
-      border: 1px solid rgba(255,255,255,0.3);
-      color: rgba(255,255,255,0.8);
-      border-radius: 4px;
-      padding: 6px 12px;
-      font-size: 13px;
-      font-family: 'DM Sans', sans-serif;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
+    .btn-logout { background: none; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); border-radius: 4px; padding: 6px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s; }
     .btn-logout:hover { background: rgba(255,255,255,0.1); color: #fff; }
-
-    /* ── Responsive ── */
-    @media (max-width: 900px) {
-      .kpi-row { grid-template-columns: repeat(2, 1fr); }
-      .dash-row { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } .dash-row { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-left">
     <h1>ERC CRM</h1>
@@ -279,48 +75,27 @@
   <button class="btn-logout" onclick="logout()">Déconnexion</button>
 </div>
 
-<!-- DASHBOARD -->
 <div class="dash-body">
-
-  <!-- KPIs -->
   <div class="kpi-row" id="kpiRow">
     <div class="kpi-card"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:28px"></div></div>
     <div class="kpi-card"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:28px"></div></div>
     <div class="kpi-card"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:28px"></div></div>
     <div class="kpi-card"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:28px"></div></div>
   </div>
-
-  <!-- Pipeline + Activités -->
   <div class="dash-row">
     <a class="dash-card" href="deals.html">
-      <div class="dash-card-header">
-        <span class="dash-card-title">Pipeline deals</span>
-      </div>
-      <div class="dash-card-body" id="pipelineBody">
-        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-      </div>
+      <div class="dash-card-header"><span class="dash-card-title">Pipeline deals</span></div>
+      <div class="dash-card-body" id="pipelineBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
     </a>
-
     <a class="dash-card" href="activites.html">
-      <div class="dash-card-header">
-        <span class="dash-card-title">Activités en retard &amp; aujourd'hui</span>
-      </div>
-      <div class="dash-card-body" id="activitesBody">
-        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-      </div>
+      <div class="dash-card-header"><span class="dash-card-title">Activités en retard &amp; aujourd'hui</span></div>
+      <div class="dash-card-body" id="activitesBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
     </a>
   </div>
-
-  <!-- Deals récents -->
   <a class="dash-card" href="deals.html">
-    <div class="dash-card-header">
-      <span class="dash-card-title">Deals récents</span>
-    </div>
-    <div class="dash-card-body" id="dealsBody">
-      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-    </div>
+    <div class="dash-card-header"><span class="dash-card-title">Deals récents</span></div>
+    <div class="dash-card-body" id="dealsBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
   </a>
-
 </div>
 
 <script>
@@ -332,7 +107,6 @@
     { key: 'negociation',   label: 'Négociation',   color: '#eab308' },
     { key: 'closing',       label: 'Closing',       color: '#22c55e' },
   ];
-
   const TYPE_LBL = { appel:'📞 Appel', rdv:'🤝 RDV', email:'✉️ Email', tache:'✅ Tâche', autre:'Autre' };
   const TYPE_CLS = { appel:'pill-appel', rdv:'pill-rdv', email:'pill-email', tache:'pill-tache' };
 
@@ -342,43 +116,21 @@
     if (n >= 1_000)     return Math.round(n / 1_000) + ' k€';
     return n + ' €';
   }
-
   function todayStr() { return new Date().toISOString().split('T')[0]; }
-
-  function fmtDateShort(s) {
-    if (!s) return '';
-    return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
-  }
-
-  function esc(s) {
-    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  function fmtDateShort(s) { if (!s) return ''; return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { day:'2-digit', month:'short' }); }
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   async function loadDashboard() {
     const today = todayStr();
-
-    const [
-      { data: deals },
-      { data: activites },
-      { data: contacts },
-      { data: entreprises },
-    ] = await Promise.all([
+    const [{ data: deals }, { data: activites }, { data: contacts }] = await Promise.all([
       supabase.from('deals').select('id,titre,etape,statut,valeur,probabilite,created_at,entreprises(nom)').eq('statut','ouvert').order('created_at', { ascending: false }),
       supabase.from('activites').select('id,type,sujet,date_echeance,faite,deals(titre),entreprises(nom)').eq('faite', false).order('date_echeance', { ascending: true }),
       supabase.from('contacts').select('id', { count: 'exact', head: true }),
-      supabase.from('entreprises').select('id', { count: 'exact', head: true }),
     ]);
-
     const allDeals     = deals      || [];
     const allActivites = activites  || [];
-
-    // ── KPIs ──
     const pipeline = allDeals.filter(d => d.etape !== 'perdu');
-    const valeurPonderee = pipeline.reduce((s, d) => {
-      const v = parseFloat(d.valeur) || 0;
-      const p = parseFloat(d.probabilite) || 0;
-      return s + (v * p / 100);
-    }, 0);
+    const valeurPonderee = pipeline.reduce((s, d) => s + ((parseFloat(d.valeur)||0) * (parseFloat(d.probabilite)||0) / 100), 0);
     const enRetard = allActivites.filter(a => a.date_echeance && a.date_echeance < today).length;
     const nbContacts = contacts?.length ?? '—';
 
@@ -402,61 +154,41 @@
         <div class="kpi-label">Contacts</div>
         <div class="kpi-value">${nbContacts}</div>
         <div class="kpi-sub">dans la base</div>
-      </a>
-    `;
+      </a>`;
 
-    // ── Pipeline ──
     const maxCount = Math.max(...STAGES.map(s => allDeals.filter(d => d.etape === s.key).length), 1);
     document.getElementById('pipelineBody').innerHTML = STAGES.map(s => {
       const stageDeals = allDeals.filter(d => d.etape === s.key);
       const count = stageDeals.length;
-      const valPonderee = stageDeals.reduce((sum, d) => {
-        const v = parseFloat(d.valeur) || 0;
-        const p = parseFloat(d.probabilite) || 0;
-        return sum + (v * p / 100);
-      }, 0);
+      const valPonderee = stageDeals.reduce((sum, d) => sum + ((parseFloat(d.valeur)||0) * (parseFloat(d.probabilite)||0) / 100), 0);
       const pct = Math.round((count / maxCount) * 100);
-      return `
-        <div class="pipeline-row">
-          <div class="pipeline-dot" style="background:${s.color}"></div>
-          <div class="pipeline-label">${s.label}</div>
-          <div class="pipeline-bar-wrap">
-            <div class="pipeline-bar" style="width:${pct}%;background:${s.color};opacity:0.7"></div>
-          </div>
-          <div class="pipeline-count">${count}</div>
-          <div class="pipeline-val">${valPonderee > 0 ? fmtEur(valPonderee) : ''}</div>
-        </div>`;
+      return `<div class="pipeline-row">
+        <div class="pipeline-dot" style="background:${s.color}"></div>
+        <div class="pipeline-label">${s.label}</div>
+        <div class="pipeline-bar-wrap"><div class="pipeline-bar" style="width:${pct}%;background:${s.color};opacity:0.7"></div></div>
+        <div class="pipeline-count">${count}</div>
+        <div class="pipeline-val">${valPonderee > 0 ? fmtEur(valPonderee) : ''}</div>
+      </div>`;
     }).join('');
 
-    // ── Activités ──
-    const actToShow = allActivites
-      .filter(a => a.date_echeance <= today)
-      .slice(0, 7);
-
+    const actToShow = allActivites.filter(a => a.date_echeance <= today).slice(0, 7);
     if (!actToShow.length) {
-      document.getElementById('activitesBody').innerHTML =
-        '<div class="dash-empty">Aucune activité en retard ni aujourd\'hui 👌</div>';
+      document.getElementById('activitesBody').innerHTML = '<div class="dash-empty">Aucune activité en retard ni aujourd\'hui 👌</div>';
     } else {
       document.getElementById('activitesBody').innerHTML = actToShow.map(a => {
         const late = a.date_echeance < today;
         const lien = a.deals?.titre || a.entreprises?.nom || '';
-        return `
-          <div class="act-item">
-            <span class="act-pill-sm ${TYPE_CLS[a.type]||'pill-autre'}">${TYPE_LBL[a.type]||'Autre'}</span>
-            <div class="act-sujet-sm" title="${esc(a.sujet||'')}">
-              ${esc(a.sujet || '(sans sujet)')}
-              ${lien ? `<span style="color:#6b778c;font-weight:400;"> · ${esc(lien)}</span>` : ''}
-            </div>
-            <div class="act-date-sm ${late ? 'late' : ''}">${fmtDateShort(a.date_echeance)}</div>
-          </div>`;
+        return `<div class="act-item">
+          <span class="act-pill-sm ${TYPE_CLS[a.type]||'pill-autre'}">${TYPE_LBL[a.type]||'Autre'}</span>
+          <div class="act-sujet-sm">${esc(a.sujet || '(sans sujet)')}${lien ? ` <span style="color:#6b778c;font-weight:400;"> · ${esc(lien)}</span>` : ''}</div>
+          <div class="act-date-sm ${late ? 'late' : ''}">${fmtDateShort(a.date_echeance)}</div>
+        </div>`;
       }).join('');
     }
 
-    // ── Deals récents ──
     const recentDeals = allDeals.slice(0, 8);
     if (!recentDeals.length) {
-      document.getElementById('dealsBody').innerHTML =
-        '<div class="dash-empty">Aucun deal ouvert pour le moment.</div>';
+      document.getElementById('dealsBody').innerHTML = '<div class="dash-empty">Aucun deal ouvert pour le moment.</div>';
     } else {
       const stageMap = Object.fromEntries(STAGES.map(s => [s.key, s]));
       document.getElementById('dealsBody').innerHTML =
@@ -464,17 +196,15 @@
         recentDeals.map(d => {
           const stage = stageMap[d.etape] || { color: '#dfe1e6' };
           const co    = d.entreprises?.nom || '';
-          return `
-            <div class="deal-item">
-              <div class="deal-dot" style="background:${stage.color}"></div>
-              <div class="deal-info">
-                <div class="deal-titre-sm">${esc(d.titre)}</div>
-                ${co ? `<div class="deal-co-sm">${esc(co)}</div>` : ''}
-              </div>
-              <div class="deal-val-sm">${fmtEur(parseFloat(d.valeur))}</div>
-            </div>`;
-        }).join('') +
-        `</div>`;
+          return `<div class="deal-item">
+            <div class="deal-dot" style="background:${stage.color}"></div>
+            <div class="deal-info">
+              <div class="deal-titre-sm">${esc(d.titre)}</div>
+              ${co ? `<div class="deal-co-sm">${esc(co)}</div>` : ''}
+            </div>
+            <div class="deal-val-sm">${fmtEur(parseFloat(d.valeur))}</div>
+          </div>`;
+        }).join('') + `</div>`;
     }
   }
 
@@ -483,7 +213,11 @@
     window.location.href = 'login.html';
   }
 
-  (async()=>{const{data:{session}}=await supabase.auth.getSession();if(!session)window.location.href='login.html';})();loadDashboard();
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    loadDashboard();
+  })();
 </script>
 </body>
 </html>
