@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <style>
+    body { visibility: hidden; }
     .view-toggle { display: flex; border: 1px solid #dfe1e6; border-radius: 4px; overflow: hidden; }
     .view-btn { height: 36px; width: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: white; border: none; color: #6b778c; transition: background 0.15s, color 0.15s; }
     .view-btn.active { background: #172b4d; color: white; }
@@ -116,14 +117,8 @@
     <div class="form-section">
       <div class="form-section-title">Informations</div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Nom *</label>
-          <input type="text" id="f_nom" placeholder="Raison sociale" />
-        </div>
-        <div class="form-group" style="flex:0 0 130px">
-          <label>Sigle</label>
-          <input type="text" id="f_sigle" placeholder="SAS, SARL…" />
-        </div>
+        <div class="form-group"><label>Nom *</label><input type="text" id="f_nom" placeholder="Raison sociale" /></div>
+        <div class="form-group" style="flex:0 0 130px"><label>Sigle</label><input type="text" id="f_sigle" placeholder="SAS, SARL…" /></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>Secteur d'activité</label><input type="text" id="f_secteur_activite" /></div>
@@ -137,24 +132,16 @@
         <div class="form-group" style="flex:0 0 180px">
           <label>Statut</label>
           <select id="f_statut">
-            <option value="prospect">Prospect</option>
-            <option value="cible">Cible</option>
-            <option value="mandat">Mandat</option>
-            <option value="actif">Actif</option>
-            <option value="inactif">Inactif</option>
+            <option value="prospect">Prospect</option><option value="cible">Cible</option>
+            <option value="mandat">Mandat</option><option value="actif">Actif</option><option value="inactif">Inactif</option>
           </select>
         </div>
-        <div class="form-group" style="flex:0 0 120px">
-          <label>Département</label>
-          <input type="text" id="f_departement" />
-        </div>
+        <div class="form-group" style="flex:0 0 120px"><label>Département</label><input type="text" id="f_departement" /></div>
       </div>
     </div>
     <div class="form-section">
       <div class="form-section-title">Notes</div>
-      <div class="form-row">
-        <div class="form-group"><textarea id="f_commentaire" rows="4" placeholder="Notes libres…"></textarea></div>
-      </div>
+      <div class="form-row"><div class="form-group"><textarea id="f_commentaire" rows="4" placeholder="Notes libres…"></textarea></div></div>
     </div>
     <div class="form-section" id="sectionContacts" style="display:none">
       <div class="form-section-title">Contacts liés</div>
@@ -178,29 +165,21 @@
     <div class="modal-body">
       <div id="actEntLabel" style="background:#e3ecfa;border:1px solid #c5d8fc;border-radius:4px;padding:7px 12px;font-size:12px;color:#0052cc;font-weight:600;margin-bottom:14px"></div>
       <div class="modal-grid-2">
-        <div class="form-group">
-          <label>Type *</label>
+        <div class="form-group"><label>Type *</label>
           <select class="form-control" id="act_type">
-            <option value="">— Choisir —</option>
-            <option value="appel">📞 Appel</option>
-            <option value="rdv">🤝 RDV</option>
-            <option value="email">✉️ Email</option>
-            <option value="tache">✅ Tâche</option>
-            <option value="autre">Autre</option>
+            <option value="">— Choisir —</option><option value="appel">📞 Appel</option>
+            <option value="rdv">🤝 RDV</option><option value="email">✉️ Email</option>
+            <option value="tache">✅ Tâche</option><option value="autre">Autre</option>
           </select>
         </div>
         <div class="form-group"><label>Date *</label><input type="date" class="form-control" id="act_date" /></div>
       </div>
-      <div class="modal-row">
-        <div class="form-group"><label>Sujet</label><input type="text" class="form-control" id="act_sujet" placeholder="Ex : Appel de suivi" /></div>
-      </div>
+      <div class="modal-row"><div class="form-group"><label>Sujet</label><input type="text" class="form-control" id="act_sujet" placeholder="Ex : Appel de suivi" /></div></div>
       <div class="modal-grid-2">
         <div class="form-group"><label>Heure</label><input type="time" class="form-control" id="act_heure" /></div>
         <div class="form-group"><label>Deal associé</label><select class="form-control" id="act_deal"><option value="">— Aucun —</option></select></div>
       </div>
-      <div class="modal-row">
-        <div class="form-group"><label>Note</label><textarea class="form-control" id="act_note" placeholder="Contexte…"></textarea></div>
-      </div>
+      <div class="modal-row"><div class="form-group"><label>Note</label><textarea class="form-control" id="act_note" placeholder="Contexte…"></textarea></div></div>
     </div>
     <div class="modal-footer">
       <button class="btn-ghost" onclick="closeActModal()">Annuler</button>
@@ -221,8 +200,7 @@
       db.from('contacts').select('id, prenom, nom, fonction, email_travail, tel_mobile, entreprise_id').order('nom')
     ]);
     if (error) { showToast('Erreur chargement : ' + error.message, true); return; }
-    allData     = ents || [];
-    allContacts = cts  || [];
+    allData = ents || []; allContacts = cts || [];
     renderCurrent();
   }
 
@@ -256,8 +234,7 @@
         <td>${e.ca_annuel!=null?formatCA(e.ca_annuel):'<span style="color:#c1c7d0">—</span>'}</td>
         <td>${e.nb_employes!=null?e.nb_employes:'<span style="color:#c1c7d0">—</span>'}</td>
         <td>${badge(e.statut)}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>`;
+      </tr>`).join('')}</tbody></table></div>`;
   }
 
   function renderCards(data) {
@@ -283,17 +260,14 @@
   }
 
   function openDrawer(id) {
-    currentId = id;
-    clearForm();
+    currentId = id; clearForm();
     document.getElementById('sectionContacts').style.display = 'none';
     if (id) {
-      const e = allData.find(x => x.id === id);
-      if (!e) return;
+      const e = allData.find(x => x.id === id); if (!e) return;
       document.getElementById('drawerTitle').textContent = e.nom || 'Entreprise';
       document.getElementById('btnDelete').style.display = 'inline-block';
       document.getElementById('btnActDrawer').style.display = 'inline-block';
-      fillForm(e);
-      renderLinkedContacts();
+      fillForm(e); renderLinkedContacts();
       document.getElementById('sectionContacts').style.display = 'block';
     } else {
       document.getElementById('drawerTitle').textContent = 'Nouvelle entreprise';
@@ -318,26 +292,20 @@
 
   function fillForm(e) {
     const s = (id, v) => { document.getElementById(id).value = v ?? ''; };
-    s('f_nom', e.nom); s('f_sigle', e.sigle);
-    s('f_secteur_activite', e.secteur_activite); s('f_ville', e.ville);
-    s('f_ca_annuel', e.ca_annuel); s('f_nb_employes', e.nb_employes);
-    s('f_statut', e.statut || 'prospect'); s('f_departement', e.departement);
-    s('f_commentaire', e.commentaire);
+    s('f_nom', e.nom); s('f_sigle', e.sigle); s('f_secteur_activite', e.secteur_activite);
+    s('f_ville', e.ville); s('f_ca_annuel', e.ca_annuel); s('f_nb_employes', e.nb_employes);
+    s('f_statut', e.statut || 'prospect'); s('f_departement', e.departement); s('f_commentaire', e.commentaire);
   }
 
   function getFormData() {
     const g = id => document.getElementById(id).value.trim();
     return {
-      nom:              g('f_nom'),
-      sigle:            g('f_sigle')            || null,
-      secteur_activite: g('f_secteur_activite') || null,
-      ville:            g('f_ville')            || null,
-      ca_annuel:        g('f_ca_annuel')        ? parseFloat(g('f_ca_annuel'))     : null,
-      nb_employes:      g('f_nb_employes')      ? parseInt(g('f_nb_employes'), 10) : null,
-      statut:           g('f_statut')           || 'prospect',
-      departement:      g('f_departement')      || null,
-      commentaire:      g('f_commentaire')      || null,
-      updated_at:       new Date().toISOString(),
+      nom: g('f_nom'), sigle: g('f_sigle') || null,
+      secteur_activite: g('f_secteur_activite') || null, ville: g('f_ville') || null,
+      ca_annuel: g('f_ca_annuel') ? parseFloat(g('f_ca_annuel')) : null,
+      nb_employes: g('f_nb_employes') ? parseInt(g('f_nb_employes'), 10) : null,
+      statut: g('f_statut') || 'prospect', departement: g('f_departement') || null,
+      commentaire: g('f_commentaire') || null, updated_at: new Date().toISOString(),
     };
   }
 
@@ -356,18 +324,17 @@
     if (!confirm('Supprimer cette entreprise ? Cette action est irréversible.')) return;
     const { error } = await db.from('entreprises').delete().eq('id', currentId);
     if (error) { showToast('Erreur : ' + error.message, true); return; }
-    showToast('Entreprise supprimée');
-    closeDrawer(); init();
+    showToast('Entreprise supprimée'); closeDrawer(); init();
   }
 
   function renderLinkedContacts() {
-    const linked   = allContacts.filter(c => c.entreprise_id === currentId);
+    const linked = allContacts.filter(c => c.entreprise_id === currentId);
     const unlinked = allContacts.filter(c => !c.entreprise_id || c.entreprise_id !== currentId);
     const list = document.getElementById('contactsLinkedList');
     list.innerHTML = !linked.length
       ? '<p style="font-size:13px;color:#6b778c;margin-bottom:8px">Aucun contact rattaché.</p>'
       : linked.map(c => {
-          const nom  = [c.prenom, c.nom].filter(Boolean).join(' ');
+          const nom = [c.prenom, c.nom].filter(Boolean).join(' ');
           const meta = [c.fonction, c.email_travail, c.tel_mobile].filter(Boolean).join(' · ');
           return `<div class="contact-linked">
             <div class="contact-linked-info">
@@ -405,11 +372,11 @@
 
   async function openActModal() {
     document.getElementById('actEntLabel').textContent = '🏢 ' + document.getElementById('drawerTitle').textContent;
-    document.getElementById('act_type').value  = '';
-    document.getElementById('act_date').value  = new Date().toISOString().split('T')[0];
+    document.getElementById('act_type').value = '';
+    document.getElementById('act_date').value = new Date().toISOString().split('T')[0];
     document.getElementById('act_sujet').value = '';
     document.getElementById('act_heure').value = '';
-    document.getElementById('act_note').value  = '';
+    document.getElementById('act_note').value = '';
     const { data: deals } = await db.from('deals').select('id, titre').eq('statut', 'ouvert').order('titre');
     document.getElementById('act_deal').innerHTML = '<option value="">— Aucun —</option>'
       + (deals || []).map(d => `<option value="${d.id}">${esc(d.titre)}</option>`).join('');
@@ -424,11 +391,10 @@
     if (!type || !date) { showToast('Type et date sont requis', true); return; }
     const payload = {
       type, date_echeance: date,
-      sujet:          document.getElementById('act_sujet').value.trim() || null,
-      heure_echeance: document.getElementById('act_heure').value        || null,
-      deal_id:        document.getElementById('act_deal').value         || null,
-      entreprise_id:  currentId || null,
-      faite: false,
+      sujet: document.getElementById('act_sujet').value.trim() || null,
+      heure_echeance: document.getElementById('act_heure').value || null,
+      deal_id: document.getElementById('act_deal').value || null,
+      entreprise_id: currentId || null, faite: false,
     };
     const { data, error } = await db.from('activites').insert([payload]).select('id');
     if (error) { showToast('Erreur : ' + error.message, true); return; }
@@ -442,18 +408,10 @@
   document.getElementById('actModalWrap').addEventListener('click', e => {
     if (e.target === document.getElementById('actModalWrap')) closeActModal();
   });
-
   document.getElementById('searchInput').addEventListener('input', renderCurrent);
 
-  function esc(str) {
-    if (str == null) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  function formatCA(n) {
-    if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.0','') + ' M€';
-    if (n >= 1_000) return Math.round(n/1_000) + ' K€';
-    return n + ' €';
-  }
+  function esc(str) { if (str == null) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function formatCA(n) { if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.0','') + ' M€'; if (n >= 1_000) return Math.round(n/1_000) + ' K€'; return n + ' €'; }
   function badge(statut) {
     const map = { prospect:['badge-prospect','Prospect'], actif:['badge-actif','Actif'], inactif:['badge-inactif','Inactif'], cible:['badge-cible','Cible'], mandat:['badge-mandat','Mandat'] };
     const [cls, label] = map[statut] || ['badge-inactif', statut || '—'];
@@ -461,15 +419,14 @@
   }
   function showToast(msg, isError = false) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast' + (isError ? ' error' : '');
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
+    t.textContent = msg; t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
   }
 
   (async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { window.location.href = 'login.html'; return; }
+    document.body.style.visibility = 'visible';
     init();
   })();
 </script>
